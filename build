@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+
+import os
+import subprocess
+import sys
+
+# Bootstrapping
+# =============
+
+# Make sure the KNinja repo is available.
+#
+subprocess.check_call(['git', 'submodule', 'update', '--init', '--recursive'])
+extdir = 'ext'
+sys.path.append(os.path.join(os.path.dirname(__file__), extdir))
+
+from kninja import *
+
+# Build
+# =====
+
+proj = KProject(extdir = extdir)
+boogie = proj.definition( alias         = 'boogie'
+                        , backend       = 'haskell'
+                        , main          = 'boogie.md'
+                        , runner_script = './boogie'
+                        )
+
+proj.main()
