@@ -7,3 +7,6 @@
 [submodule "ext/pandoc-tangle"]
 	path = ext/pandoc-tangle
 	url = https://github.com/ehildenb/pandoc-tangle
+[submodule "ext/boogie"]
+	path = ext/boogie
+	url = https://github.com/boogie-org/boogie/

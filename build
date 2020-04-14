@@ -22,7 +22,20 @@ proj = KProject(extdir = extdir)
 boogie = proj.definition( alias         = 'boogie'
                         , backend       = 'haskell'
                         , main          = 'boogie.md'
+                        , other         = ['syntax.md']
                         , runner_script = './boogie'
                         )
+
+# Parsing tests
+# =============
+
+# TODO: A DSL for this should be provide by KNinja
+tests = []
+for test in glob('ext/boogie/Test/**/*.bpl'):
+    tests += [proj.source(test).then(boogie.kast())]
+proj.alias('parse-tests', tests).default()
+ 
+# Main
+# ====
 
 proj.main()
