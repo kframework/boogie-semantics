@@ -31,8 +31,12 @@ boogie = proj.definition( alias         = 'boogie'
 
 # TODO: A DSL for this should be provide by KNinja
 tests = []
-for test in glob('ext/boogie/Test/**/*.bpl'):
-    tests += [proj.source(test).then(boogie.kast())]
+# our own tests to get us started, simpler than the Boogie test suite
+tests += [proj.source(test).then(boogie.kast()) for test in glob('./test/**/*.bpl')]
+# start with just test- prefixed directories for now, worry about the others later
+tests += [proj.source(test).then(boogie.kast()) 
+            for test in glob('ext/boogie/Test/test*/*.bpl')]
+
 proj.alias('parse-tests', tests).default()
  
 # Main
