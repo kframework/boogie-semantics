@@ -20,24 +20,24 @@ from kninja import *
 
 proj = KProject(extdir = extdir)
 boogie = proj.definition( alias         = 'boogie'
-                        , backend       = 'haskell'
                         , main          = 'boogie.md'
                         , other         = ['syntax.md']
+                        , backend       = 'haskell'
+                        , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX'
                         , runner_script = './boogie'
                         )
 
 # Parsing tests
 # =============
 
-# TODO: A DSL for this should be provide by KNinja
-tests = []
-# our own tests to get us started, simpler than the Boogie test suite
-tests += [proj.source(test).then(boogie.kast()) for test in glob('./test/**/*.bpl')]
-# start with just test- prefixed directories for now, worry about the others later
-tests += [proj.source(test).then(boogie.kast()) 
-            for test in glob('ext/boogie/Test/test*/*.bpl')]
-
-proj.alias('parse-tests', tests).default()
+# parse_tests = []
+# parse_tests += [proj.source(test).then(boogie.kast()) for test in glob('ext/boogie/Test/test*/*.bpl')]
+# proj.alias('parse-tests', parse_tests).default()
+ 
+exec_tests = []
+# Our own tests to get us started, simpler than the Boogie test suite
+exec_tests += [proj.source(test).then(boogie.krun()) for test in glob('./test/**/*.bpl')]
+proj.alias('exec-tests', exec_tests).default()
  
 # Main
 # ====
