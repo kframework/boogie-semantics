@@ -36,7 +36,7 @@ boogie = proj.definition( alias         = 'boogie'
  
 exec_tests = []
 # Our own tests to get us started, simpler than the Boogie test suite
-exec_tests += [proj.source(test).then(boogie.krun()) for test in glob('./test/**/*.bpl')]
+exec_tests += [proj.source(test).then(boogie.krun().variable('flags', '--search-final')) for test in glob('./test/**/*.bpl')]
 proj.alias('exec-tests', exec_tests).default()
  
 # Main
