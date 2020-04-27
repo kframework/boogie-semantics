@@ -33,25 +33,22 @@ boogie = proj.definition( alias         = 'boogie'
 # parse_tests = []
 # parse_tests += [proj.source(test).then(boogie.kast()) for test in glob('ext/boogie/Test/test*/*.bpl')]
 # proj.alias('parse-tests', parse_tests).default()
- 
+
 
 # Our own tests to get us started, simpler than the Boogie test suite
 
 all_tests = list(glob('./test/**/*.bpl'))
-black_list = list(glob('./test/bitvectors/*.bpl')) \
-           + [ './test/control-flow/while.bpl'
-             , './test/control-flow/ifelse.bpl'
-             ]
-white_list = list(set(all_tests) - set(black_list)) # Really, Python?! 
+black_list = list(glob('./test/bitvectors/*.bpl'))
+white_list = list(set(all_tests) - set(black_list)) # Really, Python?!
 
 def test(t):
-    return proj.source(t).then(boogie.krun().variable('flags', '--search-final'))
+    return proj.source(t).then(boogie.krun())
 
 default_tests   = [test(t) for t in white_list]
 remaining_tests = [test(t) for t in black_list]
 proj.alias('default-tests', default_tests).default()
 proj.alias('all-tests', ['default-tests'] + remaining_tests )
- 
+
 # Main
 # ====
 

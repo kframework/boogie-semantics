@@ -44,11 +44,19 @@ When the `<k>` cell is empty, the program succeeds.
     context HOLE _:RelOp RHS
     context LHS:ValueExpr _:RelOp HOLE
     rule <k> LHS:ValueExpr == RHS:ValueExpr => LHS ==K RHS ... </k>
+    rule <k> LHS < RHS => LHS <Int RHS ... </k>
+    rule <k> LHS > RHS => LHS >Int RHS ... </k>
 
     context HOLE _:AddOp E2
     context V1:ValueExpr _:AddOp HOLE
     rule <k> V1 + V2 => V1 +Int V2 ... </k>
     rule <k> V1 - V2 => V1 -Int V2 ... </k>
+
+    context HOLE _:MulOp E2
+    context V1:ValueExpr _:MulOp HOLE
+    rule <k> V1 * V2 => V1 *Int V2 ... </k>
+ context _:UnOp HOLE
+    rule <k> ! B => notBool(B) ... </k>
 ```
 
 9 Statements
@@ -71,7 +79,7 @@ For now, we assume that the program contains only a single procedure, called `ma
                 main .Nothing ( .IdsTypeWhereList ) returns ( .IdsTypeWhereList ) .SpecList
                 { VarList StmtList }
           => VarList
-          ~> (start: transform(.Map, StmtList, !FreshCounter)) ++StmtList return ;
+          ~> (start: transform(.Map, StmtList, !FreshCounter)) ++StmtList return ; .StmtList
           ~> goto start;
              ...
          </k>
@@ -127,48 +135,43 @@ TODO: Using fresh Ids in functions doesn't seem to work well in the Haskell
 backend.
 
 ```k
-    syntax OptionalLabel ::= Nothing | Identifier
     syntax StmtList ::= transform(nu: Map, stmts: StmtList, freshCounter: Int) [function]
-    rule transform(Nu, Ss, FreshCounter) => transform(Nu, .Nothing, Ss, FreshCounter)
+    rule transform(Nu, S Ss:StmtList, FreshCounter)
+      => transform(Nu, S, FreshCounter) ++StmtList
+         transform(Nu, Ss, FreshCounter +Int 100) // TODO: This is a hack
+    rule transform(_, .StmtList, _) => .StmtList
 
     syntax Identifier ::= label(String, Int)
 
-    syntax StmtList ::= transform(nu: Map, doneLabel: OptionalLabel, stmts: StmtList, freshCounter: Int) [function]
-    rule transform(Nu, .Nothing, L: Ss, FreshCounter)
-      => goto L;
-         L: transform( (Nu L |-> label("Done", FreshCounter))
-                     , label("Done", FreshCounter)
-                     , Ss
-                     , FreshCounter +Int 1
-                     )
-    rule transform(Nu, Done, L: Ss, FreshCounter)
-      => goto Done;
-         Done:
-         transform(Nu, .Nothing, L: Ss, FreshCounter)
-    rule transform(Nu, Done, .StmtList, FreshCounter)
-      => goto Done;
-         Done:
-    rule transform(Nu, Done, S:SimpleStmt Ss, FreshCounter)
-      => S transform(Nu, Done, Ss, FreshCounter)
-    rule transform(Nu, Done, S:SimpleStmt Ss, FreshCounter)
-      => S transform(Nu, Done, Ss, FreshCounter)
-    rule transform(Nu, _, goto Ls; Ss, FreshCounter)
+    syntax StmtList ::= transform(nu: Map, stmt: LabelOrStmt, freshCounter: Int) [function]
+    rule transform(Nu:Map, lstmt(L:, S), FreshCounter)
+      => ( goto L;
+           L: transform( (Nu (L |-> label("Done", FreshCounter)))
+                       , S
+                       , FreshCounter +Int 1
+                       )
+         )
+         ++StmtList
+         goto label("Done", FreshCounter) ;
+         label("Done", FreshCounter)  :
+         .StmtList
+    rule transform(Nu, S:SimpleStmt, FreshCounter)
+      => S .StmtList
+    rule transform(Nu, goto Ls;, FreshCounter)
       => goto Ls;
          label("Unreachable", FreshCounter) :
-            transform(Nu, Ss, FreshCounter +Int 1)
-
-    rule transform(_, _, .StmtList, _) => .StmtList
+         .StmtList
 ```
 
 ```k
     syntax KItem ::= #collectLabel(Identifier, StmtList)
     rule <k> Identifier:  => #collectLabel(Identifier, .StmtList) ... </k>
     rule <k> (#collectLabel(L, S1s) ~> S2:Stmt S2s:StmtList)
-          => (#collectLabel(L, S1s ++StmtList S2) ~> S2s)
+          => (#collectLabel(L, S1s ++StmtList S2 .StmtList) ~> S2s)
              ...
          </k>
     rule <k> (#collectLabel(L, S1s) => .K)
-          ~> (L2: S2s) #Or .StmtList
+          ~> (L2: S2 S2s:StmtList) #Or .StmtList
              ...
          </k>
          <labels> (.Map => L |-> S1s) Labels </labels>
@@ -183,23 +186,77 @@ Non-deterministically transition to all labels
          <labels> L |-> Stmts ... </labels>
 ```
 
+9.6 Return statements
+---------------------
+
+```k
+    rule <k> return ; ~> _ => .K </k>
+```
+
+9.7 If statements
+-----------------
+
+While not in the grammar, the implementations of `if` and `while` statements
+benefit from the following:
+
+```k
+    syntax Stmt ::= Else
+    rule transform(Nu, { Ss }, FreshCounter)
+      => transform(Nu, Ss, FreshCounter)
+```
+
+```k
+    rule transform(Nu, if (E) THEN, FreshCounter)
+      => transform(Nu, if (E) THEN else { .StmtList }, FreshCounter)
+    rule transform(Nu, if (E) THEN else { ELSE } , FreshCounter)
+      => goto label("then", FreshCounter), label("else", FreshCounter);
+         label("then", FreshCounter):
+            assume .AttributeList E;
+            transform(Nu, THEN, !FreshCounter) ++StmtList
+         (  goto label("Done", FreshCounter);
+         label("then", FreshCounter):
+            assume .AttributeList ! E;
+            transform(Nu, THEN, FreshCounter +Int 30) ) ++StmtList // TODO: Hack
+            goto label("Done", FreshCounter);
+         label("Done", FreshCounter):
+         .StmtList
+```
+
 9.8 While loops
 ---------------
 
-// ```k
-//     rule transform(Nu, _, while (E) Invariants Body Ss, FreshCounter)
-//       => goto label("Head", FreshCounter);
-//          label("Head", FreshCounter):
-//             transformInvariants(Invariants)
-//             goto label("Body", FreshCounter), label("Done", FreshCounter) ;
-//          label("Body", FreshCounter):
-// ```
+```k
+    rule transform(Nu, while (E) Invariants { Body }, FreshCounter)
+      => goto label("Head", FreshCounter);
+         label("Head", FreshCounter):
+            transformInvariants(Invariants) ++StmtList
+         (  goto label("Body", FreshCounter), label("GuardedDone", FreshCounter) ;
+         label("Body", FreshCounter):
+            assume .AttributeList E;
+            transform( Nu[ "*" <- label("Done", FreshCounter)]
+                     , Body
+                     , FreshCounter +Int 1
+                     ) ) ++StmtList
+            goto label("GuardedDone", FreshCounter) ;
+         label("GuardedDone", FreshCounter):
+            assume .AttributeList ! E;
+            goto label("Done", FreshCounter) ;
+         label("Done", FreshCounter):
+         .StmtList
+
+    syntax StmtList ::= transformInvariants(LoopInvList) [function]
+    rule transformInvariants(.LoopInvList) => .StmtList
+    rule transformInvariants(invariant Attrs E; Invs)
+      => assert Attrs E; transformInvariants(Invs)
+    rule transformInvariants(free invariant Attrs E; Invs)
+      => assume Attrs E; transformInvariants(Invs)
+```
 
 Helper Functions
 ================
 
 ```k
-    syntax StmtList ::= StmtList "++StmtList" StmtList [function, left]
+    syntax StmtList ::= StmtList "++StmtList" StmtList [function, left, avoid]
     rule (S1 S1s) ++StmtList S2s => S1 (S1s ++StmtList S2s)
     rule .StmtList ++StmtList S2s => S2s
 ```

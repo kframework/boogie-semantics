@@ -53,14 +53,17 @@ module BOOGIE-COMMON-SYNTAX
 ```k
     syntax Identifier ::= Id
     syntax Expr ::= Bool | Int | Identifier
-                  | "(" Expr ")" [brackets]
-                  > Expr RelOp Expr
-                  > Expr AddOp Expr [left]
+                  | "(" Expr ")" [bracket]
+                  > UnOp Expr
                   > Expr MulOp Expr [left]
+                  > Expr AddOp Expr [left]
+                  > Expr RelOp Expr
     syntax RelOp ::= "=="
-                   | "<"
+                   | "<" | ">"
     syntax AddOp ::= "+" | "-"
     syntax MulOp ::= "*" | "/" | "%"
+    syntax UnOp  ::= "!"
+                   | "-"
     syntax ExprList ::= List{Expr, ","} [klabel(ExprList), symbol]
 ```
 
@@ -109,12 +112,17 @@ module BOOGIE-COMMON-SYNTAX
     syntax LocalVarDeclList ::= List{LocalVarDecl, ""} [klabel(LocalVarDeclList)]
 ```
 
-TODO: this is simpler than the "This is Boogie" grammar.
+`LEmptyList` and `StmtList` are defined separately for parsing and for rules.
+This allows us to parse more restrictively, and still have more freedom in the semantics.
 
 ```k
-    syntax StmtList ::= List{LabelOrStmt, ""} [klabel(StmtList)]
-    syntax LabelOrStmt  ::= Stmt
-                          | Identifier ":"
+    syntax StmtList
+    syntax Label ::= Identifier ":"
+    syntax LabelOrStmt ::= LStmt | LEmpty
+    syntax LStmt ::= Stmt
+               //  | Label LStmt        // Different productions for RULE and PROGRAM grammars
+    syntax LEmpty ::= Label
+                    | Label LEmpty
 ```
 
 ```k
@@ -125,16 +133,17 @@ TODO: this is simpler than the "This is Boogie" grammar.
                        // | IdList ":=" ExprList ";"
     syntax Stmt ::= SimpleStmt
                   | "goto" IdList ";"
+                  | IfStmt
                   | "while" "(" WildcardExpr ")" LoopInvList BlockStmt
                   | "break" ";"
                   | "break" Identifier ";"
                   | "return" ";"
     syntax WildcardExpr ::= Expr | "*"
-    syntax BlockStmt ::= "{" StmtList "}" 
+    syntax BlockStmt ::= "{" StmtList "}"
     syntax IfStmt ::= "if" "(" WildcardExpr ")" BlockStmt
-                    | "if" "(" WildcardExpr ")" BlockStmt Else
-    syntax Else ::= "else" BlockStmt
-                  | "else" IfStmt
+                    | "if" "(" WildcardExpr ")" BlockStmt "else" Else
+    syntax Else ::= BlockStmt
+                  | IfStmt
     syntax LoopInv ::=        "invariant" AttributeList Expr ";"
                      | "free" "invariant" AttributeList Expr ";"
     syntax LoopInvList ::= List{LoopInv, ""} [klabel(LoopInvList)]
@@ -160,6 +169,13 @@ module BOOGIE-PROGRAM-SYNTAX
     imports BOOGIE-COMMON-SYNTAX
     imports NOTHING-PROGRAM-SYNTAX
     imports ID-SYNTAX-PROGRAM-PARSING
+
+    syntax LStmt ::= Label LStmt                [klabel(lstmt), symbol]
+
+    syntax LEmptyList ::= ""                    [klabel(dotStmtList), symbol]
+                        | LEmpty LEmptyList     [klabel(StmtListCons), symbol]
+    syntax StmtList ::= LEmptyList
+                      | LStmt StmtList          [klabel(StmtListConsLStmt), symbol]
 endmodule
 ```
 
@@ -167,5 +183,14 @@ endmodule
 module BOOGIE-RULE-SYNTAX
     imports BOOGIE-COMMON-SYNTAX
     imports NOTHING-RULE-SYNTAX
+
+    syntax LStmt ::= lstmt(Label, LStmt)      [klabel(lstmt), symbol]
+
+    syntax StmtList ::= ".StmtList"           [klabel(dotStmtList), symbol]
+    syntax StmtList ::= LabelOrStmt StmtList  [klabel(StmtListCons), symbol]
+                      | StmtListConsLStmt(LStmt, StmtList)
+                                              [klabel(StmtListConsLStmt), symbol, avoid]
+
+    rule StmtListConsLStmt(S, Ss) => S Ss [macro]
 endmodule
 ```
