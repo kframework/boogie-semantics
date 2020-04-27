@@ -208,13 +208,14 @@ benefit from the following:
 ```k
     rule transform(Nu, if (E) THEN, FreshCounter)
       => transform(Nu, if (E) THEN else { .StmtList }, FreshCounter)
-    rule transform(Nu, if (E) THEN else { ELSE } , FreshCounter)
+      
+    rule transform(Nu, if (E) THEN else ELSE , FreshCounter)
       => goto label("then", FreshCounter), label("else", FreshCounter);
          label("then", FreshCounter):
             assume .AttributeList E;
             transform(Nu, THEN, !FreshCounter) ++StmtList
          (  goto label("Done", FreshCounter);
-         label("then", FreshCounter):
+         label("else", FreshCounter):
             assume .AttributeList ! E;
             transform(Nu, THEN, FreshCounter +Int 30) ) ++StmtList // TODO: Hack
             goto label("Done", FreshCounter);
