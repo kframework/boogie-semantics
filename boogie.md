@@ -55,7 +55,8 @@ When the `<k>` cell is empty, the program succeeds.
     context HOLE _:MulOp E2
     context V1:ValueExpr _:MulOp HOLE
     rule <k> V1 * V2 => V1 *Int V2 ... </k>
- context _:UnOp HOLE
+
+    context _:UnOp HOLE
     rule <k> ! B => notBool(B) ... </k>
 ```
 
