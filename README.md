@@ -1,6 +1,5 @@
-
-Boogie Semantics 
-================ 
+Boogie Semantics
+================
 
 This repository contains an executable formal semantics for the
 [Boogie](https://github.com/boogie-org/boogie) intermediate verification
@@ -20,40 +19,48 @@ use it (like
 
 Currently Supported Features
 ============================
-- Integer data types
-- Control flow
-- Non-deterministic `if` statements 
-- Non-deterministic `while` loops
-- Non-deterministic assignment of variables using `havoc`
-- Algebraic data types
-- Assertions 
-- Loop invariants
-- Procedures
 
-Not Yet Supported 
+-   Integer data types
+-   Control flow
+-   Non-deterministic `if` statements
+-   Non-deterministic `while` loops
+-   Non-deterministic assignment of variables using `havoc`
+-   Algebraic data types
+-   Assertions
+-   Loop invariants
+-   Procedures
+
+Not Yet Supported
 =================
+
 Data Types
 ----------
-- Maps 
-- Bitvectors
-- Strings 
+
+-   Maps
+-   Bitvectors
+-   Strings
 
 Verification constructs
 -----------------------
-- Axioms
-- Quantifiers (`forall` and `exists`) in assertions
-- the `call forall` construct
-- the `old` operator 
-- marking specifications as `free`
 
-Building 
+-   Axioms
+-   Quantifiers (`forall` and `exists`) in assertions
+-   the `call forall` construct
+-   the `old` operator
+-   marking specifications as `free`
+
+Building
 ========
+
 To build the semantics and run the tests, first install the
 [ninja](https://ninja-build.org/) build system, and all the dependencies for the
-K Framework as described on [their github page](https://github.com/kframework/k).
-Then clone this repository and run 
-```sh
+K Framework as described on [their github
+page](https://github.com/kframework/k). Then clone this repository and run
+
+``` {.sh}
 ./build 
-``` 
-The build script will download and build the K Framework, then use it to build 
+```
+
+The build script will download and build the K Framework, then use it to build
 and execute the Boogie semantics.
+
