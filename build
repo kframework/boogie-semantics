@@ -21,7 +21,7 @@ from kninja import *
 proj = KProject(extdir = extdir)
 boogie = proj.definition( alias         = 'boogie'
                         , main          = 'boogie.md'
-                        , other         = ['syntax.md']
+                        , other         = ['syntax.md', 'fresh-generator.md']
                         , backend       = 'haskell'
                         , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX'
                         , runner_script = './boogie'

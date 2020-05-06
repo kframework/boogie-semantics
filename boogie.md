@@ -1,11 +1,12 @@
 ```k
 requires "syntax.k"
+requires "fresh-generator.k"
 
 module BOOGIE
     imports BOOGIE-RULE-SYNTAX
     imports MAP
     imports INT
-    imports ID
+    imports FRESH-GENERATOR
 
     configuration <k> $PGM:Program </k>
                   <env> .Map </env>
@@ -80,7 +81,7 @@ For now, we assume that the program contains only a single procedure, called `ma
                 main .Nothing ( .IdsTypeWhereList ) returns ( .IdsTypeWhereList ) .SpecList
                 { VarList StmtList }
           => VarList
-          ~> (start: transform(.Map, StmtList, !FreshCounter)) ++StmtList return ; .StmtList
+          ~> (start: transform(.Map, StmtList, .FreshGenerator)) ++StmtList return ; .StmtList
           ~> goto start;
              ...
          </k>
@@ -90,8 +91,8 @@ For now, we assume that the program contains only a single procedure, called `ma
    rule <k> V Vs:LocalVarDeclList => V ~> Vs ... </k>
    rule <k> .LocalVarDeclList => .K ... </k>
 
-   rule <k> (var .AttributeList X:Identifier : T ;):LocalVarDecl => .K ... </k>
-        <env> (.Map => X:Identifier |-> !Loc) Rho </env>
+   rule <k> (var .AttributeList X:Id : T ;):LocalVarDecl => .K ... </k>
+        <env> (.Map => X:Id |-> !Loc) Rho </env>
         <store> (.Map => !Loc:Int |-> ?_:Int) ... </store>
      requires notBool( X in_keys(Rho) )
 ```
@@ -132,41 +133,37 @@ TODO: This needs to work over lists of expressions and identifiers
 
 TODO: "This is Boogie 2" is extremely unclear about what happens here.
 This is best-effort attempt to translate their definition.
-TODO: Using fresh Ids in functions doesn't seem to work well in the Haskell
-backend.
 
 ```k
-    syntax StmtList ::= transform(nu: Map, stmts: StmtList, freshCounter: Int) [function]
-    rule transform(Nu, S Ss:StmtList, FreshCounter)
-      => transform(Nu, S, FreshCounter) ++StmtList
-         transform(Nu, Ss, FreshCounter +Int 100) // TODO: This is a hack
+    syntax StmtList ::= transform(nu: Map, stmts: StmtList, freshCounter: FreshGenerator) [function]
+    rule transform(Nu, S Ss:StmtList, FreshGenerator)
+      => transform(Nu, S,  next(FreshGenerator, 0)) ++StmtList
+         transform(Nu, Ss, next(FreshGenerator, 1)) // TODO: This is a hack
     rule transform(_, .StmtList, _) => .StmtList
 
-    syntax Identifier ::= label(String, Int)
-
-    syntax StmtList ::= transform(nu: Map, stmt: LabelOrStmt, freshCounter: Int) [function]
-    rule transform(Nu:Map, lstmt(L:, S), FreshCounter)
+    syntax StmtList ::= transform(nu: Map, stmt: LabelOrStmt, freshCounter: FreshGenerator) [function]
+    rule transform(Nu:Map, lstmt(L:, S), FreshGenerator)
       => ( goto L;
-           L: transform( (Nu (L |-> label("Done", FreshCounter)))
+           L: transform( (Nu (L |-> id("Done", FreshGenerator)))
                        , S
-                       , FreshCounter +Int 1
+                       , next(FreshGenerator, 1)
                        )
          )
          ++StmtList
-         goto label("Done", FreshCounter) ;
-         label("Done", FreshCounter)  :
+         goto id("Done", FreshGenerator) ;
+         id("Done", FreshGenerator)  :
          .StmtList
-    rule transform(Nu, S:SimpleStmt, FreshCounter)
+    rule transform(Nu, S:SimpleStmt, FreshGenerator)
       => S .StmtList
-    rule transform(Nu, goto Ls;, FreshCounter)
+    rule transform(Nu, goto Ls;, FreshGenerator)
       => goto Ls;
-         label("Unreachable", FreshCounter) :
+         id("Unreachable", FreshGenerator) :
          .StmtList
 ```
 
 ```k
-    syntax KItem ::= #collectLabel(Identifier, StmtList)
-    rule <k> Identifier:  => #collectLabel(Identifier, .StmtList) ... </k>
+    syntax KItem ::= #collectLabel(Id, StmtList)
+    rule <k> Id:  => #collectLabel(Id, .StmtList) ... </k>
     rule <k> (#collectLabel(L, S1s) ~> S2:Stmt S2s:StmtList)
           => (#collectLabel(L, S1s ++StmtList S2 .StmtList) ~> S2s)
              ...
@@ -202,25 +199,25 @@ benefit from the following:
 
 ```k
     syntax Stmt ::= Else
-    rule transform(Nu, { Ss }, FreshCounter)
-      => transform(Nu, Ss, FreshCounter)
+    rule transform(Nu, { Ss }, FreshGenerator)
+      => transform(Nu,   Ss,   FreshGenerator)
 ```
 
 ```k
-    rule transform(Nu, if (E) THEN, FreshCounter)
-      => transform(Nu, if (E) THEN else { .StmtList }, FreshCounter)
-      
-    rule transform(Nu, if (E) THEN else ELSE , FreshCounter)
-      => goto label("then", FreshCounter), label("else", FreshCounter);
-         label("then", FreshCounter):
+    rule transform(Nu, if (E) THEN, FreshGenerator)
+      => transform(Nu, if (E) THEN else { .StmtList }, FreshGenerator)
+
+    rule transform(Nu, if (E) THEN else ELSE , FreshGenerator)
+      => goto id("then", FreshGenerator), id("else", FreshGenerator);
+         id("then", FreshGenerator):
             assume .AttributeList E;
-            transform(Nu, THEN, !FreshCounter) ++StmtList
-         (  goto label("Done", FreshCounter);
-         label("else", FreshCounter):
+            transform(Nu, THEN, next(FreshGenerator, 0)) ++StmtList
+         (  goto id("Done", FreshGenerator);
+         id("else", FreshGenerator):
             assume .AttributeList ! E;
-            transform(Nu, THEN, FreshCounter +Int 30) ) ++StmtList // TODO: Hack
-            goto label("Done", FreshCounter);
-         label("Done", FreshCounter):
+            transform(Nu, THEN, next(FreshGenerator, 1)) ) ++StmtList // TODO: Hack
+            goto id("Done", FreshGenerator);
+         id("Done", FreshGenerator):
          .StmtList
 ```
 
@@ -228,22 +225,22 @@ benefit from the following:
 ---------------
 
 ```k
-    rule transform(Nu, while (E) Invariants { Body }, FreshCounter)
-      => goto label("Head", FreshCounter);
-         label("Head", FreshCounter):
+    rule transform(Nu, while (E) Invariants { Body }, FreshGenerator)
+      => goto id("Head", FreshGenerator);
+         id("Head", FreshGenerator):
             transformInvariants(Invariants) ++StmtList
-         (  goto label("Body", FreshCounter), label("GuardedDone", FreshCounter) ;
-         label("Body", FreshCounter):
+         (  goto id("Body", FreshGenerator), id("GuardedDone", FreshGenerator) ;
+         id("Body", FreshGenerator):
             assume .AttributeList E;
-            transform( Nu[ "*" <- label("Done", FreshCounter)]
+            transform( Nu[ "*" <- id("Done", FreshGenerator)]
                      , Body
-                     , FreshCounter +Int 1
+                     , next(FreshGenerator, 0)
                      ) ) ++StmtList
-            goto label("GuardedDone", FreshCounter) ;
-         label("GuardedDone", FreshCounter):
+            goto id("GuardedDone", FreshGenerator) ;
+         id("GuardedDone", FreshGenerator):
             assume .AttributeList ! E;
-            goto label("Done", FreshCounter) ;
-         label("Done", FreshCounter):
+            goto id("Done", FreshGenerator) ;
+         id("Done", FreshGenerator):
          .StmtList
 
     syntax StmtList ::= transformInvariants(LoopInvList) [function]

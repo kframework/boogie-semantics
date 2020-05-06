@@ -32,7 +32,7 @@ module BOOGIE-COMMON-SYNTAX
     syntax Decl    ::= VarDecl
                      | ProcedureDecl
 
-    syntax IdList ::= List{Identifier, ","} [klabel(IdList)]
+    syntax IdList ::= List{Id, ","} [klabel(IdList)]
 ```
 
 2 Types
@@ -51,8 +51,7 @@ module BOOGIE-COMMON-SYNTAX
 =============
 
 ```k
-    syntax Identifier ::= Id
-    syntax Expr ::= Bool | Int | Identifier
+    syntax Expr ::= Bool | Int | Id
                   | "(" Expr ")" [bracket]
                   > UnOp Expr
                   > Expr MulOp Expr [left]
@@ -90,8 +89,8 @@ module BOOGIE-COMMON-SYNTAX
 ----------
 
 ```k
-    syntax ProcedureDecl ::= "procedure" AttributeList Identifier PSig ";" SpecList
-                           | "procedure" AttributeList Identifier PSig SpecList Body
+    syntax ProcedureDecl ::= "procedure" AttributeList Id PSig ";" SpecList
+                           | "procedure" AttributeList Id PSig SpecList Body
     syntax PSig          ::= OptionalTypeArgs "(" IdsTypeWhereList ")" OptionalOutParameters
     syntax OptionalTypeArgs      ::= Nothing | TypeArgs
     syntax OptionalOutParameters ::= Nothing | OutParameters
@@ -117,7 +116,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
 
 ```k
     syntax StmtList
-    syntax Label ::= Identifier ":"
+    syntax Label ::= Id ":"
     syntax LabelOrStmt ::= LStmt | LEmpty
     syntax LStmt ::= Stmt
                //  | Label LStmt        // Different productions for RULE and PROGRAM grammars
@@ -136,7 +135,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
                   | IfStmt
                   | "while" "(" WildcardExpr ")" LoopInvList BlockStmt
                   | "break" ";"
-                  | "break" Identifier ";"
+                  | "break" Id ";"
                   | "return" ";"
     syntax WildcardExpr ::= Expr | "*"
     syntax BlockStmt ::= "{" StmtList "}"
@@ -153,7 +152,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
 ==================
 
 ```k
-    syntax Attribute ::= "{" ":" Identifier AttrArgList  "}"
+    syntax Attribute ::= "{" ":" Id AttrArgList  "}"
     syntax AttributeList ::= List{Attribute, ""} [klabel(AttributeList)]
 
     syntax AttrArgList ::= List{AttrArg, ","}
