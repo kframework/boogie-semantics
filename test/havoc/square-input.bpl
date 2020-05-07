@@ -6,6 +6,6 @@ procedure main() returns () {
     havoc input; 
     squared := input * input;
 
-    assert squared >= input;
-    assert squared >= 0;
+    assert { :source __FILE__ , __LINE__ } squared >= input;
+    assert { :source __FILE__ , __LINE__ } squared >= 0;
 }

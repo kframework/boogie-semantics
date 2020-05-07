@@ -10,7 +10,7 @@ procedure main() returns () {
     if (*) {
         a:= 300;
     }
-    assert a == 1 || a == 300;
+    assert { :source __FILE__ , __LINE__ } a == 1 || a == 300;
 
 
     if (y > 150) {
@@ -18,7 +18,7 @@ procedure main() returns () {
     } else if (*) {
         a:= 2;
     }
-    assert a == 1 || a == 300 || a == 2 || a == 7;
+    assert { :source __FILE__ , __LINE__ } a == 1 || a == 300 || a == 2 || a == 7;
 
 
     if (y > 150) {
@@ -28,7 +28,7 @@ procedure main() returns () {
     } else {
         a:= 3;
     }
-    assert a > 0;
+    assert { :source __FILE__ , __LINE__ } a > 0;
 
 
 }

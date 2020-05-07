@@ -13,7 +13,7 @@ procedure main() returns () {
         w:= 3;
     END:
 
-    assert w == 3;
+    assert { :source __FILE__ , __LINE__ } w == 3;
 
 }
 

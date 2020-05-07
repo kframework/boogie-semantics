@@ -9,14 +9,14 @@ procedure main() returns () {
     if (*) {
         a:= 300;
     }
-    assert a == 300; // Fail
+    assert { :source __FILE__ , __LINE__ } a == 300; // Fail
 
     if (y > 150) {
         a:= 1;
     } else if (y > 50) {
         a:= 2;
     }
-    assert a >= 1; 
+    assert { :source __FILE__ , __LINE__ } a >= 1; 
 
     if (y > 150) {
         a:= 1;
@@ -25,7 +25,7 @@ procedure main() returns () {
     } else {
         a:= 3;
     }
-    assert a == 2; // Fail
+    assert { :source __FILE__ , __LINE__ } a == 2; // Fail
 
 }
 

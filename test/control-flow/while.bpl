@@ -10,6 +10,6 @@ procedure main() returns () {
         inc:= inc + 5;
     }
 
-    assert inc == 5000;
+    assert { :source __FILE__ , __LINE__ } inc == 5000;
 }
 

@@ -8,6 +8,6 @@ procedure main() returns () {
         inc:= inc + 5;
     }
 
-    assert inc > 99;
+    assert { :source __FILE__ , __LINE__ } inc > 99;
 }
 

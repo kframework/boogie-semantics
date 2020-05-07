@@ -13,8 +13,8 @@ procedure main() returns () {
     var z: int;
     call z := p0(27, 3);
 
-    //// this assertion will fail unless we have 
+    //// this assert { :source __FILE__ , __LINE__ }ion will fail unless we have 
     //// "ensures z == 5" on the procedure above
-    // assert z == 5;
+    // assert { :source __FILE__ , __LINE__ } z == 5;
 }
 

@@ -18,5 +18,5 @@ procedure main() returns () {
         }
     }
 
-    assert heads + tails == numFlips;
+    assert { :source __FILE__ , __LINE__ } heads + tails == numFlips;
 }

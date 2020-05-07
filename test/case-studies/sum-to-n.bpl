@@ -12,5 +12,5 @@ procedure main() returns () {
         sum := sum + iter; 
     }
 
-    assert sum == 5050;
+    assert { :source __FILE__ , __LINE__ } sum == 5050;
 }

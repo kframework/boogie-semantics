@@ -103,13 +103,20 @@ For now, we assume that the program contains only a single procedure, called `ma
 ------------------------------
 
 ```k
-    syntax KItem ::= "#success" | "#failure"
+    syntax KItem ::= "#success" | "#failure" "(" String ")"
+    syntax KItem ::= "#failure" "(" AttributeList "," String ")"
+    syntax Id ::= "source" [token]
+    rule #failure( { : source File, Line, .AttrArgList }, Message )
+      => #failure(File +String "(" +String Int2String(Line) +String "): " +String Message)
 ```
 
 ```k
-    context assert .AttributeList HOLE ;
-    rule <k> assert .AttributeList true ; => .K ... </k>
-    rule <k> (.K => #failure) ~> assert .AttributeList false; ... </k>
+    context assert Attributes HOLE ;
+    rule <k> assert Attributes true ; => .K ... </k>
+    rule <k> (.K => #failure(Attributes, "Error BP5001: This assertion might not hold."))
+          ~> assert Attributes false;
+             ...
+         </k>
 ```
 
 ```k
