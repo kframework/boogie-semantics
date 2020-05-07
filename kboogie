@@ -9,6 +9,6 @@ proj = KProject(extdir = extdir)
 KDefinition( proj
            , alias = 'boogie'
            , backend = 'haskell'
-           , directory = proj.builddir('defn/bogie')
+           , directory = proj.builddir('defn/boogie')
            )
 KRunner(proj).main()
