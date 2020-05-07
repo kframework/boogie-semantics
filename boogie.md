@@ -224,7 +224,20 @@ benefit from the following:
          (  goto id("Done", FreshGenerator);
          id("else", FreshGenerator):
             assume .AttributeList ! E;
-            transform(Nu, THEN, next(FreshGenerator, 1)) ) ++StmtList // TODO: Hack
+            transform(Nu, ELSE, next(FreshGenerator, 1)) ) ++StmtList
+            goto id("Done", FreshGenerator);
+         id("Done", FreshGenerator):
+         .StmtList
+```
+
+```k
+    rule transform(Nu, if (*) THEN else ELSE , FreshGenerator)
+      => goto id("then", FreshGenerator), id("else", FreshGenerator);
+         id("then", FreshGenerator):
+            transform(Nu, THEN, next(FreshGenerator, 0)) ++StmtList
+         (  goto id("Done", FreshGenerator);
+         id("else", FreshGenerator):
+            transform(Nu, ELSE, next(FreshGenerator, 1)) ) ++StmtList
             goto id("Done", FreshGenerator);
          id("Done", FreshGenerator):
          .StmtList
@@ -245,13 +258,32 @@ benefit from the following:
                      , Body
                      , next(FreshGenerator, 0)
                      ) ) ++StmtList
-            goto id("GuardedDone", FreshGenerator) ;
+            goto id("Head", FreshGenerator) ;
          id("GuardedDone", FreshGenerator):
             assume .AttributeList ! E;
             goto id("Done", FreshGenerator) ;
          id("Done", FreshGenerator):
          .StmtList
+```
 
+```k
+    rule transform(Nu, while (E) Invariants { Body }, FreshGenerator)
+      => goto id("Head", FreshGenerator);
+         id("Head", FreshGenerator):
+            transformInvariants(Invariants) ++StmtList
+         (  goto id("Body", FreshGenerator), id("Done", FreshGenerator) ;
+         id("Body", FreshGenerator):
+            assume .AttributeList E;
+            transform( Nu[ "*" <- id("Done", FreshGenerator)]
+                     , Body
+                     , next(FreshGenerator, 0)
+                     ) ) ++StmtList
+            goto id("Head", FreshGenerator) ;
+         id("Done", FreshGenerator):
+         .StmtList
+```
+
+```k
     syntax StmtList ::= transformInvariants(LoopInvList) [function]
     rule transformInvariants(.LoopInvList) => .StmtList
     rule transformInvariants(invariant Attrs E; Invs)
