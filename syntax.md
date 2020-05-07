@@ -57,7 +57,7 @@ module BOOGIE-COMMON-SYNTAX
                   > Expr MulOp Expr [left]
                   > Expr AddOp Expr [left]
                   > Expr RelOp Expr [left]
-    syntax RelOp ::= "=="
+    syntax RelOp ::= "==" | "!="
                    | "<" | ">" | "<=" | ">="
                    > "||" | "&&" 
     syntax AddOp ::= "+" | "-"

@@ -38,7 +38,12 @@ boogie = proj.definition( alias         = 'boogie'
 # Our own tests to get us started, simpler than the Boogie test suite
 
 all_tests = list(glob('./test/**/*.bpl'))
-black_list = list(glob('./test/bitvectors/*.bpl'))
+black_list = list(glob('./test/bitvectors/*.bpl')) \
+    + list(glob('./test/havoc/*')) \
+    + ['./test/control-flow/while-nondet.bpl', 
+       './test/control-flow/implementation.bpl', 
+       './test/control-flow/procedure.bpl'] \
+
 white_list = list(set(all_tests) - set(black_list)) # Really, Python?!
 
 def diff_boogie(boogie_output):
