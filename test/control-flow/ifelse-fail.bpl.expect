@@ -1,0 +1,18 @@
+test/control-flow/ifelse-fail.bpl(12,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    test/control-flow/ifelse-fail.bpl(6,6): anon0
+    test/control-flow/ifelse-fail.bpl(9,5): anon10_Else
+    test/control-flow/ifelse-fail.bpl(12,5): anon2
+test/control-flow/ifelse-fail.bpl(28,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    test/control-flow/ifelse-fail.bpl(6,6): anon0
+    test/control-flow/ifelse-fail.bpl(10,10): anon10_Then
+    test/control-flow/ifelse-fail.bpl(12,5): anon2
+    test/control-flow/ifelse-fail.bpl(12,5): anon11_Else
+    test/control-flow/ifelse-fail.bpl(17,10): anon12_Then
+    test/control-flow/ifelse-fail.bpl(19,5): anon5
+    test/control-flow/ifelse-fail.bpl(19,5): anon13_Else
+    test/control-flow/ifelse-fail.bpl(26,10): anon14_Else
+    test/control-flow/ifelse-fail.bpl(28,5): anon9
+
+Boogie program verifier finished with 0 verified, 2 errors
