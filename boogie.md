@@ -45,8 +45,10 @@ When the `<k>` cell is empty, the program succeeds.
     context HOLE _:RelOp RHS
     context LHS:ValueExpr _:RelOp HOLE
     rule <k> LHS:ValueExpr == RHS:ValueExpr => LHS ==K RHS ... </k>
-    rule <k> LHS < RHS => LHS <Int RHS ... </k>
-    rule <k> LHS > RHS => LHS >Int RHS ... </k>
+    rule <k> LHS <  RHS => LHS  <Int RHS ... </k>
+    rule <k> LHS >  RHS => LHS  >Int RHS ... </k>
+    rule <k> LHS <= RHS => LHS <=Int RHS ... </k>
+    rule <k> LHS >= RHS => LHS >=Int RHS ... </k>
 
     context HOLE _:AddOp E2
     context V1:ValueExpr _:AddOp HOLE
