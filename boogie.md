@@ -187,10 +187,10 @@ This is best-effort attempt to translate their definition.
 Non-deterministically transition to all labels
 
 ```k
-    rule <k> goto L, Ls ; => Stmts ... </k>
+    rule <k> (goto L, Ls ; ~> _) => Stmts </k>
          <labels> L |-> Stmts ... </labels>
-    rule <k> goto L, .IdList ; => Stmts ... </k>
-         <labels> L |-> Stmts ... </labels>
+    rule <k> goto L, Ls ; => goto Ls ; ... </k>
+      requires Ls =/=K .IdList
 ```
 
 9.6 Return statements
