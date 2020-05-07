@@ -41,8 +41,27 @@ all_tests = list(glob('./test/**/*.bpl'))
 black_list = list(glob('./test/bitvectors/*.bpl'))
 white_list = list(set(all_tests) - set(black_list)) # Really, Python?!
 
+def diff_boogie(boogie_output):
+    return proj.rule( 'diff-boogie'
+                    , description = 'boogie-diff: $in $boogie_output'
+                    , command = './lib/diff-boogie $in $boogie_output'
+                    , ext = 'diff') \
+               .variable('boogie_output', boogie_output) \
+               .implicit([boogie_output])
+
+def c_preprocessor():
+    return proj.rule( 'cpp'
+                    , description = 'cpp: $in'
+                    , command = 'cpp -P $in -o $out'
+                    , ext = 'cpp')
+
 def test(t):
-    return proj.source(t).then(boogie.krun())
+    return proj.source(t) \
+               .then(c_preprocessor()) \
+               .then(boogie.krun().variable('flags', '--smt none --search-final --pattern "<k> Result </k>"')) \
+               .then(diff_boogie(t + '.expect')) \
+               .alias(t + '.test')
+
 
 default_tests   = [test(t) for t in white_list]
 remaining_tests = [test(t) for t in black_list]

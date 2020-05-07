@@ -8,7 +8,7 @@ module BOOGIE
     imports INT
     imports FRESH-GENERATOR
 
-    configuration <k> $PGM:Program </k>
+    configuration <k> $PGM:Program ~> #success </k>
                   <env> .Map </env>
                   <store> .Map </store>
                   <labels> .Map </labels>
