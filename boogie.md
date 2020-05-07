@@ -147,7 +147,7 @@ This is best-effort attempt to translate their definition.
     syntax StmtList ::= transform(nu: Map, stmts: StmtList, freshCounter: FreshGenerator) [function]
     rule transform(Nu, S Ss:StmtList, FreshGenerator)
       => transform(Nu, S,  next(FreshGenerator, 0)) ++StmtList
-         transform(Nu, Ss, next(FreshGenerator, 1)) // TODO: This is a hack
+         transform(Nu, Ss, next(FreshGenerator, 1))
     rule transform(_, .StmtList, _) => .StmtList
 
     syntax StmtList ::= transform(nu: Map, stmt: LabelOrStmt, freshCounter: FreshGenerator) [function]
