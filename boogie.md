@@ -143,9 +143,9 @@ TODO: This needs to work over lists of expressions and identifiers
 
 ```k
     context X := HOLE ;
-    rule <k> X := V ; => .K ... </k>
+    rule <k> X := V:ValueExpr ; => .K ... </k>
          <env> X |-> Loc ... </env>
-         <store> Rho => Rho[ Loc <- V ] </store>
+         <store> Loc |-> (_ => V) Rho </store>
 ```
 
 9.5 Label Statements and jumps
