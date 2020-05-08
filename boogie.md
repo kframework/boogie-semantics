@@ -114,7 +114,7 @@ For now, we assume that the program contains only a single procedure, called `ma
 ------------------------------
 
 ```k
-    syntax KItem ::= "#success" | "#failure" "(" String ")"
+    syntax KItem ::= "#failure" "(" String ")"
     syntax KItem ::= "#failure" "(" AttributeList "," String ")"
     syntax Id ::= "source" [token]
     rule #failure( { : source File, Line, .AttrArgList }, Message )
@@ -133,7 +133,7 @@ For now, we assume that the program contains only a single procedure, called `ma
 ```k
     context assume .AttributeList HOLE ;
     rule <k> assume .AttributeList true ;      => .K ... </k>
-    rule <k> assume .AttributeList false; ~> K => #success </k>
+    rule <k> assume .AttributeList false; ~> K => .K </k>
 ```
 
 9.3 Assignments
