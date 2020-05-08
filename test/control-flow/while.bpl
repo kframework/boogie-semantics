@@ -1,15 +1,18 @@
-
-
 procedure main() returns () {
     var it: int;
     var inc: int; 
+    var n : int;
     it:=0;
     inc:=0;
+    n:=100;
 
-    while (it < 1000) {
-        inc:= inc + 5;
+    while (it != n)
+        invariant inc + 5*(n - it) == 5 * n;
+    {
+        inc := inc + 5;
+        it := it + 1;
     }
 
-    assert { :source __FILE__ , __LINE__ } inc == 5000;
+    assert inc == 500;
 }
 
