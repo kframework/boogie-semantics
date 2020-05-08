@@ -128,6 +128,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
 ```k
     syntax SimpleStmt ::= "assert" AttributeList Expr ";"
                         | "assume" AttributeList Expr ";"
+                        | "havoc" Id ";" // TODO: support IDList here
                         | Id ":=" Expr ";"
                        // Why are ValueLists as KResults work?
                        // | IdList ":=" ExprList ";"

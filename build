@@ -63,7 +63,7 @@ def c_preprocessor():
 def test(t):
     return proj.source(t) \
                .then(c_preprocessor()) \
-               .then(boogie.krun().variable('flags', '--smt none --search-final --pattern "<k> Result </k>"')) \
+               .then(boogie.krun().variable('flags', '--search-final --pattern "<k> Result </k>"')) \
                .then(diff_boogie(t + '.expect')) \
                .alias(t + '.test')
 

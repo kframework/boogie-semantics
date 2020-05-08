@@ -1,9 +1,11 @@
 
 procedure main() returns () {
-    var input: int;
+    var input: int; // where input > 0;
     var squared: int;
 
-    havoc input; 
+    havoc input;
+    assume input != 0;
+    assert { :source __FILE__ , __LINE__ } input != 0; 
     squared := input * input;
 
     assert { :source __FILE__ , __LINE__ } squared >= input;

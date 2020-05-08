@@ -148,6 +148,19 @@ TODO: This needs to work over lists of expressions and identifiers
          <store> Loc |-> (_ => V) Rho </store>
 ```
 
+9.4 Havoc
+---------
+Desugaring a list of Ids to seperate havoc statements seems like a sensible
+desugaring, but the spec is not clear if this is semantically equivalent. 
+TODO: verify this is legit. 
+
+```k
+    // rule havoc .Ids ; => .K 
+    // rule havoc X:Id Xs:Ids ; => havoc X ; havoc Xs ;     
+    rule havoc X ; =>  X := ?V:Int ; // TODO support other types
+    // TODO add assume statements in relation to the "where" statements that X was declared with
+```
+
 9.5 Label Statements and jumps
 ------------------------------
 
