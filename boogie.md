@@ -8,11 +8,14 @@ module BOOGIE
     imports INT
     imports FRESH-GENERATOR
 
-    configuration <k> $PGM:Program ~> #success </k>
-                  <env> .Map </env>
-                  <store> .Map </store>
-                  <labels> .Map </labels>
-                  <exit-code exit=""> 1 </exit-code>
+    configuration <boogie>
+                    <k> $PGM:Program </k>
+                    <env> .Map </env>
+                    <store> .Map </store>
+                    <labels> .Map </labels>
+                    <exit-code exit=""> 1 </exit-code>
+                    <freshCounter> 0 </freshCounter>
+                  </boogie>
 ```
 
 When the `<k>` cell is empty, the program succeeds.
