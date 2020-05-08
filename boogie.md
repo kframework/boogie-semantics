@@ -101,8 +101,9 @@ For now, we assume that the program contains only a single procedure, called `ma
    rule <k> .LocalVarDeclList => .K ... </k>
 
    rule <k> (var .AttributeList X:Id : T ;):LocalVarDecl => .K ... </k>
-        <env> (.Map => X:Id |-> !Loc) Rho </env>
-        <store> (.Map => !Loc:Int |-> ?_:Int) ... </store>
+        <env> (.Map => X:Id |-> Loc) Rho </env>
+        <store> (.Map => Loc:Int |-> ?_:Int) ... </store>
+        <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
 ```
 
