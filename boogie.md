@@ -324,6 +324,13 @@ Helper Functions
     rule .StmtList ++StmtList S2s => S2s
 ```
 
+Verification syntax
+===================
+
+```k
+    syntax Id ::= "inc" [token] | "main" [token]
+```
+
 ```k
 endmodule
 ```

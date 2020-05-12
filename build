@@ -27,24 +27,8 @@ boogie = proj.definition( alias         = 'boogie'
                         , runner_script = './boogie'
                         )
 
-# Parsing tests
-# =============
-
-# parse_tests = []
-# parse_tests += [proj.source(test).then(boogie.kast()) for test in glob('ext/boogie/Test/test*/*.bpl')]
-# proj.alias('parse-tests', parse_tests).default()
-
-
-# Our own tests to get us started, simpler than the Boogie test suite
-
-all_tests = list(glob('./test/**/*.bpl'))
-black_list = list(glob('./test/bitvectors/*.bpl')) \
-    + list(glob('./test/havoc/*')) \
-    + ['./test/control-flow/while-nondet.bpl', 
-       './test/control-flow/implementation.bpl', 
-       './test/control-flow/procedure.bpl'] \
-
-white_list = list(set(all_tests) - set(black_list)) # Really, Python?!
+# Tests
+# =====
 
 def diff_boogie(boogie_output):
     return proj.rule( 'diff-boogie'
@@ -67,11 +51,26 @@ def test(t):
                .then(diff_boogie(t + '.expect')) \
                .alias(t + '.test')
 
+def proof(t):
+    return proj.source(t) \
+               .then(boogie.kprove()) \
+               .alias(t + '.proof')
 
+# Our own tests to get us started, simpler than the Boogie test suite
+
+all_tests = list(glob('./test/**/*.bpl'))
+black_list = list(glob('./test/bitvectors/*.bpl')) \
+    + list(glob('./test/havoc/*')) \
+    + [ './test/control-flow/implementation.bpl'
+      , './test/control-flow/procedure.bpl'
+      ]
+white_list = list(set(all_tests) - set(black_list)) # Really, Python?!
 default_tests   = [test(t) for t in white_list]
 remaining_tests = [test(t) for t in black_list]
 proj.alias('default-tests', default_tests).default()
 proj.alias('all-tests', ['default-tests'] + remaining_tests )
+
+proof('./test/control-flow/while-nondet-spec.k')
 
 # Main
 # ====
