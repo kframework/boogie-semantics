@@ -291,13 +291,12 @@ benefit from the following:
 ```
 
 ```k
-    rule transform(Nu, while (E) Invariants { Body }, FreshGenerator)
+    rule transform(Nu, while (*) Invariants { Body }, FreshGenerator)
       => goto id("Head", FreshGenerator);
          id("Head", FreshGenerator):
             transformInvariants(Invariants) ++StmtList
          (  goto id("Body", FreshGenerator), id("Done", FreshGenerator) ;
          id("Body", FreshGenerator):
-            assume .AttributeList E;
             transform( Nu[ "*" <- id("Done", FreshGenerator)]
                      , Body
                      , next(FreshGenerator, 0)
