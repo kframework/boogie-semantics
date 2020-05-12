@@ -1,5 +1,9 @@
-Boogie Semantics
-================
+---
+title: Semantics of Boogie in K
+author: 
+    - Seth Poulsen (sethp3@illinois.edu)
+    - Nishant Rodrigues (nishant2@illinois.edu)
+---
 
 This repository contains an executable formal semantics for the
 [Boogie](https://github.com/boogie-org/boogie) intermediate verification

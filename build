@@ -72,6 +72,21 @@ proj.alias('all-tests', ['default-tests'] + remaining_tests )
 
 proof('./test/control-flow/while-nondet-spec.k')
 
+# Documentation and Reports
+# =========================
+
+def pandoc(inputs, output, flags):
+    main = inputs.pop(0)
+    return proj.source(main) \
+               .then( proj.rule( 'pandoc'
+                               , description = 'pandoc: $sources'
+                               , command = 'pandoc -o "$out" $flags "$in" $sources'
+                               ) \
+                          .output(output)
+                          .variable('sources', ' '.join(inputs))
+                    )
+pandoc(['README.md', 'boogie.md'], output='.build/report.pdf', flags='-to')
+
 # Main
 # ====
 
