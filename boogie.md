@@ -193,6 +193,7 @@ When the `<k>` cell is empty, the program succeeds.
     context assume .AttributeList HOLE ;
     rule <k> assume .AttributeList true ;      => .K ... </k>
     rule <k> assume .AttributeList false; ~> K => .K </k>
+         <store> _ => .Map </store>
 ```
 
 9.3 Assignments
