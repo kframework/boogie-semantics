@@ -4,7 +4,7 @@ procedure main() returns () {
     var n : int;
     it:=0;
     inc:=0;
-    n:=100;
+    n:=10;
 
     while (it != n)
         invariant inc + 5*(n - it) == 5 * n;
@@ -13,6 +13,6 @@ procedure main() returns () {
         it := it + 1;
     }
 
-    assert inc == 500;
+    assert inc == 50;
 }
 
