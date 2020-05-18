@@ -31,6 +31,7 @@ module BOOGIE-COMMON-SYNTAX
     syntax DeclList   ::= List{Decl, ""} [klabel(DeclList)]
     syntax Decl    ::= VarDecl
                      | ProcedureDecl
+                     | ImplementationDecl
 
     syntax IdList ::= List{Id, ","} [klabel(IdList)]
 ```
@@ -59,7 +60,7 @@ module BOOGIE-COMMON-SYNTAX
                   > Expr RelOp Expr [left]
     syntax RelOp ::= "==" | "!="
                    | "<" | ">" | "<=" | ">="
-                   > "||" | "&&" 
+                   > "||" | "&&"
     syntax AddOp ::= "+" | "-"
     syntax MulOp ::= "*" | "/" | "%"
     syntax UnOp  ::= "!"
@@ -81,6 +82,7 @@ module BOOGIE-COMMON-SYNTAX
 
 ```k
     syntax IdsType ::= IdList ":" Type [avoid]
+    syntax IdsTypeList ::= List{IdsType, ","} [klabel(IdsTypeList)]
 ```
 
 8 Procedures and implementations
@@ -99,8 +101,20 @@ module BOOGIE-COMMON-SYNTAX
 ```
 
 ```k
-    syntax Spec
+    syntax Spec ::= OptionalFree "requires" Expr ";"
+                  | OptionalFree "modifies" IdList ";"
+                  | OptionalFree "ensures" Expr ";"
+    syntax OptionalFree ::= Nothing | "free"
     syntax SpecList ::= List{Spec, ""} [klabel(SpecList)]
+```
+
+```k
+    // TODO: where clauses should not be in the Args or the Returns, we need to remove them when
+    // desugaring from procedure declaration to implementation declaration
+    syntax ImplementationDecl ::= "implementation" AttributeList Id ISig Body
+    syntax ISig               ::= OptionalTypeArgs "(" IdsTypeWhereList ")" OptionalImpOutParameters
+    syntax OptionalImpOutParameters ::= Nothing | ImpOutParameters
+    syntax ImpOutParameters   ::= "returns" "(" IdsTypeWhereList ")"
 ```
 
 9 Statements
@@ -132,6 +146,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
                         | Id ":=" Expr ";"
                        // Why are ValueLists as KResults work?
                        // | IdList ":=" ExprList ";"
+                        | "call" OptionalCallLhs Id "(" ExprList ")" ";"
     syntax Stmt ::= SimpleStmt
                   | "goto" IdList ";"
                   | IfStmt
@@ -148,6 +163,8 @@ This allows us to parse more restrictively, and still have more freedom in the s
     syntax LoopInv ::=        "invariant" AttributeList Expr ";"
                      | "free" "invariant" AttributeList Expr ";"
     syntax LoopInvList ::= List{LoopInv, ""} [klabel(LoopInvList)]
+    syntax OptionalCallLhs ::= Nothing | CallLhs
+    syntax CallLhs ::= Id ":=" // TODO: support IdList
 ```
 
 11 Tool directives

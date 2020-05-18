@@ -68,7 +68,7 @@ def proof(t):
 tests        = [test(t) for t in glob('test/**/*.bpl')]
 case_studies = [case_study(t) for t in glob('test/case-studies/*.bpl.md')]
 proj.alias('case-studies', case_studies)
-proj.alias('test', case_studies + tests)
+proj.alias('test', case_studies + tests).default()
 
 proof('./test/control-flow/while-nondet-spec.k')
 

@@ -12,10 +12,20 @@ module BOOGIE
     imports FRESH-GENERATOR
 
     configuration <boogie>
-                    <k> $PGM:Program </k>
+                    <k> $PGM:Program ~> #start </k>
                     <env> .Map </env>
                     <store> .Map </store>
                     <labels> .Map </labels>
+                    <procs>
+                      <proc multiplicity="*" type="Set">
+                        <signature> .K </signature>
+                        <impls>
+                          <impl multiplicity="*" type="Set">
+                            .K
+                          </impl>
+                        </impls>
+                      </proc>
+                    </procs>
                     <exit-code exit=""> 1 </exit-code>
                     <freshCounter> 0 </freshCounter>
                   </boogie>
@@ -76,6 +86,67 @@ When the `<k>` cell is empty, the program succeeds.
     rule <k> ! B => notBool(B) ... </k>
 ```
 
+8 Procedures and implementations
+--------------------------------
+
+```k
+    rule <k> (procedure Attrs:AttributeList
+                ProcedureName .Nothing ( Args ) returns ( Rets ) SpecList
+                { VarList StmtList }):Decl
+          =>  procedure Attrs:AttributeList
+                ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList ~>
+              implementation Attrs ProcedureName .Nothing ( Args ) returns ( Rets )
+                { VarList StmtList } ...
+         </k>
+
+    rule <k> procedure Attrs:AttributeList
+                ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList
+          => .K ...
+         </k>
+         <procs> .Bag =>
+           <proc>
+             <signature>
+               procedure Attrs:AttributeList
+                 ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList
+             </signature> ...
+           </proc>
+         </procs>
+
+    rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
+                { VarList StmtList }
+            => .K ...
+         </k>
+         <procs>
+          <proc>
+            <signature>
+              procedure _:AttributeList ProcedureName _:PSig ; _:SpecList
+            </signature>
+            <impls>
+              .Bag => <impl> implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
+                { VarList StmtList } </impl>
+            </impls>
+          </proc>
+          ...
+         </procs>
+
+    syntax KItem ::= "#start"
+    syntax Id ::= "start" [token]
+    rule <k> #start =>
+            VarList
+            ~> (start: transform(.Map, StmtList, .FreshGenerator)) ++StmtList return ; .StmtList
+            ~> goto start;</k>
+         <impls>
+           <impl>
+               implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
+               { VarList StmtList }
+           </impl>
+          ...
+         </impls>
+        //  <signature>
+        //    procedure _:AttributeList ProcedureName _:PSig ; _:SpecList //ensures Ens ; .SpecList
+        //  </signature>
+```
+
 9 Statements
 ------------
 
@@ -86,21 +157,6 @@ When the `<k>` cell is empty, the program succeeds.
 
 9.0 Implementation Body
 -----------------------
-
-For now, we assume that the program contains only a single procedure, called `main`.
-
-```k
-    syntax Id ::= "main" [token]
-    syntax Id ::= "start" [token]
-    rule <k> procedure _:AttributeList
-                main .Nothing ( .IdsTypeWhereList ) returns ( .IdsTypeWhereList ) .SpecList
-                { VarList StmtList }
-          => VarList
-          ~> (start: transform(.Map, StmtList, .FreshGenerator)) ++StmtList return ; .StmtList
-          ~> goto start;
-             ...
-         </k>
-```
 
 ```k
    rule <k> V Vs:LocalVarDeclList => V ~> Vs ... </k>
@@ -154,12 +210,12 @@ TODO: This needs to work over lists of expressions and identifiers
 9.4 Havoc
 ---------
 Desugaring a list of Ids to seperate havoc statements seems like a sensible
-desugaring, but the spec is not clear if this is semantically equivalent. 
-TODO: verify this is legit. 
+desugaring, but the spec is not clear if this is semantically equivalent.
+TODO: verify this is legit.
 
 ```k
-    // rule havoc .Ids ; => .K 
-    // rule havoc X:Id Xs:Ids ; => havoc X ; havoc Xs ;     
+    // rule havoc .Ids ; => .K
+    // rule havoc X:Id Xs:Ids ; => havoc X ; havoc Xs ;
     rule havoc X ; =>  X := ?V:Int ; // TODO support other types
     // TODO add assume statements in relation to the "where" statements that X was declared with
 ```
