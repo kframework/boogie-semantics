@@ -168,13 +168,13 @@ TODO: "This is Boogie 2" is extremely unclear about what happens here.
 This is best-effort attempt to translate their definition.
 
 ```k
-    syntax StmtList ::= transform(nu: Map, stmts: StmtList, freshCounter: FreshGenerator) [function]
+    syntax StmtList ::= transform(nu: Map, stmts: StmtList, freshCounter: FreshGenerator) [function, functional]
     rule transform(Nu, S Ss:StmtList, FreshGenerator)
       => transform(Nu, S,  next(FreshGenerator, 0)) ++StmtList
          transform(Nu, Ss, next(FreshGenerator, 1))
     rule transform(_, .StmtList, _) => .StmtList
 
-    syntax StmtList ::= transform(nu: Map, stmt: LabelOrStmt, freshCounter: FreshGenerator) [function]
+    syntax StmtList ::= transform(nu: Map, stmt: LabelOrStmt, freshCounter: FreshGenerator) [function, functional]
     rule transform(Nu:Map, lstmt(L:, S), FreshGenerator)
       => ( goto L;
            L: transform( (Nu (L |-> id("Done", FreshGenerator)))
@@ -307,7 +307,7 @@ benefit from the following:
 ```
 
 ```k
-    syntax StmtList ::= transformInvariants(LoopInvList) [function]
+    syntax StmtList ::= transformInvariants(LoopInvList) [function, functional]
     rule transformInvariants(.LoopInvList) => .StmtList
     rule transformInvariants(invariant Attrs E; Invs)
       => assert Attrs E; transformInvariants(Invs)
