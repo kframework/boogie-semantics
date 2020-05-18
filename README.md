@@ -1,14 +1,16 @@
 ---
-title: Semantics of Boogie in K
+title: Semantics of Boogie in \K
 author: 
     - Seth Poulsen (sethp3@illinois.edu)
     - Nishant Rodrigues (nishant2@illinois.edu)
+header-include:  \newcommand{\K}{$\mathbb{K}$}
 ---
 
-This repository contains an executable formal semantics for the
-[Boogie](https://github.com/boogie-org/boogie) intermediate verification
-language, defined using the [K
-Framework](http://www.kframework.org/index.php/Main_Page)
+In this project, we present an executable formal semantics for the
+[Boogie](https://github.com/boogie-org/boogie), an intermediate
+language for verification. We choose to implement this in the [\K
+Framework] because of its semantics-first approach, and our belief that
+this approach extends to verification languages.
 
 The semantics of Boogie were informally defined in the paper ["This is Boogie
 2"](https://www.microsoft.com/en-us/research/publication/this-is-boogie-2-2/).
@@ -20,6 +22,8 @@ semantics both to verify the primary Boogie implementation, as well as to verify
 correctness of the translation to Boogie from the higher-level languages that
 use it (like
 [Dafny](https://www.microsoft.com/en-us/research/project/dafny-a-language-and-program-verifier-for-functional-correctness/))
+
+[\K Framework]: http://www.kframework.org/index.php/Main_Page
 
 Currently Supported Features
 ============================
