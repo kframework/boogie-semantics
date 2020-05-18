@@ -1,3 +1,6 @@
+Boogie Semantics
+================
+
 ```k
 requires "syntax.k"
 requires "fresh-generator.k"
@@ -31,7 +34,7 @@ When the `<k>` cell is empty, the program succeeds.
 ```
 
 4 Expressions
-=============
+-------------
 
 ```k
     syntax KResult ::= ValueExpr
@@ -74,7 +77,7 @@ When the `<k>` cell is empty, the program succeeds.
 ```
 
 9 Statements
-============
+------------
 
 ```k
    rule <k> S Ss:StmtList => S ~> Ss ... </k>
@@ -316,7 +319,7 @@ benefit from the following:
 ```
 
 Helper Functions
-================
+----------------
 
 ```k
     syntax StmtList ::= StmtList "++StmtList" StmtList [function, left, avoid]
@@ -325,7 +328,7 @@ Helper Functions
 ```
 
 Verification syntax
-===================
+-------------------
 
 ```k
     syntax Id ::= "inc" [token] | "main" [token]
