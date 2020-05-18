@@ -1,4 +1,9 @@
+## Coin flip
 
+This program demonstrates traditional `while` loops, non-deterministic choice
+and `invariant` specifications.
+
+```boogie
 procedure main() returns () {
     var numFlips: int;
     var iter: int;
@@ -9,7 +14,9 @@ procedure main() returns () {
     heads:=0;
     tails:=0;
 
-    while (iter != numFlips) invariant heads + tails == iter; {
+    while (iter != numFlips)
+      invariant heads + tails == iter;
+    {
         iter := iter + 1;
         if (*) {
             heads := heads + 1;
@@ -20,3 +27,4 @@ procedure main() returns () {
 
     assert { :source __FILE__ , __LINE__ } heads + tails == numFlips;
 }
+```

@@ -44,12 +44,19 @@ def c_preprocessor():
                     , command = 'cpp -P $in -o $out'
                     , ext = 'cpp')
 
-def test(t):
-    return proj.source(t) \
+def test(bpl, source = None):
+    if source == None: source = bpl
+    alias = source + '.test'
+    expected = source + '.expect'
+    return proj.source(bpl) \
                .then(c_preprocessor()) \
                .then(boogie.krun().variable('flags', '--search-final --pattern "<k> Result </k>"')) \
-               .then(diff_boogie(t + '.expect')) \
-               .alias(t + '.test')
+               .then(diff_boogie(expected)) \
+               .alias(alias)
+
+def case_study(t):
+    bpl = proj.tangle(t, selector='.boogie')
+    return test(bpl.path, source = t)
 
 def proof(t):
     return proj.source(t) \
@@ -58,17 +65,10 @@ def proof(t):
 
 # Our own tests to get us started, simpler than the Boogie test suite
 
-all_tests = list(glob('./test/**/*.bpl'))
-black_list = list(glob('./test/bitvectors/*.bpl')) \
-    + list(glob('./test/havoc/*')) \
-    + [ './test/control-flow/implementation.bpl'
-      , './test/control-flow/procedure.bpl'
-      ]
-white_list = list(set(all_tests) - set(black_list)) # Really, Python?!
-default_tests   = [test(t) for t in white_list]
-remaining_tests = [test(t) for t in black_list]
-proj.alias('default-tests', default_tests).default()
-proj.alias('all-tests', ['default-tests'] + remaining_tests )
+tests        = [test(t) for t in glob('test/**/*.bpl')]
+case_studies = [case_study(t) for t in glob('test/case-studies/*.bpl.md')]
+proj.alias('case-studies', case_studies)
+proj.alias('test', case_studies + tests)
 
 proof('./test/control-flow/while-nondet-spec.k')
 
@@ -82,10 +82,18 @@ def pandoc(inputs, output, flags):
                                , description = 'pandoc: $sources'
                                , command = 'pandoc -o "$out" $flags "$in" $sources'
                                ) \
+                          .implicit(inputs) \
                           .output(output)
                           .variable('sources', ' '.join(inputs))
+                          .variable('flags',   flags)
                     )
-pandoc(['README.md', 'boogie.md'], output='.build/report.pdf', flags='-to')
+pandoc([ 'README.md'
+       , 'boogie.md'
+       , './test/case-studies/README.md'
+       , './test/case-studies/coin-flip.bpl.md'
+       ]
+      , output='.build/report.pdf', flags='--to latex'
+      )
 
 # Main
 # ====
