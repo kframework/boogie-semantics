@@ -4,7 +4,7 @@ procedure main() returns () {
     var iter: int;
     var heads: int; 
     var tails: int;
-    numFlips:=100;
+    numFlips:=4;
     iter:=0;
     heads:=0;
     tails:=0;
