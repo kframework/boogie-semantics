@@ -1,3 +1,6 @@
+Boogie Syntax
+================
+
 ```k
 module NOTHING-COMMON-SYNTAX
     syntax Nothing
@@ -24,7 +27,7 @@ module BOOGIE-COMMON-SYNTAX
 ```
 
 1 Overview
-==========
+----------
 
 ```k
     syntax Program ::= DeclList
@@ -37,7 +40,7 @@ module BOOGIE-COMMON-SYNTAX
 ```
 
 2 Types
-=======
+-------
 
 2.1 Built-in types
 ------------------
@@ -49,7 +52,7 @@ module BOOGIE-COMMON-SYNTAX
 ```
 
 4 Expressions
-=============
+-------------
 
 ```k
     syntax Expr ::= Bool | Int | Id
@@ -69,7 +72,7 @@ module BOOGIE-COMMON-SYNTAX
 ```
 
 7 Mutable Variables, states, and execution traces
-=================================================
+-------------------------------------------------
 
 ```k
     syntax VarDecl ::= "var" AttributeList IdsTypeWhereList
@@ -78,7 +81,7 @@ module BOOGIE-COMMON-SYNTAX
 ```
 
 3 Constants and functions
-=========================
+-------------------------
 
 ```k
     syntax IdsType ::= IdList ":" Type [avoid]
@@ -86,10 +89,7 @@ module BOOGIE-COMMON-SYNTAX
 ```
 
 8 Procedures and implementations
-================================
-
-8.0 Syntax
-----------
+--------------------------------
 
 ```k
     syntax ProcedureDecl ::= "procedure" AttributeList Id PSig ";" SpecList
@@ -118,7 +118,7 @@ module BOOGIE-COMMON-SYNTAX
 ```
 
 9 Statements
-============
+------------
 
 ```k
     syntax Body ::= "{" LocalVarDeclList StmtList "}"
@@ -168,7 +168,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
 ```
 
 11 Tool directives
-==================
+------------------
 
 ```k
     syntax Attribute ::= "{" ":" Id AttrArgList  "}"

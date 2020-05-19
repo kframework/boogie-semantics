@@ -122,7 +122,8 @@ When the `<k>` cell is empty, the program succeeds.
               procedure _:AttributeList ProcedureName _:PSig ; _:SpecList
             </signature>
             <impls>
-              .Bag => <impl> implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
+              .Bag => <impl>
+                implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
                 { VarList StmtList } </impl>
             </impls>
           </proc>
@@ -218,7 +219,7 @@ TODO: verify this is legit.
     // rule havoc .Ids ; => .K
     // rule havoc X:Id Xs:Ids ; => havoc X ; havoc Xs ;
     rule havoc X ; =>  X := ?V:Int ; // TODO support other types
-    // TODO add assume statements in relation to the "where" statements that X was declared with
+    // TODO add assume statements corresponding to the where clause in X's declaration
 ```
 
 9.5 Label Statements and jumps
@@ -228,13 +229,15 @@ TODO: "This is Boogie 2" is extremely unclear about what happens here.
 This is best-effort attempt to translate their definition.
 
 ```k
-    syntax StmtList ::= transform(nu: Map, stmts: StmtList, freshCounter: FreshGenerator) [function, functional]
+    syntax StmtList ::= transform(nu: Map, stmts: StmtList, freshCounter: FreshGenerator)
+      [function, functional]
     rule transform(Nu, S Ss:StmtList, FreshGenerator)
       => transform(Nu, S,  next(FreshGenerator, 0)) ++StmtList
          transform(Nu, Ss, next(FreshGenerator, 1))
     rule transform(_, .StmtList, _) => .StmtList
 
-    syntax StmtList ::= transform(nu: Map, stmt: LabelOrStmt, freshCounter: FreshGenerator) [function, functional]
+    syntax StmtList ::= transform(nu: Map, stmt: LabelOrStmt, freshCounter: FreshGenerator)
+      [function, functional]
     rule transform(Nu:Map, lstmt(L:, S), FreshGenerator)
       => ( goto L;
            L: transform( (Nu (L |-> id("Done", FreshGenerator)))

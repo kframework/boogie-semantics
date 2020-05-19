@@ -1,3 +1,6 @@
+## Nondeterministic While Loop
+
+```k
 module WHILE-NONDET-SPEC
     imports BOOGIE
     rule <boogie>
@@ -30,7 +33,7 @@ module WHILE-NONDET-SPEC
 
     rule <boogie>
            <k>
-             inc := inc + 5 ; goto Head_0_1 , .IdList ; .StmtList 
+             inc := inc + 5 ; goto Head_0_1 , .IdList ; .StmtList
           => .K
            </k>
            <env>
@@ -42,8 +45,9 @@ module WHILE-NONDET-SPEC
            <labels>
              Body_0_1 |-> inc := inc + 5 ; goto Head_0_1 , .IdList ; .StmtList
              Done_0_1 |-> assert .AttributeList inc > 99 ; return ; .StmtList
-             Head_0_1 |-> assert .AttributeList inc > 99 ; goto Body_0_1 , Done_0_1 , .IdList ; .StmtList
-             start |-> inc := 100 ; goto Head_0_1 , .IdList ; .StmtList 
+             Head_0_1 |-> assert .AttributeList inc > 99 ;
+                                  goto Body_0_1 , Done_0_1 , .IdList ; .StmtList
+             start |-> inc := 100 ; goto Head_0_1 , .IdList ; .StmtList
            </labels>
            <exit-code>
              1
@@ -54,5 +58,5 @@ module WHILE-NONDET-SPEC
          </boogie>
      requires N >=Int 99
 
-
 endmodule
+```

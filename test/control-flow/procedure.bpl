@@ -11,7 +11,7 @@ procedure main() returns () {
     var z: int;
     call z := p0(27, 3);
 
-    // assert { :source __FILE__ , __LINE__ } z == 5;
-    assert z == 5;
+    assert { :source __FILE__ , __LINE__ } z == 5;
+
 }
 

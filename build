@@ -70,7 +70,7 @@ case_studies = [case_study(t) for t in glob('test/case-studies/*.bpl.md')]
 proj.alias('case-studies', case_studies)
 proj.alias('test', case_studies + tests).default()
 
-proof('./test/control-flow/while-nondet-spec.k')
+proof('./test/case-studies/while-nondet-spec.k.md')
 
 # Documentation and Reports
 # =========================
@@ -87,10 +87,15 @@ def pandoc(inputs, output, flags):
                           .variable('sources', ' '.join(inputs))
                           .variable('flags',   flags)
                     )
-pandoc([ 'README.md'
+pandoc(['README.md'
+       , 'syntax.md'
        , 'boogie.md'
        , './test/case-studies/README.md'
        , './test/case-studies/coin-flip.bpl.md'
+       , './test/case-studies/sum-to-n.bpl.md'
+       , './test/case-studies/implementation.bpl.md'
+       , './test/case-studies/while-nondet-spec.k.md'
+       , 'conclusion.md'
        ]
       , output='.build/report.pdf', flags='--to latex'
       )

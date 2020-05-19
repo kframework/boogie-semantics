@@ -1,10 +1,11 @@
 ---
 title: Semantics of Boogie in \K
-author: 
+author:
     - Seth Poulsen (sethp3@illinois.edu)
     - Nishant Rodrigues (nishant2@illinois.edu)
 header-include:  \newcommand{\K}{$\mathbb{K}$}
 links-as-notes: true
+geometry: margin=1in
 ---
 
 \tableofcontents
@@ -21,7 +22,9 @@ this approach extends to verification languages.
 The semantics of Boogie were informally defined in the paper ["This is Boogie
 2"](https://www.microsoft.com/en-us/research/publication/this-is-boogie-2-2/).
 Our semantics follows the semantics as defined there as much as possible, adding
-increased formality where the informal semantics are vague.
+increased formality where the informal semantics are vague. The section
+numbering in the Syntax and Semantics listed in this document also follows
+the section numbering from "This is Boogie 2."
 
 Eventually, we hope to support the full Boogie test suite, and use this
 semantics both to verify the primary Boogie tests, as well as to verify
@@ -57,10 +60,10 @@ To build the semantics and run the tests, first install the
 K Framework as described on [their github page][kframework-github]. Then clone this repository and run
 
 ``` {.sh}
-./build 
+./build
 ```
 
-The build script will download and build the K Framework, then use it to build
+The build script will download and build the \K Framework, then use it to build
 and execute the Boogie semantics.
 
 [kframework-github]: https://github.com/kframework/k
