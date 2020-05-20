@@ -64,10 +64,6 @@ When the `<k>` cell is empty, the program succeeds.
     rule <k> LHS:ValueExpr == RHS:ValueExpr => LHS ==K RHS ... </k>
     rule <k> LHS:ValueExpr != RHS:ValueExpr => LHS =/=K RHS ... </k>
 
-    // TODO: Short curcuit semantics are needed
-    rule <k> LHS:Bool || RHS:Bool => LHS orBool RHS ... </k>
-    rule <k> LHS:Bool && RHS:Bool => LHS andBool RHS ... </k>
-
     rule <k> LHS <  RHS => LHS  <Int RHS ... </k>
     rule <k> LHS >  RHS => LHS  >Int RHS ... </k>
     rule <k> LHS <= RHS => LHS <=Int RHS ... </k>
@@ -81,6 +77,14 @@ When the `<k>` cell is empty, the program succeeds.
     context HOLE _:MulOp E2
     context V1:ValueExpr _:MulOp HOLE
     rule <k> V1 * V2 => V1 *Int V2 ... </k>
+
+    context HOLE || E2
+    rule <k> true  || RHS => true  ... </k>
+    rule <k> false || RHS => RHS   ... </k>
+
+    context HOLE && E2
+    rule <k> true  && RHS => RHS   ... </k>
+    rule <k> false && RHS => false ... </k>
 
     context _:UnOp HOLE
     rule <k> ! B => notBool(B) ... </k>
