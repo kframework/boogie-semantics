@@ -13,6 +13,6 @@ procedure main() returns () {
         max := in2;
     }
 
-    assert { :source __FILE__ , __LINE__ } max >= in1;
-    assert { :source __FILE__ , __LINE__ } max >= in2;
+    assert { :code "BP5001" } { :source __LINE__ }  max >= in1;
+    assert { :code "BP5001" } { :source __LINE__ }  max >= in2;
 }

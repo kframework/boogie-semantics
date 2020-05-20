@@ -10,9 +10,9 @@ procedure main() returns () {
     c:= 13;
     d:= 20;
 
-    assert { :source __FILE__ , __LINE__ } a + b == 12;
-    assert { :source __FILE__ , __LINE__ } d - c == b;
-    assert { :source __FILE__ , __LINE__ } (a * b) + (a * d) - c == 122;  
+    assert { :code "BP5001" } { :source __LINE__ }  a + b == 12;
+    assert { :code "BP5001" } { :source __LINE__ }  d - c == b;
+    assert { :code "BP5001" } { :source __LINE__ }  (a * b) + (a * d) - c == 122;  
 
 }
 

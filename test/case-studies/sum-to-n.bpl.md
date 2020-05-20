@@ -18,6 +18,6 @@ procedure main() returns () {
         sum := sum + iter;
     }
 
-    assert { :source __FILE__ , __LINE__ } sum == 210;
+    assert { :code "BP5001" } { :source __LINE__ }  sum == 210;
 }
 ```

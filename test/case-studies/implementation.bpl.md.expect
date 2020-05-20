@@ -1,2 +1,14 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+/tmp/x.bpl(26,5): Error BP5003: A postcondition might not hold on this return path.
+/tmp/x.bpl(9,64): Related location: This is the postcondition that might not hold.
+Execution trace:
+    /tmp/x.bpl(25,7): anon0
+/tmp/x.bpl(31,5): Error BP5003: A postcondition might not hold on this return path.
+/tmp/x.bpl(9,64): Related location: This is the postcondition that might not hold.
+Execution trace:
+    /tmp/x.bpl(31,5): anon0
+/tmp/x.bpl(41,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    /tmp/x.bpl(39,5): anon0
 
-Boogie program verifier finished with 3 verified, 0 errors
+Boogie program verifier finished with 2 verified, 3 errors

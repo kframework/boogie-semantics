@@ -5,5 +5,5 @@ procedure main() returns () {
 
     a:= 5;
     b:= 6; 
-    assert { :source __FILE__ , __LINE__ } a + b == 11;
+    assert { :code "BP5001" } { :source __LINE__ }  a + b == 11;
 }

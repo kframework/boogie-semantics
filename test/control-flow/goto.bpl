@@ -15,7 +15,7 @@ procedure main() returns () {
         w:= 3;
     END:
 
-    assert { :source __FILE__ , __LINE__ } w == 2;
+    assert { :code "BP5001" } { :source __LINE__ }  w == 2;
 
 }
 

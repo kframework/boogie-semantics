@@ -2,31 +2,76 @@
 # Usage: $0 <k-output> <boogie-output> 
 
 import sys
+import os
+from os.path import dirname
+sys.path.append(os.path.join(os.path.dirname(__file__), '../ext/k/k-distribution/target/release/k/lib/'))
+
+import pyk
+import json
 import difflib
 import re
 
-def lines(file):
-    file = open(file)
-    ret = file.readlines()
-    file.close()
-    return ret
-    
-def filter_k_failure_messages(line):
-    match = re.search(r'#failure \( "([^"]*)"', line)
-    if match: return match.group(1) + '\n'
-k_output_file = sys.argv[1]
-k_output = list(filter(None, map(filter_k_failure_messages, lines(k_output_file))))
+definition = pyk.readKastTerm('.build/defn/boogie/boogie-kompiled/compiled.json')
+symbolTable = pyk.buildSymbolTable(definition)
 
-def filter_boogie_failure_messages(line):
-    match = re.search(r'([^\(]*)\((\d*),(\d*)\): (Error.*$)', line)
+k_output_file = sys.argv[1]
+k_output = json.loads(open(k_output_file).read())
+
+def find_subterms_by_label(label, term):
+    if not term['node'] in ['KSequence', 'KApply']: return []
+    if term['node'] == 'KApply':
+        if term['label'] == label: return [term]
+        ret = []
+        for subterm in term['args']:
+            ret += find_subterms_by_label(label, subterm)
+        return ret
+    return []
+
+term = k_output['term']
+exit_code = 0
+
+stuck    = []
+failures = []
+
+def parse_error_message(line):
+    match = re.search(r'([^\(]*)\((\d*),(\d*)\): (Error [\w\d]*): (.*)$', line)
     if not match: return
     file = match.group(1)
     line = match.group(2)
     column = match.group(3)
-    message = match.group(4)
-    return file + '(' + line + '): ' + message + '\n'
- 
-boogie_output_file = sys.argv[2]
-boogie_output = list(filter(None, map(filter_boogie_failure_messages, lines(boogie_output_file))))
+    code = match.group(4)
+    message = match.group(5)
+    # TODO: We should also be matching line numbers, but only manual assertions provide these
+    return code + "\n"
 
-sys.stdout.writelines(difflib.unified_diff(k_output, boogie_output))
+for k_cell in find_subterms_by_label('<k>', term):
+    kseq = k_cell['args'][0]
+    assert(kseq['node'] == 'KSequence')
+
+    if kseq['arity'] == 0: continue # success
+
+    head = kseq['items'][0]
+    if head['label'] == '#failure':
+        message = head['args'][0]
+        assert(message['node'] == 'KToken')
+        assert(message['sort'] == 'String')
+        message_string = message['token'][1:-1]
+        failures += [parse_error_message(message_string)]
+        continue
+
+    stuck += [pyk.prettyPrintKast(kseq, symbolTable)]
+
+failures = sorted(failures)
+
+boogie_output_file = sys.argv[2]
+boogie_output = sorted(list(filter(None, map(parse_error_message, open(boogie_output_file).readlines()))))
+
+if failures != boogie_output:
+    print(*difflib.unified_diff(sorted(failures), boogie_output, fromfile = 'actual', tofile = 'expected'))
+    exit_code = 1
+if stuck:
+    print('==== Stuck terms\n')
+    print("\n\n".join(stuck))
+    print()
+    exit_code = 1
+sys.exit(exit_code)

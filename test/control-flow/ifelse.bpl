@@ -9,14 +9,14 @@ procedure main() returns () {
     if (y > 1) {
         a:= 300;
     }
-    assert { :source __FILE__ , __LINE__ } a == 300;
+    assert { :code "BP5001" } { :source __LINE__ }  a == 300;
 
     if (y > 150) {
         a:= 1;
     } else if (y > 50) {
         a:= 2;
     }
-    assert { :source __FILE__ , __LINE__ } a == 2;
+    assert { :code "BP5001" } { :source __LINE__ }  a == 2;
 
     if (y > 150) {
         a:= 1;
@@ -25,7 +25,7 @@ procedure main() returns () {
     } else {
         a:= 3;
     }
-    assert { :source __FILE__ , __LINE__ } a == 3;
+    assert { :code "BP5001" } { :source __LINE__ }  a == 3;
 
 }
 

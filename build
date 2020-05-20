@@ -23,7 +23,7 @@ boogie = proj.definition( alias         = 'boogie'
                         , main          = 'boogie.md'
                         , other         = ['syntax.md', 'fresh-generator.md']
                         , backend       = 'haskell'
-                        , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX'
+                        , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --emit-json'
                         , runner_script = './boogie'
                         )
 
@@ -50,7 +50,7 @@ def test(bpl, source = None):
     expected = source + '.expect'
     return proj.source(bpl) \
                .then(c_preprocessor()) \
-               .then(boogie.krun().variable('flags', '--search-final --pattern "<k> Result </k>"')) \
+               .then(boogie.krun().variable('flags', '--search-final --output json')) \
                .then(diff_boogie(expected)) \
                .alias(alias)
 

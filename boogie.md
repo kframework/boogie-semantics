@@ -215,17 +215,21 @@ When the `<k>` cell is empty, the program succeeds.
 ------------------------------
 
 ```k
-    syntax KItem ::= "#failure" "(" String ")"
+    syntax KItem ::= "#failure" "(" String ")" [klabel(#failure), symbol]
     syntax KItem ::= "#failure" "(" AttributeList "," String ")"
-    syntax Id ::= "source" [token]
-    rule #failure( { : source File, Line, .AttrArgList }, Message )
-      => #failure(File +String "(" +String Int2String(Line) +String "): " +String Message)
+    syntax Id ::= "source" [token] | "code"   [token]
+    rule #failure(.AttributeList, Message)
+      => #failure(Message)
+    rule #failure({ :source Line, .AttrArgList } Attrs, Message)
+      => #failure(Attrs, "??.bpl(" +String Int2String(Line) +String ",00): " +String Message)
+    rule #failure({ :code Code, .AttrArgList } Attrs, Message)
+      => #failure(Attrs, Message +String "Error " +String Code +String ": ")
 ```
 
 ```k
     context assert Attributes HOLE ;
     rule <k> assert Attributes true ; => .K ... </k>
-    rule <k> (.K => #failure(Attributes, "Error BP5001: This assertion might not hold."))
+    rule <k> (.K => #failure(Attributes, ""))
           ~> assert Attributes false;
              ...
          </k>
