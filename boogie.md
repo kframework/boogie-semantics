@@ -97,28 +97,47 @@ When the `<k>` cell is empty, the program succeeds.
     rule <k> (procedure Attrs:AttributeList
                 ProcedureName .Nothing ( Args ) returns ( Rets ) SpecList
                 { VarList StmtList }):Decl
-          =>  procedure Attrs:AttributeList
-                ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList ~>
-              implementation Attrs ProcedureName .Nothing ( Args ) returns ( Rets )
-                { VarList StmtList } ...
+          => procedure Attrs:AttributeList
+               ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList
+          ~> implementation Attrs ProcedureName .Nothing ( Args ) returns ( Rets )
+               { VarList StmtList }
+             ...
          </k>
 
     rule <k> procedure Attrs:AttributeList
-                ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList
-          => .K ...
+                ProcedureName .Nothing ( Args ) returns ( Rets ) ;
+                  ( .SpecList
+                 => .Nothing requires true ;
+                    .Nothing ensures  true ;
+                    .SpecList
+                  )
+             ...
+         </k>
+
+    rule <k> procedure Attrs:AttributeList
+                ProcedureName .Nothing ( Args ) returns ( Rets ) ;
+                    .Nothing requires Requires ;
+                    .Nothing ensures  Ensures ;
+          => .K
+             ...
          </k>
          <procs> .Bag =>
            <proc>
              <signature>
                procedure Attrs:AttributeList
-                 ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList
-             </signature> ...
+                 ProcedureName .Nothing ( Args ) returns ( Rets ) ;
+                    .Nothing requires Requires ;
+                    .Nothing ensures  Ensures ;
+             </signature>
+             ...
            </proc>
+           ...
          </procs>
 
     rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
                 { VarList StmtList }
-            => .K ...
+         => .K
+            ...
          </k>
          <procs>
           <proc>
@@ -129,27 +148,11 @@ When the `<k>` cell is empty, the program succeeds.
               .Bag => <impl>
                 implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
                 { VarList StmtList } </impl>
+              ...
             </impls>
           </proc>
           ...
          </procs>
-
-    syntax KItem ::= "#start"
-    syntax Id ::= "start" [token]
-    rule <k> #start =>
-            VarList
-            ~> (start: transform(.Map, StmtList, .FreshGenerator)) ++StmtList return ; .StmtList
-            ~> goto start;</k>
-         <impls>
-           <impl>
-               implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
-               { VarList StmtList }
-           </impl>
-          ...
-         </impls>
-        //  <signature>
-        //    procedure _:AttributeList ProcedureName _:PSig ; _:SpecList //ensures Ens ; .SpecList
-        //  </signature>
 ```
 
 9 Statements
@@ -162,6 +165,40 @@ When the `<k>` cell is empty, the program succeeds.
 
 9.0 Implementation Body
 -----------------------
+
+```k
+    syntax KItem ::= "#start"
+    syntax Id ::= "$start"  [token]
+                | "$return" [token]
+    rule <k> #start
+          => makeDecls(IArgs)
+          ~> makeDecls(IRets)
+          ~> assume Attrs Requires;
+          ~> VarList
+          ~> $start:
+               transform(.Map, StmtList , .FreshGenerator ) ++StmtList
+               goto $return;
+             $return :
+               assert { :code "BP5003" } { :source 0 } Ensures ;
+             .StmtList
+           ~> goto $start;
+         </k>
+         <impls>
+           <impl>
+               implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets )
+               { VarList StmtList }
+           </impl>
+          ...
+         </impls>
+        <signature>
+          procedure _:AttributeList ProcedureName .Nothing ( PArgs ) returns ( PRets ) ;
+            .Nothing requires Requires ;
+            .Nothing ensures Ensures ;
+            .SpecList
+        </signature>
+      requires PArgs ==K IArgs andBool PRets ==K IRets
+      // TODO: `hook(SUBSTITUTION.substMany)` is not supported on the Haskell backend
+```
 
 ```k
    rule <k> V Vs:LocalVarDeclList => V ~> Vs ... </k>
@@ -215,15 +252,14 @@ TODO: This needs to work over lists of expressions and identifiers
 
 9.4 Havoc
 ---------
+
 Desugaring a list of Ids to seperate havoc statements seems like a sensible
 desugaring, but the spec is not clear if this is semantically equivalent.
 TODO: verify this is legit.
+TODO add assume statements corresponding to the where clause in X's declaration.
 
 ```k
-    // rule havoc .Ids ; => .K
-    // rule havoc X:Id Xs:Ids ; => havoc X ; havoc Xs ;
-    rule havoc X ; =>  X := ?V:Int ; // TODO support other types
-    // TODO add assume statements corresponding to the where clause in X's declaration
+    rule <k> havoc X ; => freshen(X) ... </k>
 ```
 
 9.5 Label Statements and jumps
@@ -288,7 +324,10 @@ Non-deterministically transition to all labels
 ---------------------
 
 ```k
-    rule <k> return ; ~> _ => .K </k>
+    rule transform(Nu, return;, FreshGenerator)
+      => goto $return ;
+         id("Unreachable", FreshGenerator) :
+         .StmtList
 ```
 
 9.7 If statements
@@ -382,8 +421,44 @@ benefit from the following:
       => assume Attrs E; transformInvariants(Invs)
 ```
 
-Helper Functions
-----------------
+9.9 Call statements
+-------------------
+
+```k
+    rule <k> call X:Id := ProcedureName:Id(ArgVals) ;
+          => assert .AttributeList Requires ;
+          ~> freshen(X)
+          ~> assume .AttributeList Ensures ;
+             ...
+         </k>
+         <signature>
+           procedure Attrs:AttributeList
+             ProcedureName .Nothing ( Args ) returns ( Rets ) ;
+                .Nothing requires Requires ;
+                .Nothing ensures Ensures ;
+         </signature>
+```
+
+Helpers
+-------
+
+Update an variable to store an *unconstrained* sybmolic value of the appropriate
+type.
+
+TODO: Take types into account.
+
+```k
+    syntax KItem ::= freshen(IdList)
+    rule <k> freshen(.IdList) => .K ... </k>
+    rule <k> freshen(X, Xs) => X := ?V:Int ; ~> freshen(Xs) ... </k>
+```
+
+```k
+    syntax LocalVarDeclList ::= makeDecls(IdsTypeWhereList) [function]
+    rule makeDecls(.IdsTypeWhereList) => .LocalVarDeclList
+    rule makeDecls(X : Type, Ids)
+      => var .AttributeList X : Type ; makeDecls(Ids)
+```
 
 ```k
     syntax StmtList ::= StmtList "++StmtList" StmtList [function, left, avoid]
