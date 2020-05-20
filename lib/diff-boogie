@@ -41,7 +41,9 @@ def parse_error_message(line):
     column = match.group(3)
     code = match.group(4)
     message = match.group(5)
-    # TODO: We should also be matching line numbers, but only manual assertions provide these
+
+    # TODO: We only check line numbers for manual assertions, and not returns etc.
+    if code == 'Error BP5001': return 'line: ' + line + '; ' + code + '\n'
     return code + "\n"
 
 for k_cell in find_subterms_by_label('<k>', term):
