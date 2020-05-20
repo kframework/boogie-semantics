@@ -59,8 +59,8 @@ def case_study(t):
     return test(bpl.path, source = t)
 
 def proof(t):
-    return proj.source(t) \
-               .then(boogie.kprove()) \
+    return proj.tangle(input = t) \
+               .then(boogie.kprove().variables(flags = '--spec-module SPEC')) \
                .alias(t + '.proof')
 
 # Our own tests to get us started, simpler than the Boogie test suite
@@ -70,7 +70,7 @@ case_studies = [case_study(t) for t in glob('test/case-studies/*.bpl.md')]
 proj.alias('case-studies', case_studies)
 proj.alias('test', case_studies + tests).default()
 
-proof('./test/case-studies/while-nondet-spec.k.md')
+proof('./test/case-studies/while-nondet-spec.k.md').default()
 
 # Documentation and Reports
 # =========================
