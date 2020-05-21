@@ -45,11 +45,20 @@ module SPEC
              LOC |-> (N:Int => ?_:Int)
            </store>
            <labels>
-             $return |-> assert { : code "BP5003" , .AttrArgList }  { : source 0 , .AttrArgList }  .AttributeList true ; .StmtList
-             $start |-> inc := 100 ; goto Head_0_1 , .IdList ; .StmtList
-             Body_0_1 |-> inc := inc + 5 ; goto Head_0_1 , .IdList ; .StmtList
-             Done_0_1 |-> assert .AttributeList inc > 99 ; goto $return , .IdList ; .StmtList
-             Head_0_1 |-> assert .AttributeList inc > 99 ; goto Body_0_1 , Done_0_1 , .IdList ; .StmtList
+             $return  |-> assert _:AttributeList true ;
+                          .StmtList
+             $start   |-> inc := 100 ;
+                          goto Head_0_1 , .IdList ;
+                          .StmtList
+             Body_0_1 |-> inc := inc + 5 ;
+                          goto Head_0_1 , .IdList ;
+                          .StmtList
+             Done_0_1 |-> assert .AttributeList inc > 99 ;
+                          goto $return , .IdList ;
+                          .StmtList
+             Head_0_1 |-> assert .AttributeList inc > 99 ;
+                          goto Body_0_1 , Done_0_1 , .IdList ;
+                          .StmtList
            </labels>
            <exit-code>
              1

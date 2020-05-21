@@ -1,7 +1,7 @@
 Conclusion
 ==========
 
-We have defined a formal semantics for a large subset of Boogie, supporting many
+We have defined a formal semantics for a subset of Boogie, supporting many
 nontrivial verification features. This semantics can be extended to a full
 semantics of Boogie, to be used to verify the primary implementation of Boogie,
 as well as the correctness of programs translated into Boogie from higher-level

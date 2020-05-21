@@ -2,22 +2,8 @@ Boogie Syntax
 ================
 
 ```k
-module NOTHING-COMMON-SYNTAX
-    syntax Nothing
-endmodule
+requires "nothing.k"
 
-module NOTHING-PROGRAM-SYNTAX
-    imports NOTHING-COMMON-SYNTAX
-    syntax Nothing ::= "" [klabel(Nothing), symbol]
-endmodule
-
-module NOTHING-RULE-SYNTAX
-    imports NOTHING-COMMON-SYNTAX
-    syntax Nothing ::= ".Nothing" [klabel(Nothing), symbol]
-endmodule
-```
-
-```k
 module BOOGIE-COMMON-SYNTAX
     imports BOOL-SYNTAX
     imports ID-SYNTAX

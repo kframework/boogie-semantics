@@ -8,8 +8,6 @@ links-as-notes: true
 geometry: margin=1in
 ---
 
-\tableofcontents
-
 Introduction
 ============
 
@@ -19,12 +17,11 @@ language for verification. We choose to implement this in the [\K
 Framework] because of its semantics-first approach, and our belief that
 this approach extends to verification languages.
 
-The semantics of Boogie were informally defined in the paper ["This is Boogie
-2"](https://www.microsoft.com/en-us/research/publication/this-is-boogie-2-2/).
-Our semantics follows the semantics as defined there as much as possible, adding
-increased formality where the informal semantics are vague. The section
-numbering in the Syntax and Semantics listed in this document also follows
-the section numbering from "This is Boogie 2."
+The semantics of Boogie were informally defined in the paper "[This is Boogie
+2]". Our semantics follows the semantics as defined there as much as possible,
+adding increased formality where the informal semantics are vague. The section
+numbering in the Syntax and Semantics listed in this document also follows the
+section numbering from "This is Boogie 2." Since the
 
 Eventually, we hope to support the full Boogie test suite, and use this
 semantics both to verify the primary Boogie tests, as well as to verify
@@ -37,6 +34,7 @@ languages' \K semantics with minimal changes. This will do away with the
 need for a translation of the source language to an intermediate language,
 and with it the pitfalls of writing multiple implementations of the language.
 
+[This is Boogie 2]: https://www.microsoft.com/en-us/research/publication/this-is-boogie-2-2/
 [\K Framework]: http://www.kframework.org/index.php/Main_Page
 [Dafny]: https://www.microsoft.com/en-us/research/project/dafny-a-language-and-program-verifier-for-functional-correctness/
 
@@ -67,3 +65,13 @@ The build script will download and build the \K Framework, then use it to build
 and execute the Boogie semantics.
 
 [kframework-github]: https://github.com/kframework/k
+
+Organization
+============
+
+The majority of the source code for this project is in two files \[boogie.md\]
+and [syntax.md]. The code within these two files are organized to mirror that
+of the [This is boogie 2] paper. Being published in 2008, we expect that
+document to be both out of date and incomplete. We try to mention divergences
+from that document where possible.
+
