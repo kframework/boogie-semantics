@@ -38,18 +38,18 @@ def diff_boogie(boogie_output):
                .variable('boogie_output', boogie_output) \
                .implicit([boogie_output])
 
-def c_preprocessor():
-    return proj.rule( 'cpp'
-                    , description = 'cpp: $in'
-                    , command = 'cpp -P $in -o $out'
-                    , ext = 'cpp')
+def preprocess():
+    return proj.rule( 'preprocess'
+                    , description = 'preprocess: $in'
+                    , command = 'cpp -P $in | boogie /nologo /printVerifiedProceduresCount:0 /noVerify /printInstrumented /infer:j stdin.bpl | sed -e "$$ d" > $out'
+                    , ext = 'preprocessed')
 
 def test(bpl, source = None):
     if source == None: source = bpl
     alias = source + '.test'
     expected = source + '.expect'
     return proj.source(bpl) \
-               .then(c_preprocessor()) \
+               .then(preprocess()) \
                .then(boogie.krun().variable('flags', '--search-final --output json')) \
                .then(diff_boogie(expected)) \
                .alias(alias)
