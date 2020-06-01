@@ -183,23 +183,19 @@ Split procedures with a body into a procedure and an implementation:
 
 ```k
     syntax KItem ::= "#start"
-    syntax Id ::= "$start"  [token]
-                | "$return" [token]
     rule <k> #start
           => makeDecls(IArgs)
           ~> makeDecls(IRets)
           ~> assume Attrs Requires;
           ~> VarList
-          ~> $start:
-               transform(.Map, StmtList , .FreshGenerator ) ++StmtList
-               return; .StmtList
-           ~> goto $start;
+          ~> StartLabel: StmtList
+          ~> goto StartLabel;
          </k>
          (.Bag => <currentProc> ProcedureName </currentProc>)
          <impls>
            <impl>
                implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets )
-               { VarList StmtList }
+               { VarList StartLabel: StmtList }
            </impl>
           ...
          </impls>
@@ -282,38 +278,6 @@ TODO add assume statements corresponding to the where clause in X's declaration.
 9.5 Label Statements and jumps
 ------------------------------
 
-TODO: "This is Boogie 2" is extremely unclear about what happens here.
-This is best-effort attempt to translate their definition.
-
-```k
-    syntax StmtList ::= transform(nu: Map, stmts: StmtList, freshCounter: FreshGenerator)
-      [function, functional]
-    rule transform(Nu, S Ss:StmtList, FreshGenerator)
-      => transform(Nu, S,  next(FreshGenerator, 0)) ++StmtList
-         transform(Nu, Ss, next(FreshGenerator, 1))
-    rule transform(_, .StmtList, _) => .StmtList
-
-    syntax StmtList ::= transform(nu: Map, stmt: LabelOrStmt, freshCounter: FreshGenerator)
-      [function, functional]
-    rule transform(Nu:Map, lstmt(L:, S), FreshGenerator)
-      => ( goto L;
-           L: transform( (Nu (L |-> id("Done", FreshGenerator)))
-                       , S
-                       , next(FreshGenerator, 1)
-                       )
-         )
-         ++StmtList
-         goto id("Done", FreshGenerator) ;
-         id("Done", FreshGenerator)  :
-         .StmtList
-    rule transform(Nu, S:SimpleStmt, FreshGenerator)
-      => S .StmtList
-    rule transform(Nu, goto Ls;, FreshGenerator)
-      => goto Ls;
-         id("Unreachable", FreshGenerator) :
-         .StmtList
-```
-
 ```k
     syntax KItem ::= #collectLabel(Id, StmtList)
     rule <k> Id:  => #collectLabel(Id, .StmtList) ... </k>
@@ -341,12 +305,6 @@ Non-deterministically transition to all labels
 ---------------------
 
 ```k
-    rule transform(Nu, return;, FreshGenerator)
-      => return;
-         .StmtList
-```
-
-```k
     rule <k> return ; ~> _
           => assert { :code "BP5003" } { :source 0 } Ensures ;
          </k>
@@ -360,93 +318,8 @@ Non-deterministically transition to all labels
 9.7 If statements
 -----------------
 
-While not in the grammar, the implementations of `if` and `while` statements
-benefit from the following:
-
-```k
-    syntax Stmt ::= Else
-    rule transform(Nu, { Ss }, FreshGenerator)
-      => transform(Nu,   Ss,   FreshGenerator)
-```
-
-```k
-    rule transform(Nu, if (E) THEN, FreshGenerator)
-      => transform(Nu, if (E) THEN else { .StmtList }, FreshGenerator)
-
-    rule transform(Nu, if (E) THEN else ELSE , FreshGenerator)
-      => goto id("then", FreshGenerator), id("else", FreshGenerator);
-         id("then", FreshGenerator):
-            assume .AttributeList E;
-            transform(Nu, THEN, next(FreshGenerator, 0)) ++StmtList
-         (  goto id("Done", FreshGenerator);
-         id("else", FreshGenerator):
-            assume .AttributeList ! E;
-            transform(Nu, ELSE, next(FreshGenerator, 1)) ) ++StmtList
-            goto id("Done", FreshGenerator);
-         id("Done", FreshGenerator):
-         .StmtList
-```
-
-```k
-    rule transform(Nu, if (*) THEN else ELSE , FreshGenerator)
-      => goto id("then", FreshGenerator), id("else", FreshGenerator);
-         id("then", FreshGenerator):
-            transform(Nu, THEN, next(FreshGenerator, 0)) ++StmtList
-         (  goto id("Done", FreshGenerator);
-         id("else", FreshGenerator):
-            transform(Nu, ELSE, next(FreshGenerator, 1)) ) ++StmtList
-            goto id("Done", FreshGenerator);
-         id("Done", FreshGenerator):
-         .StmtList
-```
-
 9.8 While loops
 ---------------
-
-```k
-    rule transform(Nu, while (E) Invariants { Body }, FreshGenerator)
-      => goto id("Head", FreshGenerator);
-         id("Head", FreshGenerator):
-            transformInvariants(Invariants) ++StmtList
-         (  goto id("Body", FreshGenerator), id("GuardedDone", FreshGenerator) ;
-         id("Body", FreshGenerator):
-            assume .AttributeList E;
-            transform( Nu[ "*" <- id("Done", FreshGenerator)]
-                     , Body
-                     , next(FreshGenerator, 0)
-                     ) ) ++StmtList
-            goto id("Head", FreshGenerator) ;
-         id("GuardedDone", FreshGenerator):
-            assume .AttributeList ! E;
-            goto id("Done", FreshGenerator) ;
-         id("Done", FreshGenerator):
-         .StmtList
-```
-
-```k
-    rule transform(Nu, while (*) Invariants { Body }, FreshGenerator)
-      => goto id("Head", FreshGenerator);
-         id("Head", FreshGenerator):
-            transformInvariants(Invariants) ++StmtList
-         (  goto id("Body", FreshGenerator), id("Done", FreshGenerator) ;
-         id("Body", FreshGenerator):
-            transform( Nu[ "*" <- id("Done", FreshGenerator)]
-                     , Body
-                     , next(FreshGenerator, 0)
-                     ) ) ++StmtList
-            goto id("Head", FreshGenerator) ;
-         id("Done", FreshGenerator):
-         .StmtList
-```
-
-```k
-    syntax StmtList ::= transformInvariants(LoopInvList) [function, functional]
-    rule transformInvariants(.LoopInvList) => .StmtList
-    rule transformInvariants(invariant Attrs E; Invs)
-      => assert Attrs E; transformInvariants(Invs)
-    rule transformInvariants(free invariant Attrs E; Invs)
-      => assume Attrs E; transformInvariants(Invs)
-```
 
 9.9 Call statements
 -------------------

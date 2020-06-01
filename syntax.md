@@ -117,13 +117,9 @@ module BOOGIE-COMMON-SYNTAX
 This allows us to parse more restrictively, and still have more freedom in the semantics.
 
 ```k
-    syntax StmtList
+    syntax StmtList ::= List{LabelOrStmt, ""} [klabel(StmtList)]
+    syntax LabelOrStmt ::= Stmt | Label
     syntax Label ::= Id ":"
-    syntax LabelOrStmt ::= LStmt | LEmpty
-    syntax LStmt ::= Stmt
-               //  | Label LStmt        // Different productions for RULE and PROGRAM grammars
-    syntax LEmpty ::= Label
-                    | Label LEmpty
 ```
 
 ```k
@@ -174,13 +170,6 @@ module BOOGIE-PROGRAM-SYNTAX
     imports BOOGIE-COMMON-SYNTAX
     imports NOTHING-PROGRAM-SYNTAX
     imports ID-SYNTAX-PROGRAM-PARSING
-
-    syntax LStmt ::= Label LStmt                [klabel(lstmt), symbol]
-
-    syntax LEmptyList ::= ""                    [klabel(dotStmtList), symbol]
-                        | LEmpty LEmptyList     [klabel(StmtListCons), symbol]
-    syntax StmtList ::= LEmptyList
-                      | LStmt StmtList          [klabel(StmtListConsLStmt), symbol]
 endmodule
 ```
 
@@ -188,14 +177,5 @@ endmodule
 module BOOGIE-RULE-SYNTAX
     imports BOOGIE-COMMON-SYNTAX
     imports NOTHING-RULE-SYNTAX
-
-    syntax LStmt ::= lstmt(Label, LStmt)      [klabel(lstmt), symbol]
-
-    syntax StmtList ::= ".StmtList"           [klabel(dotStmtList), symbol]
-    syntax StmtList ::= LabelOrStmt StmtList  [klabel(StmtListCons), symbol]
-                      | StmtListConsLStmt(LStmt, StmtList)
-                                              [klabel(StmtListConsLStmt), symbol, avoid]
-
-    rule StmtListConsLStmt(S, Ss) => S Ss [macro]
 endmodule
 ```
