@@ -93,6 +93,8 @@ When the `<k>` cell is empty, the program succeeds.
 8 Procedures and implementations
 --------------------------------
 
+Split procedures with a body into a procedure and an implementation:
+
 ```k
     rule <k> (procedure Attrs:AttributeList
                 ProcedureName .Nothing ( Args ) returns ( Rets ) SpecList
@@ -101,6 +103,13 @@ When the `<k>` cell is empty, the program succeeds.
                ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList
           ~> implementation Attrs ProcedureName .Nothing ( Args ) returns ( Rets )
                { VarList StmtList }
+             ...
+         </k>
+```
+
+```k
+    rule <k> procedure Attrs:AttributeList ProcedureName .Nothing ( Args ) .Nothing ; SpecList
+          => procedure Attrs:AttributeList ProcedureName .Nothing ( Args ) returns (.IdsTypeWhereList) ; SpecList
              ...
          </k>
 
@@ -133,7 +142,12 @@ When the `<k>` cell is empty, the program succeeds.
            </proc>
            ...
          </procs>
+```
 
+```k
+    rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) (.Nothing => returns (.IdsTypeWhereList)) { VarList StmtList }
+             ...
+         </k>
     rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
                 { VarList StmtList }
          => .K
