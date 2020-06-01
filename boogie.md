@@ -16,6 +16,7 @@ module BOOGIE
                     <env> .Map </env>
                     <store> .Map </store>
                     <labels> .Map </labels>
+                    <currentProc multiplicity="?"> main </currentProc>
                     <procs>
                       <proc multiplicity="*" type="Set">
                         <signature> .K </signature>
@@ -191,12 +192,10 @@ Split procedures with a body into a procedure and an implementation:
           ~> VarList
           ~> $start:
                transform(.Map, StmtList , .FreshGenerator ) ++StmtList
-               goto $return;
-             $return :
-               assert { :code "BP5003" } { :source 0 } Ensures ;
-             .StmtList
+               return; .StmtList
            ~> goto $start;
          </k>
+         (.Bag => <currentProc> ProcedureName </currentProc>)
          <impls>
            <impl>
                implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets )
@@ -204,12 +203,12 @@ Split procedures with a body into a procedure and an implementation:
            </impl>
           ...
          </impls>
-        <signature>
-          procedure _:AttributeList ProcedureName .Nothing ( PArgs ) returns ( PRets ) ;
-            .Nothing requires Requires ;
-            .Nothing ensures Ensures ;
-            .SpecList
-        </signature>
+         <signature>
+           procedure _:AttributeList ProcedureName .Nothing ( PArgs ) returns ( PRets ) ;
+             .Nothing requires Requires ;
+             .Nothing ensures Ensures ;
+             .SpecList
+         </signature>
       requires PArgs ==K IArgs andBool PRets ==K IRets
       // TODO: `hook(SUBSTITUTION.substMany)` is not supported on the Haskell backend
 ```
@@ -343,9 +342,19 @@ Non-deterministically transition to all labels
 
 ```k
     rule transform(Nu, return;, FreshGenerator)
-      => goto $return ;
-         id("Unreachable", FreshGenerator) :
+      => return;
          .StmtList
+```
+
+```k
+    rule <k> return ; ~> _
+          => assert { :code "BP5003" } { :source 0 } Ensures ;
+         </k>
+         <currentProc> CurrentProc </currentProc>
+         <signature> procedure _:AttributeList ProcedureName _ ( _ ) _ ;
+                        .Nothing requires _ ;
+                        .Nothing ensures Ensures ;
+         </signature>
 ```
 
 9.7 If statements
