@@ -250,9 +250,9 @@ Split procedures with a body into a procedure and an implementation:
 ```
 
 ```k
-    context assume .AttributeList HOLE ;
-    rule <k> assume .AttributeList true ;      => .K ... </k>
-    rule <k> assume .AttributeList false; ~> K => .K </k>
+    context assume _ HOLE ;
+    rule <k> assume _ true ;      => .K ... </k>
+    rule <k> assume _ false; ~> K => .K </k>
          <store> _ => .Map </store>
 ```
 
