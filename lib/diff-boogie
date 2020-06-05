@@ -58,6 +58,7 @@ for k_cell in find_subterms_by_label('<k>', term):
         assert(message['node'] == 'KToken')
         assert(message['sort'] == 'String')
         message_string = message['token'][1:-1]
+        assert parse_error_message(message_string), "Could not parse error message: '%s'" % message_string
         failures += [parse_error_message(message_string)]
         continue
 
