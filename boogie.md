@@ -16,6 +16,7 @@ module BOOGIE
                     <env> .Map </env>
                     <store> .Map </store>
                     <labels> .Map </labels>
+                    <cutpoints> .List </cutpoints>
                     <currentProc multiplicity="?"> main </currentProc>
                     <procs>
                       <proc multiplicity="*" type="Set">
@@ -278,6 +279,9 @@ TODO add assume statements corresponding to the where clause in X's declaration.
 9.5 Label Statements and jumps
 ------------------------------
 
+`#collectLabel` splits procedure bodies into labeled blocks, and populates the
+`<label>` cell with a map from labels to their bodies.
+
 ```k
     syntax KItem ::= #collectLabel(Id, StmtList)
     rule <k> Id:  => #collectLabel(Id, .StmtList) ... </k>
@@ -285,11 +289,26 @@ TODO add assume statements corresponding to the where clause in X's declaration.
           => (#collectLabel(L, S1s ++StmtList S2 .StmtList) ~> S2s)
              ...
          </k>
+      requires S2 =/=K cutpoint;
     rule <k> (#collectLabel(L, S1s) => .K)
           ~> (L2: S2 S2s:StmtList) #Or .StmtList
              ...
          </k>
          <labels> (.Map => L |-> S1s) Labels </labels>
+```
+
+We also assign numbers to cutpoints so that we can distinguish between them. It
+would be nice if \K could give us source location information that we
+could use instead of this.
+
+```k
+    rule <k> #collectLabel(L, S1s)
+          ~> ( cutpoint;
+            => cutpoint(!_:Int) ;
+             )
+             S2s:StmtList
+             ... 
+         </k>
 ```
 
 Non-deterministically transition to all labels
@@ -337,6 +356,25 @@ Non-deterministically transition to all labels
                 .Nothing requires Requires ;
                 .Nothing ensures Ensures ;
          </signature>
+```
+
+Extenion: Cutpoints
+-------------------
+
+```k
+    syntax Stmt ::= "cutpoint" "(" Int ")" ";"
+    rule <k> cutpoint(I) ; => #abstract(Rho) ... </k>
+         <env> Rho </env>
+         <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
+      requires notBool I in Cutpoints
+
+    rule <k> cutpoint(I) ; => assume .AttributeList (false); ... </k>
+         <cutpoints> Cutpoints </cutpoints>
+      requires I in Cutpoints
+
+    syntax KItem ::= "#abstract" "(" Map ")"
+    rule <k> #abstract(.Map) => .K ... </k>
+    rule <k> #abstract((X:Id |-> Loc) Rho) => freshen(X) ... </k>
 ```
 
 Helpers

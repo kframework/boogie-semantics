@@ -41,7 +41,7 @@ def diff_boogie(boogie_output):
 def preprocess():
     return proj.rule( 'preprocess'
                     , description = 'preprocess: $in'
-                    , command = 'cpp -P $in | boogie /nologo /printVerifiedProceduresCount:0 /noVerify /printInstrumented /infer:j stdin.bpl | sed -e "$$ d" > $out'
+                    , command = 'cpp -P $in | boogie /nologo /printVerifiedProceduresCount:0 /noVerify /printInstrumented /infer:j stdin.bpl | sed -e "$$ d" -e "s|// cut point|cutpoint;|g" > $out'
                     , ext = 'preprocessed')
 
 def test(bpl, source = None):
