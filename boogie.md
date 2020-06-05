@@ -383,7 +383,7 @@ and replace all values in the `<store>` with fresh symbolic values.
 
 ```k
     rule <k> call X:Id := ProcedureName:Id(ArgVals) ;
-          => assert .AttributeList Requires ;
+          => assert { :code "BPRequires" } { :source 0 } Requires ;
           ~> freshen(X)
           ~> assume .AttributeList Ensures ;
              ...
