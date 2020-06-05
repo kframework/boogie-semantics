@@ -297,20 +297,6 @@ TODO add assume statements corresponding to the where clause in X's declaration.
          <labels> (.Map => L |-> S1s) Labels </labels>
 ```
 
-We also assign numbers to cutpoints so that we can distinguish between them. It
-would be nice if \K could give us source location information that we
-could use instead of this.
-
-```k
-    rule <k> #collectLabel(L, S1s)
-          ~> ( cutpoint;
-            => cutpoint(!_:Int) ;
-             )
-             S2s:StmtList
-             ... 
-         </k>
-```
-
 Non-deterministically transition to all labels
 
 ```k
@@ -318,6 +304,58 @@ Non-deterministically transition to all labels
          <labels> L |-> Stmts ... </labels>
     rule <k> goto L, Ls ; => goto Ls ; ... </k>
       requires Ls =/=K .IdList
+```
+
+### Extension: Cutpoints
+
+We use `boogie` to infer invaraints and cutpoints.
+Boogie marks labels that are cutpoints with the comment `// cut point`.
+We preprocess this comment into a `Stmt` "`cutpoint;`" that we handle.
+
+Boogie does not place the `cutpoint` mark, the inferred invariants and
+the loop invariant assertsions in the right order.
+The following code rearranges them into an order that makes more sense for us.
+
+We also need to be able to distinguish between different cutpoints.
+Ideally, \K would mark this with source line information but it does not.
+So we mark them with fresh integers in this preprocessing pass.
+
+```k
+    syntax Id ::= "inferred" [token]
+    rule <k> #collectLabel(L, S1s)
+          ~> ( ( cutpoint;
+                 assume { :inferred .AttrArgList } Inferred;
+                 assert .AttributeList Invariant ;
+                 S2s:StmtList
+               )
+            => ( assert { :code "Inferred" } { :source 0 } Inferred; // This should never fail
+                 assert { :code "BPInvariant" } { :source 0 } Invariant;
+                 cutpoint(!_:Int) ;
+                 assume { :inferred .AttrArgList } Inferred;
+                 assume .AttributeList Invariant;
+                 S2s:StmtList
+             ) )
+             ...
+         </k>
+```
+
+When we reach a paticular cutpoint the first time, we treat it as an abstraction point
+and replace all values in the `<store>` with fresh symbolic values.
+
+```k
+    syntax Stmt ::= "cutpoint" "(" Int ")" ";"
+    rule <k> cutpoint(I) ; => #abstract(Rho) ... </k>
+         <env> Rho </env>
+         <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
+      requires notBool I in Cutpoints
+
+    rule <k> cutpoint(I) ; => assume .AttributeList (false); ... </k>
+         <cutpoints> Cutpoints </cutpoints>
+      requires I in Cutpoints
+
+    syntax KItem ::= "#abstract" "(" Map ")"
+    rule <k> #abstract(.Map) => .K ... </k>
+    rule <k> #abstract((X:Id |-> Loc) Rho) => freshen(X) ... </k>
 ```
 
 9.6 Return statements
@@ -356,25 +394,6 @@ Non-deterministically transition to all labels
                 .Nothing requires Requires ;
                 .Nothing ensures Ensures ;
          </signature>
-```
-
-Extenion: Cutpoints
--------------------
-
-```k
-    syntax Stmt ::= "cutpoint" "(" Int ")" ";"
-    rule <k> cutpoint(I) ; => #abstract(Rho) ... </k>
-         <env> Rho </env>
-         <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
-      requires notBool I in Cutpoints
-
-    rule <k> cutpoint(I) ; => assume .AttributeList (false); ... </k>
-         <cutpoints> Cutpoints </cutpoints>
-      requires I in Cutpoints
-
-    syntax KItem ::= "#abstract" "(" Map ")"
-    rule <k> #abstract(.Map) => .K ... </k>
-    rule <k> #abstract((X:Id |-> Loc) Rho) => freshen(X) ... </k>
 ```
 
 Helpers
