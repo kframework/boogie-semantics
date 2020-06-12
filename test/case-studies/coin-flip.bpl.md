@@ -25,6 +25,6 @@ procedure main() returns () {
         }
     }
 
-    assert { :code "BP5001" } { :source __LINE__ }  heads + tails == numFlips;
+    assert  heads + tails == numFlips;
 }
 ```

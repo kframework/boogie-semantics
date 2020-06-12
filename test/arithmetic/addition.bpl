@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 
 procedure main() returns () {
     var a: int;
@@ -5,5 +7,5 @@ procedure main() returns () {
 
     a:= 5;
     b:= 6; 
-    assert { :code "BP5001" } { :source __LINE__ }  a + b == 11;
+    assert  a + b == 11;
 }

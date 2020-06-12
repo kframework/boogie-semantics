@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+# Usage: $0  <boogie-output> <k-output>
+#
+# Compares KBoogie's output with boogies
+
+import sys
+import os
+import re
+import subprocess
+from collections import namedtuple, Counter
+import os
+import tempfile
+
+exit_code = 0
+
+stuck    = []
+failures = []
+
+sys.argv.pop(0)
+expected = sys.argv.pop(0)
+actual   = sys.argv.pop(0)
+
+Error = namedtuple('Error', ['file', 'line', 'column', 'code', 'message'])
+
+def parse_errors(line):
+    match = re.search(r'([^\(]*)\((\d*),(\d*)\): Error ([\w\d]*): (.*)$', line)
+    if not match: return None
+    return Error( file = match.group(1)
+                , line = match.group(2)
+                , column = match.group(3)
+                , code = match.group(4)
+                , message = match.group(5)
+                )
+
+def make_check_exp(error):
+    file = error.file
+    line = error.line
+    column = '{{[0-9]+}}'
+    code = error.code
+
+    # We only support line numbers for error code BP5001
+    if error.code != 'BP5001':
+        file = '{{[^ ]*}}'
+        line = '{{[0-9]+}}'
+
+    return file + '(' + line + ',' + column + '): Error ' + code + ':'
+
+def make_check(arg):
+    exp, count = arg
+    return 'CHECK-COUNT-%d: %s' % (count, exp)
+
+def check_error_total(count):
+    return [ 'CHECK: verifier finished'
+           , 'CHECK-SAME: %d errors'  % count
+		   ]
+
+errors = open(expected).readlines()
+errors = map(parse_errors, errors)
+errors = filter(None, errors)
+errors = list(map(make_check_exp, errors))
+error_total = check_error_total(len(errors))
+errors = Counter((errors)).most_common()
+checks = map(make_check, errors)
+checks = list(checks) + error_total
+
+temp = tempfile.NamedTemporaryFile(delete = False)
+temp.write('\n'.join(checks).encode())
+temp.close()
+subprocess.check_call('FileCheck --color %s < %s' % (temp.name, actual), shell = True)
+os.remove(temp.name)

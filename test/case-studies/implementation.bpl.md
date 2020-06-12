@@ -37,7 +37,7 @@ procedure main() returns ()
 {
     var z: int;
     call z := p0(27, 3);
-    assert { :code "BP5001" } { :source __LINE__ }  z >= 5;
-    assert { :code "BP5001" } { :source __LINE__ }  z <= 7; // fail
+    assert  z >= 5;
+    assert  z <= 7; // fail
 }
 ```

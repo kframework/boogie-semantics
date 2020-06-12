@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 
 procedure main() returns () {
     var input: int; // where input > 0;
@@ -5,9 +7,9 @@ procedure main() returns () {
 
     havoc input;
     assume input != 0;
-    assert { :code "BP5001" } { :source __LINE__ }  input != 0; 
+    assert  input != 0; 
     squared := input * input;
 
-    assert { :code "BP5001" } { :source __LINE__ }  squared >= input;
-    assert { :code "BP5001" } { :source __LINE__ }  squared >= 0;
+    assert  squared >= input;
+    assert  squared >= 0;
 }

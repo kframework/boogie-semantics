@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 procedure main() returns () {
     var it: int;
     var inc: int; 

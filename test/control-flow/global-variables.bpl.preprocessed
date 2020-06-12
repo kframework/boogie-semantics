@@ -1,0 +1,12 @@
+var g : int;
+
+procedure foo();
+
+implementation foo()
+{
+
+  anon0:
+    g := 1;
+    return;
+}
+

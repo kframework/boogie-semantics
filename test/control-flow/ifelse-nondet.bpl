@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 
 
 procedure main() returns () {
@@ -10,7 +12,7 @@ procedure main() returns () {
     if (*) {
         a:= 300;
     }
-    assert { :code "BP5001" } { :source __LINE__ }  a == 1 || a == 300;
+    assert  a == 1 || a == 300;
 
 
     if (y > 150) {
@@ -18,7 +20,7 @@ procedure main() returns () {
     } else if (*) {
         a:= 2;
     }
-    assert { :code "BP5001" } { :source __LINE__ }  a == 1 || a == 300 || a == 2 || a == 7;
+    assert  a == 1 || a == 300 || a == 2 || a == 7;
 
 
     if (y > 150) {
@@ -28,7 +30,7 @@ procedure main() returns () {
     } else {
         a:= 3;
     }
-    assert { :code "BP5001" } { :source __LINE__ }  a > 0;
+    assert  a > 0;
 
 
 }

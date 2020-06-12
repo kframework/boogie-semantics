@@ -230,8 +230,8 @@ Split procedures with a body into a procedure and an implementation:
     syntax Id ::= "source" [token] | "code"   [token]
     rule #failure(.AttributeList, Message)
       => #failure(Message)
-    rule #failure({ :source Line, .AttrArgList } Attrs, Message)
-      => #failure(Attrs, "??.bpl(" +String Int2String(Line) +String ",00): " +String Message)
+    rule #failure({ :source File, Line, .AttrArgList } Attrs, Message)
+      => #failure(Attrs, File +String "(" +String Int2String(Line) +String ",00): " +String Message)
     rule #failure({ :code Code, .AttrArgList } Attrs, Message)
       => #failure(Attrs, Message +String "Error " +String Code +String ": ")
 ```

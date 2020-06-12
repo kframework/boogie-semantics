@@ -24,81 +24,19 @@ boogie = proj.definition( alias         = 'boogie'
                         , other         = ['syntax.md', 'nothing.md', 'fresh-generator.md']
                         , backend       = 'haskell'
                         , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --emit-json'
-                        , runner_script = './boogie'
                         )
 
 # Tests
 # =====
 
-def diff_boogie(boogie_output):
-    return proj.rule( 'diff-boogie'
-                    , description = 'boogie-diff: $in $boogie_output'
-                    , command = './lib/diff-boogie $in $boogie_output'
-                    , ext = 'diff') \
-               .variable('boogie_output', boogie_output) \
-               .implicit([boogie_output])
+def lit_runner(input):
+    rule = proj.rule( 'lit'
+                    , description = 'lit: $in'
+                    , command = 'lit -q $in'
+                    , ext = 'lit')
+    return proj.source(input).then(rule.implicit([boogie.target, proj.source('test/lit.site.cfg')])).default()
 
-def preprocess():
-    return proj.rule( 'preprocess'
-                    , description = 'preprocess: $in'
-                    , command = 'cpp -P $in | boogie /nologo /printVerifiedProceduresCount:0 /noVerify /printInstrumented /infer:j stdin.bpl | sed -e "$$ d" -e "s|// cut point|cutpoint;|g" > $out'
-                    , ext = 'preprocessed')
-
-def test(bpl, source = None):
-    if source == None: source = bpl
-    alias = source + '.test'
-    expected = source + '.expect'
-    return proj.source(bpl) \
-               .then(preprocess()) \
-               .then(boogie.krun().variable('flags', '--search-final --output json')) \
-               .then(diff_boogie(expected)) \
-               .alias(alias)
-
-def case_study(t):
-    bpl = proj.tangle(t, selector='.boogie')
-    return test(bpl.path, source = t)
-
-def proof(t):
-    return proj.tangle(input = t) \
-               .then(boogie.kprove().variables(flags = '--spec-module SPEC')) \
-               .alias(t + '.proof')
-
-# Our own tests to get us started, simpler than the Boogie test suite
-
-tests        = [test(t) for t in glob('test/**/*.bpl')]
-case_studies = [case_study(t) for t in glob('test/case-studies/*.bpl.md')]
-proj.alias('case-studies', case_studies)
-proj.alias('test', case_studies + tests).default()
-
-proof('./test/case-studies/while-nondet-spec.k.md')
-
-# Documentation and Reports
-# =========================
-
-def pandoc(inputs, output, flags):
-    main = inputs.pop(0)
-    return proj.source(main) \
-               .then( proj.rule( 'pandoc'
-                               , description = 'pandoc: $sources'
-                               , command = 'pandoc -o "$out" $flags "$in" $sources'
-                               ) \
-                          .implicit(inputs) \
-                          .output(output)
-                          .variable('sources', ' '.join(inputs))
-                          .variable('flags',   flags)
-                    )
-pandoc(['README.md'
-       , 'syntax.md'
-       , 'boogie.md'
-       , './test/case-studies/README.md'
-       , './test/case-studies/coin-flip.bpl.md'
-       , './test/case-studies/sum-to-n.bpl.md'
-       , './test/case-studies/implementation.bpl.md'
-       , './test/case-studies/while-nondet-spec.k.md'
-       , 'conclusion.md'
-       ]
-      , output='.build/report.pdf', flags='--to latex'
-      )
+tests = [lit_runner(t) for t in glob('test/**/*.bpl')]
 
 # Main
 # ====

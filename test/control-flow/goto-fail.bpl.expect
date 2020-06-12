@@ -1,5 +1,6 @@
-test/control-flow/goto-fail.bpl(18,5): Error BP5001: This assertion might not hold.
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+goto-fail.bpl(20,5): Error BP5001: This assertion might not hold.
 Execution trace:
-    test/control-flow/goto-fail.bpl(6,6): anon0
+    goto-fail.bpl(8,6): anon0
 
 Boogie program verifier finished with 0 verified, 1 error
