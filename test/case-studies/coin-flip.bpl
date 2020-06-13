@@ -1,9 +1,6 @@
-## Coin flip
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 
-This program demonstrates traditional `while` loops, non-deterministic choice
-and `invariant` specifications.
-
-```boogie
 procedure main() returns () {
     var numFlips: int;
     var iter: int;
@@ -27,4 +24,3 @@ procedure main() returns () {
 
     assert  heads + tails == numFlips;
 }
-```

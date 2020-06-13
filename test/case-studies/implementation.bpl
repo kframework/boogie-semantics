@@ -1,11 +1,6 @@
-Multiple Procedure Implementations
-----------------------------------
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 
-This program demonstrations Boogie's feature of defining multiple
-implementations of the same procedure, and being able to verify that
-each of the implementations satisfies the required specification.
-
-```boogie
 procedure p0(x: int, y: int) returns (z: int); requires true ; ensures z >= 5;
 
 implementation p0(x: int, y: int) returns (z: int)
@@ -40,4 +35,3 @@ procedure main() returns ()
     assert  z >= 5;
     assert  z <= 7; // fail
 }
-```

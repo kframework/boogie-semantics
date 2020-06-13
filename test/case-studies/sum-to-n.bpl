@@ -1,10 +1,6 @@
-## Sum to N
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 
-This program demonstrates traditional `while` loops, `invariant`
-specifications, and the ability to verify non-trivial calculations
-using the Boogie semantics as defined in \K.
-
-```boogie
 procedure main() returns () {
     var sumTo: int;
     var sum: int;
@@ -20,4 +16,3 @@ procedure main() returns () {
 
     assert  sum == 210;
 }
-```
