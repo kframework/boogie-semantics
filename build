@@ -39,9 +39,13 @@ def lit_runner(input):
                     , proj.source('bin/diff-kboogie')
                     , proj.source('bin/kboogie')
                     ]
-    return proj.source(input).then(rule.implicit(implicit_deps)).default()
+    return proj.source(input).then(rule.implicit(implicit_deps))
 
-tests = [lit_runner(t) for t in glob('test/**/*.bpl')]
+all_tests     = glob('test/**/*.bpl')
+failing_tests = readlines('test/failing')
+passing_tests = filter_out(all_tests, failing_tests)
+proj.suite('test',         passing_tests, lit_runner)
+proj.suite('test-failing', failing_tests, lit_runner, default = False)
 
 # Main
 # ====
