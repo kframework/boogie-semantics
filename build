@@ -32,9 +32,14 @@ boogie = proj.definition( alias         = 'boogie'
 def lit_runner(input):
     rule = proj.rule( 'lit'
                     , description = 'lit: $in'
-                    , command = 'lit -q $in'
+                    , command = 'lit -v $in > $out  2>&1'
                     , ext = 'lit')
-    return proj.source(input).then(rule.implicit([boogie.target, proj.source('test/lit.site.cfg')])).default()
+    implicit_deps = [ boogie.target
+                    , proj.source('test/lit.site.cfg')
+                    , proj.source('bin/diff-kboogie')
+                    , proj.source('bin/kboogie')
+                    ]
+    return proj.source(input).then(rule.implicit(implicit_deps)).default()
 
 tests = [lit_runner(t) for t in glob('test/**/*.bpl')]
 
