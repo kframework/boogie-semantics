@@ -43,11 +43,7 @@ def make_check_exp(error):
         file = '{{[^ ]*}}'
         line = '{{[0-9]+}}'
 
-    return file + '(' + line + ',' + column + '): Error ' + code + ':'
-
-def make_check(arg):
-    exp, count = arg
-    return 'CHECK-COUNT-%d: %s' % (count, exp)
+    return 'CHECK-DAG: ' + file + '(' + line + ',' + column + '): Error ' + code + ':'
 
 def check_error_total(count):
     return [ 'CHECK: verifier finished'
@@ -57,11 +53,8 @@ def check_error_total(count):
 errors = open(expected).readlines()
 errors = map(parse_errors, errors)
 errors = filter(None, errors)
-errors = list(map(make_check_exp, errors))
-error_total = check_error_total(len(errors))
-errors = Counter((errors)).most_common()
-checks = map(make_check, errors)
-checks = list(checks) + error_total
+checks = list(map(make_check_exp, errors))
+checks+= check_error_total(len(checks))
 
 temp = tempfile.NamedTemporaryFile(delete = False)
 temp.write('\n'.join(checks).encode())
