@@ -328,8 +328,8 @@ So we mark them with fresh integers in this preprocessing pass.
                  assert .AttributeList Invariant ;
                  S2s:StmtList
                )
-            => ( assert { :code "Inferred" } { :source 0 } Inferred; // This should never fail
-                 assert { :code "BPInvariant" } { :source 0 } Invariant;
+            => ( assert { :code "Inferred" } { :source "???", 0 } Inferred; // This should never fail
+                 assert { :code "BPInvariant" } { :source "???", 0 } Invariant;
                  cutpoint(!_:Int) ;
                  assume { :inferred .AttrArgList } Inferred;
                  assume .AttributeList Invariant;
@@ -363,7 +363,7 @@ and replace all values in the `<store>` with fresh symbolic values.
 
 ```k
     rule <k> return ; ~> _
-          => assert { :code "BP5003" } { :source 0 } Ensures ;
+          => assert { :code "BP5003" } { :source "???", 0 } Ensures ;
          </k>
          <currentProc> CurrentProc </currentProc>
          <signature> procedure _:AttributeList ProcedureName _ ( _ ) _ ;
@@ -383,7 +383,7 @@ and replace all values in the `<store>` with fresh symbolic values.
 
 ```k
     rule <k> call X:Id := ProcedureName:Id(ArgVals) ;
-          => assert { :code "BPRequires" } { :source 0 } Requires ;
+          => assert { :code "BPRequires" } { :source "???", 0 } Requires ;
           ~> freshen(X)
           ~> assume .AttributeList Ensures ;
              ...
