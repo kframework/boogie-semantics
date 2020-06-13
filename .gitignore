@@ -1,2 +1,6 @@
 /.build
 /tmp
+
+#  Files generated when using lit
+.krun-*/
+/test/**/Output/
