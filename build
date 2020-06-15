@@ -32,7 +32,7 @@ boogie = proj.definition( alias         = 'boogie'
 def lit_runner(input):
     rule = proj.rule( 'lit'
                     , description = 'lit: $in'
-                    , command = 'lit -v $in > $out  2>&1'
+                    , command = 'lit -v $in > $out 2>&1 || (cat $out; false)'
                     , ext = 'lit')
     implicit_deps = [ boogie.target
                     , proj.source('test/lit.site.cfg')
