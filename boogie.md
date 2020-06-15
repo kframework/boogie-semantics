@@ -2,8 +2,8 @@ Boogie Semantics
 ================
 
 ```k
-requires "syntax.k"
-requires "fresh-generator.k"
+requires "syntax.md"
+requires "fresh-generator.md"
 
 module BOOGIE
     imports BOOGIE-RULE-SYNTAX

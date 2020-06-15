@@ -2,7 +2,7 @@ Boogie Syntax
 ================
 
 ```k
-requires "nothing.k"
+requires "nothing.md"
 
 module BOOGIE-COMMON-SYNTAX
     imports BOOL-SYNTAX
