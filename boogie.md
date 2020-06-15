@@ -88,6 +88,10 @@ When the `<k>` cell is empty, the program succeeds.
     rule <k> true  && RHS => RHS   ... </k>
     rule <k> false && RHS => false ... </k>
 
+    context (HOLE:Expr ==> E2:Expr):Expr
+    rule <k> false ==> B => true  ... </k>
+    rule <k> true  ==> B => B     ... </k>
+
     context (HOLE:Expr <==> E2:Expr):Expr
     context E1:ValueExpr <==> HOLE
     rule <k> B:Bool <==> B  => true  ... </k>

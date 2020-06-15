@@ -49,6 +49,7 @@ module BOOGIE-COMMON-SYNTAX
                   > Expr RelOp  Expr [left]
                   > Expr "||"   Expr [left]
                   | Expr "&&"   Expr [left]
+                  > Expr "==>"  Expr [left]
                   > Expr "<==>" Expr [left]
     syntax RelOp ::= "==" | "!="
                    | "<" | ">" | "<=" | ">="
