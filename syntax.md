@@ -44,11 +44,12 @@ module BOOGIE-COMMON-SYNTAX
     syntax Expr ::= Bool | Int | Id
                   | "(" Expr ")" [bracket]
                   > UnOp Expr
-                  > Expr MulOp Expr [left]
-                  > Expr AddOp Expr [left]
-                  > Expr RelOp Expr [left]
-                  > Expr "||"  Expr [left]
-                  | Expr "&&"  Expr [left]
+                  > Expr MulOp  Expr [left]
+                  > Expr AddOp  Expr [left]
+                  > Expr RelOp  Expr [left]
+                  > Expr "||"   Expr [left]
+                  | Expr "&&"   Expr [left]
+                  > Expr "<==>" Expr [left]
     syntax RelOp ::= "==" | "!="
                    | "<" | ">" | "<=" | ">="
     syntax AddOp ::= "+" | "-"
