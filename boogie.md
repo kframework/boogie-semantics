@@ -224,9 +224,15 @@ Split procedures with a body into a procedure and an implementation:
    rule <k> V Vs:LocalVarDeclList => V ~> Vs ... </k>
    rule <k> .LocalVarDeclList => .K ... </k>
 
-   rule <k> (var .AttributeList X:Id : T ;):LocalVarDecl => .K ... </k>
+   rule <k> (var .AttributeList X:Id : int ;):LocalVarDecl => .K ... </k>
         <env> (.Map => X:Id |-> Loc) Rho </env>
         <store> (.Map => Loc:Int |-> ?_:Int) ... </store>
+        <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
+     requires notBool( X in_keys(Rho) )
+
+   rule <k> (var .AttributeList X:Id : bool ;):LocalVarDecl => .K ... </k>
+        <env> (.Map => X:Id |-> Loc) Rho </env>
+        <store> (.Map => Loc:Int |-> ?_:Bool) ... </store>
         <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
 ```
