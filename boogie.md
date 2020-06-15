@@ -224,15 +224,9 @@ Split procedures with a body into a procedure and an implementation:
    rule <k> V Vs:LocalVarDeclList => V ~> Vs ... </k>
    rule <k> .LocalVarDeclList => .K ... </k>
 
-   rule <k> (var .AttributeList X:Id : int ;):LocalVarDecl => .K ... </k>
+   rule <k> (var .AttributeList X:Id : T ;):LocalVarDecl => .K ... </k>
         <env> (.Map => X:Id |-> Loc) Rho </env>
-        <store> (.Map => Loc:Int |-> ?_:Int) ... </store>
-        <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
-     requires notBool( X in_keys(Rho) )
-
-   rule <k> (var .AttributeList X:Id : bool ;):LocalVarDecl => .K ... </k>
-        <env> (.Map => X:Id |-> Loc) Rho </env>
-        <store> (.Map => Loc:Int |-> ?_:Bool) ... </store>
+        <store> (.Map => Loc:Int |-> inhabitants(T)) ... </store>
         <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
 ```
@@ -415,6 +409,25 @@ and replace all values in the `<store>` with fresh symbolic values.
 Helpers
 -------
 
+`inhabitants(T)` represents the inhabitants of a type.
+
+Semantically, this is similar to matching logic's `[[ Sort ]]` (also pronounced "inhabitants").
+
+Note that this *cannot* be a function. Functions must return a single value,
+whereas here we return the set of all possible values of a type.
+The Haskell backend does not allow `[anywhere]` rules (or equations) to use existential variables.
+Hence, we use a macro.
+
+```k
+    syntax ValueExpr ::= inhabitants(Type)
+    rule inhabitants(T)
+      => #if T ==K int  #then ?_:Int  #else
+         #if T ==K bool #then ?_:Bool #else
+         ?_:ValueExpr // TODO: This should be an error instead
+         #fi #fi
+      [macro]
+```
+
 Update an variable to store an *unconstrained* sybmolic value of the appropriate
 type.
 
@@ -423,7 +436,7 @@ TODO: Take types into account.
 ```k
     syntax KItem ::= freshen(IdList)
     rule <k> freshen(.IdList) => .K ... </k>
-    rule <k> freshen(X, Xs) => X := ?V:Int ; ~> freshen(Xs) ... </k>
+    rule <k> freshen(X, Xs) => X := inhabitants(int) ; ~> freshen(Xs) ... </k>
 ```
 
 ```k
