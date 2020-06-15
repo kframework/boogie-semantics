@@ -39,7 +39,9 @@ def lit_runner(input):
                     , proj.source('bin/diff-kboogie')
                     , proj.source('bin/kboogie')
                     ]
-    return proj.source(input).then(rule.implicit(implicit_deps))
+    ret = proj.source(input).then(rule.implicit(implicit_deps))
+    proj.alias(input + '.lit', [ret])
+    return ret
 
 all_tests     = glob('test/**/*.bpl')
 failing_tests = readlines('test/failing')
