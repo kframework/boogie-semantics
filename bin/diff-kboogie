@@ -47,7 +47,7 @@ def make_check_exp(error):
 
 def check_error_total(count):
     return [ 'CHECK: verifier finished'
-           , 'CHECK-SAME: %d errors'  % count
+           , 'CHECK-SAME: 0 stuck'
 		   ]
 
 errors = open(expected).readlines()

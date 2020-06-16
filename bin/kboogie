@@ -115,7 +115,7 @@ def print_search_summary(failures, stucks):
         print('==== Stuck terms\n')
         print("\n\n".join(stucks))
         print()
-    print('KBoogie program verifier finished with %d errors, %d stuck.' % (len(failures), len(stucks)) )
+    print('KBoogie program verifier finished with %d failed assertion, %d stuck.' % (len(failures), len(stucks)) )
 
 # `pyk` helpers
 # =============
