@@ -11,5 +11,28 @@ Execution trace:
 Where.bpl(47,3): Error BP5001: This assertion might not hold.
 Execution trace:
     Where.bpl(43,5): anon0
+Where.bpl(60,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(55,3): anon0
+Where.bpl(78,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(69,5): anon0
+    Where.bpl(71,3): anon3_LoopHead
+    Where.bpl(71,3): anon3_LoopDone
+Where.bpl(95,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(88,5): anon0
+    Where.bpl(89,3): anon3_LoopHead
+    Where.bpl(89,3): anon3_LoopDone
+Where.bpl(112,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(105,5): anon0
+    Where.bpl(106,3): anon3_LoopHead
+    Where.bpl(106,3): anon3_LoopDone
+Where.bpl(129,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(122,5): anon0
+    Where.bpl(123,3): anon3_LoopHead
+    Where.bpl(123,3): anon3_LoopDone
 
-Boogie program verifier finished with 0 verified, 4 errors
+Boogie program verifier finished with 0 verified, 9 errors

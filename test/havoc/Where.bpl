@@ -47,3 +47,50 @@ procedure P3()
   assert 5 <= y;  // error
 }
 
+procedure P4()
+{
+  var x: int where 0 <= x;
+  var y: int where x <= y;
+
+  havoc x, y;  // both at the same time
+  assert 0 <= x && x <= y;
+  havoc y, x;  // or in the other order
+  assert 0 <= x && x <= y;
+
+  assert x == 7;  // error
+}
+
+procedure R2()
+{
+  var w: int where w == x;
+  var x: int where 0 <= x;
+  var y: int where x <= y;
+
+  x := 5;
+  y := 10;
+  while (*) {
+    w := w + 1;
+    assert w == 6;
+    y := y + 2;
+    assert 7 <= y;
+  }
+  assert x == 5 && 0 <= y - w;
+  assert y == 10;  // error
+}
+
+procedure R3()
+{
+  var w: int where w == x;
+  var x: int where 0 <= x;
+  var y: int where x <= y;
+
+  // change w and x
+  y := 10;
+  while (*) {
+    w := w;  x := x;
+  }
+  assert w == x;
+  assert 0 <= x;
+  assert y == 10;
+  assert w <= 10;  // error
+}
