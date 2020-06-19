@@ -24,8 +24,8 @@ def parse_errors(line):
                 , message = match.group(5)
                 )
 
-fresh_counter=1
 def erase_unchecked_information(error):
+    global fresh_counter
     file = error.file
     line = error.line
     code = error.code
@@ -36,6 +36,7 @@ def erase_unchecked_information(error):
         # Keep errors from different implicit returns/calls unique. Ideally we want unique module source information, but K doesn't let us do that.
         # So we may get more error messages than we'd like
         line = 'LINE' + str(fresh_counter)
+        fresh_counter += 1
     return file + '(' + line + ',COLUMN): Error ' + code + ':'
 
 def read_errors(lines):
@@ -45,7 +46,9 @@ def read_errors(lines):
     errors = map(erase_unchecked_information, errors)
     return sorted(set(errors))
 
+fresh_counter=1
 expected_errors = read_errors(open(expected).readlines())
+fresh_counter=1
 actual_errors   = read_errors(open(actual).readlines())
 
 diff = list(difflib.unified_diff(expected_errors, actual_errors, fromfile = 'expected', tofile = 'actual'))
