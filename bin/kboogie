@@ -85,7 +85,7 @@ def krun(input, k_args):
 
 def make_search_summary(krun_output):
     term = json.loads(krun_output)['term']
-    failures = set()
+    failures = []
     stucks = []
     exit_code = 0
 
@@ -99,7 +99,7 @@ def make_search_summary(krun_output):
             assert(message['node'] == 'KToken')
             assert(message['sort'] == 'String')
             message_string = message['token'][1:-1]
-            failures.add(message_string)
+            failures += [message_string]
             # boogie does not return a different exit code
             continue
         stucks += [pyk.prettyPrintKast(kseq, symbolTable)]

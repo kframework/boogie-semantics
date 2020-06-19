@@ -4,12 +4,9 @@
 # Compares KBoogie's output with boogies
 
 import sys
-import os
 import re
-import subprocess
+import difflib
 from collections import namedtuple, Counter
-import os
-import tempfile
 
 sys.argv.pop(0)
 expected = sys.argv.pop(0)
@@ -27,35 +24,30 @@ def parse_errors(line):
                 , message = match.group(5)
                 )
 
-def make_check_exp(error):
+fresh_counter=1
+def erase_unchecked_information(error):
     file = error.file
     line = error.line
-    column = '{{[0-9]+}}'
     code = error.code
 
     # We only support line numbers for error code BP5001
     if error.code != 'BP5001':
-        file = '{{[^ ]*}}'
-        line = '{{[0-9]+}}'
+        file = 'FILE'
+        # Keep errors from different implicit returns/calls unique. Ideally we want unique module source information, but K doesn't let us do that.
+        # So we may get more error messages than we'd like
+        line = 'LINE' + str(fresh_counter)
+    return file + '(' + line + ',COLUMN): Error ' + code + ':'
 
-    return [ 'CHECK-NOT: ): Error '
-           , 'CHECK: ' + file + '(' + line + ',' + column + '): Error ' + code + ':'
-           , 'CHECK-NOT: ): Error '
-           ]
+def read_errors(lines):
+    errors = lines
+    errors = map(parse_errors, errors)
+    errors = filter(None, errors)
+    errors = map(erase_unchecked_information, errors)
+    return sorted(set(errors))
 
-def check_error_total(count):
-    return [ 'CHECK: verifier finished'
-           , 'CHECK-SAME: 0 stuck'
-		   ]
+expected_errors = read_errors(open(expected).readlines())
+actual_errors   = read_errors(open(actual).readlines())
 
-errors = open(expected).readlines()
-errors = map(parse_errors, errors)
-errors = list(filter(None, errors))
-checks = list(sum(map(make_check_exp, errors), []))
-checks+= check_error_total(len(errors))
-
-temp = tempfile.NamedTemporaryFile(delete = False)
-temp.write('\n'.join(checks).encode())
-temp.close()
-subprocess.check_call('FileCheck --color %s < %s' % (temp.name, actual), shell = True)
-os.remove(temp.name)
+diff = list(difflib.unified_diff(expected_errors, actual_errors, fromfile = 'expected', tofile = 'actual'))
+print('\n'.join(diff))
+if diff: sys.exit(1)
