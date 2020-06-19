@@ -104,7 +104,7 @@ def make_search_summary(krun_output):
             continue
         stucks += [pyk.prettyPrintKast(kseq, symbolTable)]
         exit_code = 127
-    return failures, stucks, exit_code 
+    return sorted(failures), stucks, exit_code 
 
 def print_search_summary(failures, stucks):
     if failures:

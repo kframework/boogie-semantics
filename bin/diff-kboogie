@@ -11,11 +11,6 @@ from collections import namedtuple, Counter
 import os
 import tempfile
 
-exit_code = 0
-
-stuck    = []
-failures = []
-
 sys.argv.pop(0)
 expected = sys.argv.pop(0)
 actual   = sys.argv.pop(0)
@@ -43,7 +38,10 @@ def make_check_exp(error):
         file = '{{[^ ]*}}'
         line = '{{[0-9]+}}'
 
-    return 'CHECK-DAG: ' + file + '(' + line + ',' + column + '): Error ' + code + ':'
+    return [ 'CHECK-NOT: ): Error '
+           , 'CHECK: ' + file + '(' + line + ',' + column + '): Error ' + code + ':'
+           , 'CHECK-NOT: ): Error '
+           ]
 
 def check_error_total(count):
     return [ 'CHECK: verifier finished'
@@ -52,9 +50,9 @@ def check_error_total(count):
 
 errors = open(expected).readlines()
 errors = map(parse_errors, errors)
-errors = filter(None, errors)
-checks = list(map(make_check_exp, errors))
-checks+= check_error_total(len(checks))
+errors = list(filter(None, errors))
+checks = list(sum(map(make_check_exp, errors), []))
+checks+= check_error_total(len(errors))
 
 temp = tempfile.NamedTemporaryFile(delete = False)
 temp.write('\n'.join(checks).encode())
