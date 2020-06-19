@@ -339,6 +339,19 @@ Ideally, \K would mark this with source line information but it does not.
 So we mark them with fresh integers in this preprocessing pass.
 
 ```k
+    rule <k> #collectLabel(L, S1s)
+          ~> cutpoint;
+             assume { :inferred .AttrArgList } Inferred;
+             ( (S2 S2s:StmtList)
+            => ( assert .AttributeList true ;
+                 S2 S2s:StmtList
+               )
+             )
+
+             ...
+         </k>
+      requires assert .AttributeList _ ; :/=K  S2
+
     syntax Id ::= "inferred" [token]
     rule <k> #collectLabel(L, S1s)
           ~> ( ( cutpoint;
