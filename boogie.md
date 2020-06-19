@@ -196,7 +196,7 @@ Split procedures with a body into a procedure and an implementation:
           ~> StartLabel: StmtList
           ~> goto StartLabel;
          </k>
-         (.Bag => <currentProc> ProcedureName </currentProc>)
+         (.CurrentProcCell => <currentProc> ProcedureName </currentProc>)
          <impls>
            <impl>
                implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets )
