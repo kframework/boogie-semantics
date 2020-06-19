@@ -65,7 +65,9 @@ module BOOGIE-COMMON-SYNTAX
 
 ```k
     syntax VarDecl ::= "var" AttributeList IdsTypeWhereList
-    syntax IdsTypeWhere ::= IdsType // OptionalWhereClause
+    syntax WhereClause ::= "where" Expr
+    syntax IdsTypeWhere ::= IdsType WhereClause
+                          | IdsType
     syntax IdsTypeWhereList ::= List{IdsTypeWhere, ","} [klabel(IdsTypeWhereList)]
 ```
 
