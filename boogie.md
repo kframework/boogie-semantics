@@ -28,16 +28,8 @@ module BOOGIE
                         </impls>
                       </proc>
                     </procs>
-                    <exit-code exit=""> 1 </exit-code>
                     <freshCounter> 0 </freshCounter>
                   </boogie>
-```
-
-When the `<k>` cell is empty, the program succeeds.
-
-```k
-    rule <k> .K </k>
-         <exit-code> 1 => 0 </exit-code>
 ```
 
 ```k
