@@ -58,7 +58,7 @@ When the `<k>` cell is empty, the program succeeds.
 
     rule <k> X => V ... </k>
          <env> X |-> Loc ... </env>
-         <store> Loc |-> V ... </store>
+         <store> Loc |-> value(V, type: _, where: _) ... </store>
 
     context HOLE _:RelOp RHS
     context LHS:ValueExpr _:RelOp HOLE
@@ -194,11 +194,13 @@ Split procedures with a body into a procedure and an implementation:
 
 ```k
     syntax KItem ::= "#start"
+
     rule <k> #start
-          => makeDecls(IArgs)
-          ~> makeDecls(IRets)
+          => makeDecls(IArgs) ++LocalVarDeclList
+             makeDecls(IRets) ++LocalVarDeclList
+             VarList
+          ~> havoc .IdList ;
           ~> assume Attrs Requires;
-          ~> VarList
           ~> StartLabel: StmtList
           ~> goto StartLabel;
          </k>
@@ -221,12 +223,23 @@ Split procedures with a body into a procedure and an implementation:
 ```
 
 ```k
-   rule <k> V Vs:LocalVarDeclList => V ~> Vs ... </k>
    rule <k> .LocalVarDeclList => .K ... </k>
 
-   rule <k> (var .AttributeList X:Id : T ;):LocalVarDecl => .K ... </k>
+   rule <k> var .AttributeList X:Id : T           ; Vs
+         => var .AttributeList X:Id : T where true; Vs
+            ...
+        </k>
+
+   syntax KItem ::= "value" "(" ValueExpr "," "type:" Type "," "where:" Expr ")"
+   rule <k> ( var .AttributeList X:Id : T where Where; Vs
+           ~> havoc Xs ;
+            )
+         => Vs
+         ~> havoc Xs ++IdList X ;
+            ...
+        </k>
         <env> (.Map => X:Id |-> Loc) Rho </env>
-        <store> (.Map => Loc:Int |-> inhabitants(T)) ... </store>
+        <store> .Map => Loc:Int |-> value(inhabitants(T), type: T, where: Where) ... </store>
         <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
 ```
@@ -271,19 +284,22 @@ TODO: This needs to work over lists of expressions and identifiers
     context X := HOLE ;
     rule <k> X := V:ValueExpr ; => .K ... </k>
          <env> X |-> Loc ... </env>
-         <store> Loc |-> (_ => V) Rho </store>
+         <store> Loc |-> value(_ => V, type: _, where: _) Rho </store>
 ```
 
 9.4 Havoc
 ---------
 
-Desugaring a list of Ids to seperate havoc statements seems like a sensible
-desugaring, but the spec is not clear if this is semantically equivalent.
-TODO: verify this is legit.
-TODO add assume statements corresponding to the where clause in X's declaration.
-
 ```k
-    rule <k> havoc X ; => freshen(X) ... </k>
+    rule <k> havoc .IdList ; => .K ... </k>
+    rule <k> havoc X, Xs ;
+          => freshen(X)
+          ~> havoc Xs;
+          ~> assume .AttributeList Where ;
+             ...
+         </k>
+         <env> X |-> Loc ... </env>
+         <store> Loc |-> value(_, type: _, where: Where) Rho </store>
 ```
 
 9.5 Label Statements and jumps
@@ -436,7 +452,13 @@ TODO: Take types into account.
 ```k
     syntax KItem ::= freshen(IdList)
     rule <k> freshen(.IdList) => .K ... </k>
-    rule <k> freshen(X, Xs) => X := inhabitants(int) ; ~> freshen(Xs) ... </k>
+    rule <k> freshen(X, Xs)
+          => X := inhabitants(Type) ;
+          ~> freshen(Xs)
+             ...
+         </k>
+         <env> X |-> Loc ... </env>
+         <store> Loc |-> value(_, type: Type, where: _) Rho </store>
 ```
 
 ```k
@@ -450,6 +472,18 @@ TODO: Take types into account.
     syntax StmtList ::= StmtList "++StmtList" StmtList [function, left, avoid]
     rule (S1 S1s) ++StmtList S2s => S1 (S1s ++StmtList S2s)
     rule .StmtList ++StmtList S2s => S2s
+```
+
+```k
+    syntax LocalVarDeclList ::= LocalVarDeclList "++LocalVarDeclList" LocalVarDeclList [function, left, avoid]
+    rule (S1 S1s) ++LocalVarDeclList S2s => S1 (S1s ++LocalVarDeclList S2s)
+    rule .LocalVarDeclList ++LocalVarDeclList S2s => S2s
+```
+
+```k
+    syntax IdList ::= IdList "++IdList" IdList [function, left, avoid]
+    rule (X1, X1s) ++IdList X2s => X1, (X1s ++IdList X2s)
+    rule .IdList ++IdList X2s => X2s
 ```
 
 Verification syntax
