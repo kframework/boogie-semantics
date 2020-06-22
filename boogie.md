@@ -386,7 +386,7 @@ and replace all values in the `<store>` with fresh symbolic values.
 
 ```k
     syntax Stmt ::= "cutpoint" "(" Int ")" ";"
-    rule <k> cutpoint(I) ; => #abstract(Rho) ... </k>
+    rule <k> cutpoint(I) ; => #generalize(keys_list(Rho)) ... </k>
          <env> Rho </env>
          <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
       requires notBool I in Cutpoints
@@ -404,9 +404,9 @@ the states when we first encountered the cutpoint (modulo `free invariant`s and
 ```
 
 ```k
-    syntax KItem ::= "#abstract" "(" Map ")"
-    rule <k> #abstract(.Map) => .K ... </k>
-    rule <k> #abstract((X:Id |-> Loc) Rho) => freshen(X) ~> #abstract(Rho) ... </k>
+    syntax KItem ::= "#generalize" "(" List ")"
+    rule <k> #generalize(.List) => .K ... </k>
+    rule <k> #generalize(ListItem(X:Id) Rest) => freshen(X) ~> #generalize(Rest) ... </k>
 ```
 
 #### `where`-cutpoint interactions
