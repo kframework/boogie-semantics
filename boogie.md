@@ -405,7 +405,7 @@ the states when we first encountered the cutpoint (modulo `free invariant`s and
 ```k
     syntax KItem ::= "#abstract" "(" Map ")"
     rule <k> #abstract(.Map) => .K ... </k>
-    rule <k> #abstract((X:Id |-> Loc) Rho) => freshen(X) ... </k>
+    rule <k> #abstract((X:Id |-> Loc) Rho) => freshen(X) ~> #abstract(Rho) ... </k>
 ```
 
 #### `where`-cutpoint interactions
