@@ -330,6 +330,8 @@ We use `boogie` to infer invaraints and cutpoints.
 Boogie marks labels that are cutpoints with the comment `// cut point`.
 We preprocess this comment into a `Stmt` "`cutpoint;`" that we handle.
 
+See [note below](#where-cutpoint-interactions) about the interaction between `where` clauses and loops.
+
 Boogie does not place the `cutpoint` mark, the inferred invariants and the loop
 invariant assertsions in the "right" order. The following code rearranges them
 into an order that makes more sense for us. In particular, we must `assert` all
@@ -404,6 +406,111 @@ the states when we first encountered the cutpoint (modulo `free invariant`s and
     syntax KItem ::= "#abstract" "(" Map ")"
     rule <k> #abstract(.Map) => .K ... </k>
     rule <k> #abstract((X:Id |-> Loc) Rho) => freshen(X) ... </k>
+```
+
+#### `where`-cutpoint interactions
+
+`where` clauses may be added to variable declarations, both globally and locally, as well as in implementation arguments.
+e.g.:
+
+```
+var x : int : where x < y ;
+var y : int : where y > 100 ;
+```
+
+[This is Boogie 2] describes its semantics as follows:
+
+Page 19:
+
+>  At times in an execution trace when the value of the variable is chosen arbitarily, the value is chosen to satisfy *WhereClause*
+
+Page 30:
+
+> Note that where clauses do not play a role  for assignemnt statements
+> *Where* clauses apply only in places where a variable gets an arbitary value
+
+Page 24:
+
+> *Where* clauses are like free preconditions and (for out-parameters and modified global variables only) free postconditions
+
+A free precondition is a requires clause for a procedure that is checked assumed
+for "free" when checking the procedure's implementations but not checked when
+calling the procedure.
+
+Not mentioned in [This is Boogie 2], it also appears to behave as a free
+invariant in while loops. i.e., the following program is verified successfully:
+
+```
+procedure P()
+{
+  var x: int where 0 <= x;
+  x := 0 ;
+  while (*) { x := x - 1; }
+  assert 0 <= x;
+}
+```
+
+Surprisingly, this also works once the while loop has been desugared. This also works:
+
+```
+procedure P();
+implementation P()
+{
+  var x: int where 0 <= x;
+  anon0:
+    x := 0;
+    goto anon3_LoopHead;
+  anon3_LoopHead: // cut point
+    assume {:inferred} x < 1;
+    goto anon3_LoopDone, anon3_LoopBody;
+  anon3_LoopBody:
+    x := x - 1;
+    goto anon3_LoopHead;
+  anon3_LoopDone:
+    assert {:source "y.bpl", 6} {:code "BP5001"} 0 <= x;
+    return;
+}
+```
+
+Even more surprisingly, only the `where` clauses of variables whose values have changed are applied:
+
+```
+procedure P();
+implementation P() {
+    var x : int where x == 6 ;
+    x := 7;
+    while (*) { }
+    assert x == 7 ; // succeeds
+}
+
+implementation P() {
+    var x : int where x == 6 ;
+    x := 7;
+    while (*) { x := x ; }
+    assert x == 7 ; // fails
+}
+```
+
+Another surprising program from Boogie's test suite is:
+
+```
+procedure R2()
+{
+  var w: int where w == x;
+  var x: int where 0 <= x;
+  var y: int where x <= y;
+
+  x := 5;
+  y := 10;
+  while (*) {
+    w := w + 1;
+    assert w == 6;
+    y := y + 2;
+    assert 7 <= y;
+  }
+  assert x == 5 && 0 <= y - w;
+  assert y == 10;  // error
+}
 ```
 
 9.6 Return statements
