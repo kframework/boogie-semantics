@@ -58,11 +58,10 @@ def preprocess(input_lines, filename):
 
 def infer(input):
     inferred = subprocess.run( ['boogie', '/nologo', '/noVerify', '/printInstrumented', '/infer:j', 'stdin.bpl']
-                             , input = input
-                             , text = True
+                             , input = input.encode()
                              , stdout = subprocess.PIPE
                              , check = True
-                             ).stdout
+                             ).stdout.decode()
     inferred = re.sub('// cut point', 'cutpoint;', inferred)
     inferred = re.sub(r'Boogie program verifier finished.*', '', inferred)
     return inferred
