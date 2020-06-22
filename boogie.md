@@ -19,11 +19,15 @@ module BOOGIE
                     <cutpoints> .List </cutpoints>
                     <currentProc multiplicity="?"> main </currentProc>
                     <procs>
-                      <proc multiplicity="*" type="Set">
-                        <signature> .K </signature>
+                      <proc multiplicity="*" type="Map">
+                        <procName> #token("ProcedureName", "Id") </procName>
+                        <args> .IdsTypeWhereList </args>
+                        <rets> .IdsTypeWhereList </rets>
+                        <pres> true:Expr </pres>    // requires
+                        <posts>  true:Expr </posts> // ensures
                         <impls>
                           <impl multiplicity="*" type="Set">
-                            .K
+                            { .LocalVarDeclList .StmtList }
                           </impl>
                         </impls>
                       </proc>
@@ -103,75 +107,69 @@ Split procedures with a body into a procedure and an implementation:
 ```k
     rule <k> (procedure Attrs:AttributeList
                 ProcedureName .Nothing ( Args ) returns ( Rets ) SpecList
-                { VarList StmtList }):Decl
+                Body):Decl
           => procedure Attrs:AttributeList
                ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList
           ~> implementation Attrs ProcedureName .Nothing ( Args ) returns ( Rets )
-               { VarList StmtList }
+               Body
              ...
          </k>
 ```
 
 ```k
-    rule <k> procedure Attrs:AttributeList ProcedureName .Nothing ( Args ) .Nothing ; SpecList
-          => procedure Attrs:AttributeList ProcedureName .Nothing ( Args ) returns (.IdsTypeWhereList) ; SpecList
-             ...
-         </k>
+    rule <k> procedure      _:AttributeList _ProcedureName .Nothing ( _Args ) (.Nothing => returns (.IdsTypeWhereList)) ; _SpecList            ... </k>
+    rule <k> implementation _:AttributeList _ProcedureName .Nothing ( _Args ) (.Nothing => returns (.IdsTypeWhereList)) { _VarList _StmtList } ... </k>
+```
 
-    rule <k> procedure _:AttributeList
-                _ProcedureName .Nothing ( _Args ) returns ( _Rets ) ;
-                  ( .SpecList
-                 => .Nothing requires true ;
-                    .Nothing ensures  true ;
-                    .SpecList
-                  )
-             ...
-         </k>
-
-    rule <k> procedure Attrs:AttributeList
-                ProcedureName .Nothing ( Args ) returns ( Rets ) ;
-                    .Nothing requires Requires ;
-                    .Nothing ensures  Ensures ;
-          => .K
+```k
+    syntax KItem ::= "#populateProcedure"
+    rule <k> (.K => #populateProcedure)
+          ~> procedure _:AttributeList ProcedureName _TypeArgs ( Args ) returns ( Rets ) ; _SpecList
              ...
          </k>
          <procs> .Bag =>
            <proc>
-             <signature>
-               procedure Attrs:AttributeList
-                 ProcedureName .Nothing ( Args ) returns ( Rets ) ;
-                    .Nothing requires Requires ;
-                    .Nothing ensures  Ensures ;
-             </signature>
+             <procName> ProcedureName </procName>
+             <args> Args </args>
+             <rets> Rets </rets>
              ...
            </proc>
            ...
          </procs>
+
+    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
+             ; (.Nothing requires NewReq ; SpecList => SpecList)
+             ...
+         </k>
+         <procName> ProcedureName </procName>
+         <pres> Reqs => Reqs && NewReq </pres>
+
+    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
+             ; (.Nothing ensures NewEnsures ; SpecList => SpecList)
+             ...
+         </k>
+         <procName> ProcedureName </procName>
+         <posts> Ensures => Ensures && NewEnsures </posts>
+
+    rule <k> ( #populateProcedure ~> procedure _:AttributeList _ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
+               ; .SpecList
+             )
+          => .K
+             ...
+         </k>
 ```
 
 ```k
-    rule <k> implementation _:AttributeList _ProcedureName .Nothing ( _Args ) (.Nothing => returns (.IdsTypeWhereList)) { _VarList _StmtList }
-             ...
-         </k>
-    rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
-                { VarList StmtList }
+    rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) Body
          => .K
             ...
          </k>
-         <procs>
-          <proc>
-            <signature>
-              procedure _:AttributeList ProcedureName _:PSig ; _:SpecList
-            </signature>
-            <impls>
-              .Bag => <impl>
-                implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
-                { VarList StmtList } </impl>
-              ...
-            </impls>
-          </proc>
-          ...
-         </procs>
+         <procName> ProcedureName </procName>
+         <args> PArgs </args>
+         <rets> PRets </rets>
+         <impls> .Bag => <impl>  Body </impl> ... </impls>
+      requires PArgs ==K IArgs andBool PRets ==K IRets
+      // TODO: `hook(SUBSTITUTION.substMany)` is not supported on the Haskell backend
 ```
 
 9 Statements
@@ -189,30 +187,21 @@ Split procedures with a body into a procedure and an implementation:
     syntax KItem ::= "#start"
 
     rule <k> #start
-          => makeDecls(IArgs) ++LocalVarDeclList
-             makeDecls(IRets) ++LocalVarDeclList
+          => makeDecls(Args) ++LocalVarDeclList
+             makeDecls(Rets) ++LocalVarDeclList
              VarList
           ~> havoc .IdList ;
-          ~> assume Attrs Requires;
+          ~> assume .AttributeList Requires;
           ~> StartLabel: StmtList
           ~> goto StartLabel;
          </k>
          (.CurrentProcCell => <currentProc> ProcedureName </currentProc>)
-         <impls>
-           <impl>
-               implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets )
-               { VarList StartLabel: StmtList }
-           </impl>
-          ...
-         </impls>
-         <signature>
-           procedure _:AttributeList ProcedureName .Nothing ( PArgs ) returns ( PRets ) ;
-             .Nothing requires Requires ;
-             .Nothing ensures Ensures ;
-             .SpecList
-         </signature>
-      requires PArgs ==K IArgs andBool PRets ==K IRets
-      // TODO: `hook(SUBSTITUTION.substMany)` is not supported on the Haskell backend
+         <procName> ProcedureName </procName>
+         <args> Args </args>
+         <rets> Rets </rets>
+         <pres> Requires </pres>
+         <posts> Ensures </posts>
+         <impl> { VarList StartLabel: StmtList } </impl>
 ```
 
 ```k
@@ -522,10 +511,8 @@ procedure R2()
           => assert { :code "BP5003" } { :source "???", 0 } Ensures ;
          </k>
          <currentProc> CurrentProc </currentProc>
-         <signature> procedure _:AttributeList _ProcedureName _ ( _ ) _ ;
-                        .Nothing requires _ ;
-                        .Nothing ensures Ensures ;
-         </signature>
+         <procName> CurrentProc </procName>
+         <posts> Ensures </posts>
 ```
 
 9.7 If statements
@@ -544,12 +531,9 @@ procedure R2()
           ~> assume .AttributeList Ensures ;
              ...
          </k>
-         <signature>
-           procedure Attrs:AttributeList
-             ProcedureName .Nothing ( _Args ) returns ( _Rets ) ;
-                .Nothing requires Requires ;
-                .Nothing ensures Ensures ;
-         </signature>
+         <procName> ProcedureName </procName>
+         <pres> Requires </pres>
+         <posts> Ensures </posts>
 ```
 
 Helpers
