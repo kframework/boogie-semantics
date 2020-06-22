@@ -330,28 +330,17 @@ We use `boogie` to infer invaraints and cutpoints.
 Boogie marks labels that are cutpoints with the comment `// cut point`.
 We preprocess this comment into a `Stmt` "`cutpoint;`" that we handle.
 
-Boogie does not place the `cutpoint` mark, the inferred invariants and
-the loop invariant assertsions in the right order.
-The following code rearranges them into an order that makes more sense for us.
+Boogie does not place the `cutpoint` mark, the inferred invariants and the loop
+invariant assertsions in the "right" order. The following code rearranges them
+into an order that makes more sense for us. In particular, we must `assert` all
+invariants (inferred or annotated) before the cutpoint, replace the store with
+fresh symbolic values `<store>` and finally `assume` the invariants.
 
 We also need to be able to distinguish between different cutpoints.
 Ideally, \K would mark this with source line information but it does not.
 So we mark them with fresh integers in this preprocessing pass.
 
 ```k
-    rule <k> #collectLabel(L, S1s)
-          ~> cutpoint;
-             assume { :inferred .AttrArgList } Inferred;
-             ( (S2 S2s:StmtList)
-            => ( assert .AttributeList true ;
-                 S2 S2s:StmtList
-               )
-             )
-
-             ...
-         </k>
-      requires assert .AttributeList _ ; :/=K  S2
-
     syntax Id ::= "inferred" [token]
     rule <k> #collectLabel(L, S1s)
           ~> ( ( cutpoint;
@@ -370,6 +359,25 @@ So we mark them with fresh integers in this preprocessing pass.
          </k>
 ```
 
+If a while loop doesn't have an invariant specified, then there is no
+`assert` statement following the `assume` after the `cutpoint`. This rule
+add one there so that the previous rule may fire.
+
+```k
+    rule <k> #collectLabel(L, S1s)
+          ~> cutpoint;
+             assume { :inferred .AttrArgList } Inferred;
+             ( (S2 S2s:StmtList)
+            => ( assert .AttributeList true ;
+                 S2 S2s:StmtList
+               )
+             )
+
+             ...
+         </k>
+      requires assert .AttributeList _ ; :/=K  S2
+```
+
 When we reach a paticular cutpoint the first time, we treat it as an abstraction point
 and replace all values in the `<store>` with fresh symbolic values.
 
@@ -379,11 +387,20 @@ and replace all values in the `<store>` with fresh symbolic values.
          <env> Rho </env>
          <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
       requires notBool I in Cutpoints
+```
 
+When we reach it a second time we can prune this execution branch, because the
+assert/assume structure ensures that our current program state is a subset of
+the states when we first encountered the cutpoint (modulo `free invariant`s and
+`where` clauses.)
+
+```k
     rule <k> cutpoint(I) ; => assume .AttributeList (false); ... </k>
          <cutpoints> Cutpoints </cutpoints>
       requires I in Cutpoints
+```
 
+```k
     syntax KItem ::= "#abstract" "(" Map ")"
     rule <k> #abstract(.Map) => .K ... </k>
     rule <k> #abstract((X:Id |-> Loc) Rho) => freshen(X) ... </k>
