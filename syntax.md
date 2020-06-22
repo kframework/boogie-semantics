@@ -34,7 +34,7 @@ module BOOGIE-COMMON-SYNTAX
 ```k
     syntax Type ::= TypeAtom
     syntax TypeAtom ::= "bool" | "int"
-    syntax TypeArgs ::= "<" IdList ">"
+    syntax TypeArgs
 ```
 
 4 Expressions
@@ -54,7 +54,8 @@ module BOOGIE-COMMON-SYNTAX
     syntax RelOp ::= "==" | "!="
                    | "<" | ">" | "<=" | ">="
     syntax AddOp ::= "+" | "-"
-    syntax MulOp ::= "*" | "/" | "%"
+    syntax MulOp ::= "*" | "/"
+                   | "%" [unused] // semantics defined via axioms
     syntax UnOp  ::= "!"
                    | "-"
     syntax ExprList ::= List{Expr, ","} [klabel(ExprList), symbol]
@@ -64,7 +65,7 @@ module BOOGIE-COMMON-SYNTAX
 -------------------------------------------------
 
 ```k
-    syntax VarDecl ::= "var" AttributeList IdsTypeWhereList
+    syntax VarDecl ::= "var" AttributeList IdsTypeWhereList [unused]
     syntax WhereClause ::= "where" Expr
     syntax IdsTypeWhere ::= IdsType WhereClause
                           | IdsType
@@ -93,9 +94,8 @@ module BOOGIE-COMMON-SYNTAX
 
 ```k
     syntax Spec ::= OptionalFree "requires" Expr ";"
-                  | OptionalFree "modifies" IdList ";"
                   | OptionalFree "ensures" Expr ";"
-    syntax OptionalFree ::= Nothing | "free"
+    syntax OptionalFree ::= Nothing | "free" [unused]
     syntax SpecList ::= List{Spec, ""} [klabel(SpecList)]
 ```
 
@@ -136,20 +136,8 @@ This allows us to parse more restrictively, and still have more freedom in the s
                         | "call" OptionalCallLhs Id "(" ExprList ")" ";"
     syntax Stmt ::= SimpleStmt
                   | "goto" IdList ";"
-                  | IfStmt
-                  | "while" "(" WildcardExpr ")" LoopInvList BlockStmt
-                  | "break" ";"
-                  | "break" Id ";"
                   | "return" ";"
-    syntax WildcardExpr ::= Expr | "*"
     syntax BlockStmt ::= "{" StmtList "}"
-    syntax IfStmt ::= "if" "(" WildcardExpr ")" BlockStmt
-                    | "if" "(" WildcardExpr ")" BlockStmt "else" Else
-    syntax Else ::= BlockStmt
-                  | IfStmt
-    syntax LoopInv ::=        "invariant" AttributeList Expr ";"
-                     | "free" "invariant" AttributeList Expr ";"
-    syntax LoopInvList ::= List{LoopInv, ""} [klabel(LoopInvList)]
     syntax OptionalCallLhs ::= Nothing | CallLhs
     syntax CallLhs ::= Id ":=" // TODO: support IdList
 ```

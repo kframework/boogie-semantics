@@ -52,8 +52,8 @@ module BOOGIE
          <env> X |-> Loc ... </env>
          <store> Loc |-> value(V, type: _, where: _) ... </store>
 
-    context HOLE _:RelOp RHS
-    context LHS:ValueExpr _:RelOp HOLE
+    context HOLE _:RelOp _RHS
+    context _LHS:ValueExpr _:RelOp HOLE
 
     rule <k> LHS:ValueExpr == RHS:ValueExpr => LHS ==K RHS ... </k>
     rule <k> LHS:ValueExpr != RHS:ValueExpr => LHS =/=K RHS ... </k>
@@ -63,35 +63,36 @@ module BOOGIE
     rule <k> LHS <= RHS => LHS <=Int RHS ... </k>
     rule <k> LHS >= RHS => LHS >=Int RHS ... </k>
 
-    context HOLE _:AddOp E2
-    context V1:ValueExpr _:AddOp HOLE
+    context HOLE _:AddOp _E2
+    context _:ValueExpr _:AddOp HOLE
     rule <k> V1 + V2 => V1 +Int V2 ... </k>
     rule <k> V1 - V2 => V1 -Int V2 ... </k>
 
-    context HOLE _:MulOp E2
-    context V1:ValueExpr _:MulOp HOLE
+    context HOLE _:MulOp _E2
+    context _:ValueExpr _:MulOp HOLE
     rule <k> V1 * V2 => V1 *Int V2 ... </k>
 
-    context HOLE || E2
-    rule <k> true  || RHS => true  ... </k>
+    context HOLE || _E2
+    rule <k> true  || _   => true  ... </k>
     rule <k> false || RHS => RHS   ... </k>
 
-    context HOLE && E2
-    rule <k> true  && RHS => RHS   ... </k>
-    rule <k> false && RHS => false ... </k>
+    context HOLE && _E2
+    rule <k> true  && RHS  => RHS   ... </k>
+    rule <k> false && _RHS => false ... </k>
 
-    context (HOLE:Expr ==> E2:Expr):Expr
-    rule <k> false ==> B => true  ... </k>
+    context (HOLE:Expr ==> _E2:Expr):Expr
+    rule <k> false ==> _ => true  ... </k>
     rule <k> true  ==> B => B     ... </k>
 
-    context (HOLE:Expr <==> E2:Expr):Expr
-    context E1:ValueExpr <==> HOLE
+    context (HOLE:Expr <==> _E2:Expr):Expr
+    context _:ValueExpr <==> HOLE
     rule <k> B:Bool <==> B  => true  ... </k>
     rule <k> B1     <==> B2 => false ... </k>
       requires B1 =/=Bool B2
 
     context _:UnOp HOLE
     rule <k> ! B => notBool(B) ... </k>
+    rule <k> - I:Int => 0 -Int I ... </k>
 ```
 
 8 Procedures and implementations
@@ -117,8 +118,8 @@ Split procedures with a body into a procedure and an implementation:
              ...
          </k>
 
-    rule <k> procedure Attrs:AttributeList
-                ProcedureName .Nothing ( Args ) returns ( Rets ) ;
+    rule <k> procedure _:AttributeList
+                _ProcedureName .Nothing ( _Args ) returns ( _Rets ) ;
                   ( .SpecList
                  => .Nothing requires true ;
                     .Nothing ensures  true ;
@@ -149,7 +150,7 @@ Split procedures with a body into a procedure and an implementation:
 ```
 
 ```k
-    rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) (.Nothing => returns (.IdsTypeWhereList)) { VarList StmtList }
+    rule <k> implementation _:AttributeList _ProcedureName .Nothing ( _Args ) (.Nothing => returns (.IdsTypeWhereList)) { _VarList _StmtList }
              ...
          </k>
     rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( Args ) returns ( Rets )
@@ -273,10 +274,10 @@ Split procedures with a body into a procedure and an implementation:
 TODO: This needs to work over lists of expressions and identifiers
 
 ```k
-    context X := HOLE ;
+    context _X := HOLE ;
     rule <k> X := V:ValueExpr ; => .K ... </k>
          <env> X |-> Loc ... </env>
-         <store> Loc |-> value(_ => V, type: _, where: _) Rho </store>
+         <store> Loc |-> value(_ => V, type: _, where: _) ... </store>
 ```
 
 9.4 Havoc
@@ -291,7 +292,7 @@ TODO: This needs to work over lists of expressions and identifiers
              ...
          </k>
          <env> X |-> Loc ... </env>
-         <store> Loc |-> value(_, type: _, where: Where) Rho </store>
+         <store> Loc |-> value(_, type: _, where: Where) ... </store>
 ```
 
 9.5 Label Statements and jumps
@@ -309,7 +310,7 @@ TODO: This needs to work over lists of expressions and identifiers
          </k>
       requires S2 =/=K cutpoint;
     rule <k> (#collectLabel(L, S1s) => .K)
-          ~> (L2: S2 S2s:StmtList) #Or .StmtList
+          ~> (L2: _S2 _S2s:StmtList) #Or .StmtList
              ...
          </k>
          <labels> (.Map => L |-> S1s) Labels </labels>
@@ -344,7 +345,7 @@ So we mark them with fresh integers in this preprocessing pass.
 
 ```k
     syntax Id ::= "inferred" [token]
-    rule <k> #collectLabel(L, S1s)
+    rule <k> #collectLabel(_L, _S1s)
           ~> ( ( cutpoint;
                  assume { :inferred .AttrArgList } Inferred;
                  assert .AttributeList Invariant ;
@@ -366,7 +367,7 @@ If a while loop doesn't have an invariant specified, then there is no
 add one there so that the previous rule may fire.
 
 ```k
-    rule <k> #collectLabel(L, S1s)
+    rule <k> #collectLabel(_L, _S1s)
           ~> cutpoint;
              assume { :inferred .AttrArgList } Inferred;
              ( (S2 S2s:StmtList)
@@ -521,7 +522,7 @@ procedure R2()
           => assert { :code "BP5003" } { :source "???", 0 } Ensures ;
          </k>
          <currentProc> CurrentProc </currentProc>
-         <signature> procedure _:AttributeList ProcedureName _ ( _ ) _ ;
+         <signature> procedure _:AttributeList _ProcedureName _ ( _ ) _ ;
                         .Nothing requires _ ;
                         .Nothing ensures Ensures ;
          </signature>
@@ -537,7 +538,7 @@ procedure R2()
 -------------------
 
 ```k
-    rule <k> call X:Id := ProcedureName:Id(ArgVals) ;
+    rule <k> call X:Id := ProcedureName:Id(_ArgVals) ;
           => assert { :code "BPRequires" } { :source "???", 0 } Requires ;
           ~> freshen(X)
           ~> assume .AttributeList Ensures ;
@@ -545,7 +546,7 @@ procedure R2()
          </k>
          <signature>
            procedure Attrs:AttributeList
-             ProcedureName .Nothing ( Args ) returns ( Rets ) ;
+             ProcedureName .Nothing ( _Args ) returns ( _Rets ) ;
                 .Nothing requires Requires ;
                 .Nothing ensures Ensures ;
          </signature>
@@ -587,7 +588,7 @@ TODO: Take types into account.
              ...
          </k>
          <env> X |-> Loc ... </env>
-         <store> Loc |-> value(_, type: Type, where: _) Rho </store>
+         <store> Loc |-> value(_, type: Type, where: _) ... </store>
 ```
 
 ```k
