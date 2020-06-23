@@ -14,6 +14,8 @@ module BOOGIE
     configuration <boogie>
                     <k> $PGM:Program ~> #start </k>
                     <env> .Map </env>
+                    <globals> .Map </globals>
+                    <olds> .Map </olds>
                     <store> .Map </store>
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
@@ -23,8 +25,9 @@ module BOOGIE
                         <procName> #token("ProcedureName", "Id") </procName>
                         <args> .IdsTypeWhereList </args>
                         <rets> .IdsTypeWhereList </rets>
-                        <pres> true:Expr </pres>    // requires
-                        <posts>  true:Expr </posts> // ensures
+                        <pres> true:Expr </pres>   // requires
+                        <posts> true:Expr </posts> // ensures
+                        <mods> .IdList </mods>   // modifies
                         <impls>
                           <impl multiplicity="*" type="Set">
                             { .LocalVarDeclList .StmtList }
@@ -52,9 +55,14 @@ module BOOGIE
     syntax Expr ::= ValueExpr
     syntax ValueExpr ::= Bool | Int | String
 
-    rule <k> X => V ... </k>
+    rule <k> X:Id => V ... </k>
          <env> X |-> Loc ... </env>
          <store> Loc |-> value(V, type: _, where: _) ... </store>
+
+    rule <k> X:Id => V ... </k>
+         <env> Env </env>
+         <globals> X |-> value(V, type: _, where: _) ... </globals>
+      requires notBool X in_keys(Env)
 
     context HOLE _:RelOp _RHS
     context _LHS:ValueExpr _:RelOp HOLE
@@ -97,6 +105,27 @@ module BOOGIE
     context _:UnOp HOLE
     rule <k> ! B => notBool(B) ... </k>
     rule <k> - I:Int => 0 -Int I ... </k>
+```
+
+### 4.3 Old expressions
+
+```k
+    rule <k> old(E) => E ~> #endOld(Globals) ... </k>
+         <globals> Globals => Olds </globals>
+         <olds> Olds </olds>
+
+    syntax KItem ::= "#endOld" "(" Map ")"
+    rule <k> E:ValueExpr ~> (#endOld(Globals) => .K) ... </k>
+         <globals> _ => Globals </globals>
+```
+
+7 Mutable Variables, states, and execution traces
+-------------------------------------------------
+
+```k
+  rule <k> var .AttributeList X:Id : T ;:Decl => .K ... </k>
+       <globals> (.Map => X:Id |-> value(inhabitants(T), type: T, where: true)) Rho </globals>
+     requires notBool( X in_keys(Rho) )
 ```
 
 8 Procedures and implementations
@@ -151,6 +180,13 @@ Split procedures with a body into a procedure and an implementation:
          <procName> ProcedureName </procName>
          <posts> Ensures => Ensures && NewEnsures </posts>
 
+    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
+             ; (modifies Modifies ; SpecList => SpecList)
+             ...
+         </k>
+         <procName> ProcedureName </procName>
+         <mods> .IdList => Modifies </mods>
+
     rule <k> ( #populateProcedure ~> procedure _:AttributeList _ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
                ; .SpecList
              )
@@ -196,24 +232,25 @@ Split procedures with a body into a procedure and an implementation:
           ~> goto StartLabel;
          </k>
          (.CurrentProcCell => <currentProc> ProcedureName </currentProc>)
+         <globals> Globals </globals>
+         <olds> .Map => Globals </olds>
          <procName> ProcedureName </procName>
          <args> Args </args>
          <rets> Rets </rets>
          <pres> Requires </pres>
-         <posts> Ensures </posts>
          <impl> { VarList StartLabel: StmtList } </impl>
 ```
 
 ```k
    rule <k> .LocalVarDeclList => .K ... </k>
 
-   rule <k> var .AttributeList X:Id : T           ; Vs
+   rule <k> var .AttributeList X:Id : T           ; Vs:LocalVarDeclList
          => var .AttributeList X:Id : T where true; Vs
             ...
         </k>
 
    syntax KItem ::= "value" "(" ValueExpr "," "type:" Type "," "where:" Expr ")"
-   rule <k> ( var .AttributeList X:Id : T where Where; Vs
+   rule <k> ( var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
            ~> havoc Xs ;
             )
          => Vs
@@ -232,13 +269,15 @@ Split procedures with a body into a procedure and an implementation:
 ```k
     syntax KItem ::= "#failure" "(" String ")" [klabel(#failure), symbol]
     syntax KItem ::= "#failure" "(" AttributeList "," String ")"
-    syntax Id ::= "source" [token] | "code"   [token]
+    syntax Id ::= "source" [token] | "code"   [token] | "procedure" [token]
     rule #failure(.AttributeList, Message)
       => #failure(Message)
     rule #failure({ :source File, Line, .AttrArgList } Attrs, Message)
       => #failure(Attrs, File +String "(" +String Int2String(Line) +String ",00): " +String Message)
     rule #failure({ :code Code, .AttrArgList } Attrs, Message)
       => #failure(Attrs, Message +String "Error " +String Code +String ": ")
+    rule #failure({ :procedure Procedure, .AttrArgList } Attrs, Message)
+      => #failure(Attrs, Message +String " " +String Id2String(Procedure))
 ```
 
 ```k
@@ -267,6 +306,15 @@ TODO: This needs to work over lists of expressions and identifiers
     rule <k> X := V:ValueExpr ; => .K ... </k>
          <env> X |-> Loc ... </env>
          <store> Loc |-> value(_ => V, type: _, where: _) ... </store>
+
+    rule <k> X := V:ValueExpr ; => .K ... </k>
+         <env> Env </env>
+         <globals> X |-> value(_ => V, type: _, where: _) ... </globals>
+         <currentProc> CurrentProc </currentProc>
+         <procName> CurrentProc </procName>
+         <mods> Modifies </mods>
+      requires notBool X in_keys(Env)
+       andBool         X in Modifies
 ```
 
 9.4 Havoc
@@ -508,7 +556,7 @@ procedure R2()
 
 ```k
     rule <k> return ; ~> _
-          => assert { :code "BP5003" } { :source "???", 0 } Ensures ;
+          => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc } Ensures ;
          </k>
          <currentProc> CurrentProc </currentProc>
          <procName> CurrentProc </procName>
@@ -598,6 +646,13 @@ TODO: Take types into account.
     syntax IdList ::= IdList "++IdList" IdList [function, left, avoid]
     rule (X1, X1s) ++IdList X2s => X1, (X1s ++IdList X2s)
     rule .IdList ++IdList X2s => X2s
+```
+
+```k
+    syntax Bool ::= Id "in" IdList [function]
+    rule X in .IdList => false
+    rule X in (X, Ys) => true
+    rule X in (Y, Ys) => X in Ys requires Y =/=K X
 ```
 
 Verification syntax

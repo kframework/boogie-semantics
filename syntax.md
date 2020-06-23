@@ -21,8 +21,6 @@ module BOOGIE-COMMON-SYNTAX
     syntax Decl    ::= VarDecl
                      | ProcedureDecl
                      | ImplementationDecl
-
-    syntax IdList ::= List{Id, ","} [klabel(IdList)]
 ```
 
 2 Types
@@ -43,6 +41,7 @@ module BOOGIE-COMMON-SYNTAX
 ```k
     syntax Expr ::= Bool | Int | Id
                   | "(" Expr ")" [bracket]
+                  | old(Expr)
                   > UnOp Expr
                   > Expr MulOp  Expr [left]
                   > Expr AddOp  Expr [left]
@@ -58,18 +57,9 @@ module BOOGIE-COMMON-SYNTAX
                    | "%" [unused] // semantics defined via axioms
     syntax UnOp  ::= "!"
                    | "-"
+
+    syntax IdList ::= List{Id, ","} [klabel(IdList)]
     syntax ExprList ::= List{Expr, ","} [klabel(ExprList), symbol]
-```
-
-7 Mutable Variables, states, and execution traces
--------------------------------------------------
-
-```k
-    syntax VarDecl ::= "var" AttributeList IdsTypeWhereList [unused]
-    syntax WhereClause ::= "where" Expr
-    syntax IdsTypeWhere ::= IdsType WhereClause
-                          | IdsType
-    syntax IdsTypeWhereList ::= List{IdsTypeWhere, ","} [klabel(IdsTypeWhereList)]
 ```
 
 3 Constants and functions
@@ -78,6 +68,17 @@ module BOOGIE-COMMON-SYNTAX
 ```k
     syntax IdsType ::= IdList ":" Type [avoid]
     syntax IdsTypeList ::= List{IdsType, ","} [klabel(IdsTypeList)]
+```
+
+7 Mutable Variables, states, and execution traces
+-------------------------------------------------
+
+```k
+    syntax VarDecl ::= "var" AttributeList IdsTypeWhereList ";"
+    syntax WhereClause ::= "where" Expr
+    syntax IdsTypeWhere ::= IdsType WhereClause
+                          | IdsType
+    syntax IdsTypeWhereList ::= List{IdsTypeWhere, ","} [klabel(IdsTypeWhereList)]
 ```
 
 8 Procedures and implementations
@@ -94,7 +95,8 @@ module BOOGIE-COMMON-SYNTAX
 
 ```k
     syntax Spec ::= OptionalFree "requires" Expr ";"
-                  | OptionalFree "ensures" Expr ";"
+                  | OptionalFree "ensures"  Expr ";"
+                  | "modifies" IdList ";"
     syntax OptionalFree ::= Nothing | "free" [unused]
     syntax SpecList ::= List{Spec, ""} [klabel(SpecList)]
 ```
@@ -113,7 +115,7 @@ module BOOGIE-COMMON-SYNTAX
 
 ```k
     syntax Body ::= "{" LocalVarDeclList StmtList "}"
-    syntax LocalVarDecl ::= "var" AttributeList IdsTypeWhereList ";"
+    syntax LocalVarDecl ::= VarDecl
     syntax LocalVarDeclList ::= List{LocalVarDecl, ""} [klabel(LocalVarDeclList)]
 ```
 
