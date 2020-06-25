@@ -57,11 +57,11 @@ module BOOGIE
 
     rule <k> X:Id => V ... </k>
          <env> X |-> Loc ... </env>
-         <store> Loc |-> value(V, type: _, where: _) ... </store>
+         <store> Loc |-> value(... value: V) ... </store>
 
     rule <k> X:Id => V ... </k>
          <env> Env </env>
-         <globals> X |-> value(V, type: _, where: _) ... </globals>
+         <globals> X |-> value(... value: V) ... </globals>
       requires notBool X in_keys(Env)
 
     context HOLE _:RelOp _RHS
@@ -124,7 +124,7 @@ module BOOGIE
 
 ```k
   rule <k> var .AttributeList X:Id : T ;:Decl => .K ... </k>
-       <globals> (.Map => X:Id |-> value(inhabitants(T), type: T, where: true)) Rho </globals>
+       <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
      requires notBool( X in_keys(Rho) )
 ```
 
@@ -249,7 +249,7 @@ Split procedures with a body into a procedure and an implementation:
             ...
         </k>
 
-   syntax KItem ::= "value" "(" ValueExpr "," "type:" Type "," "where:" Expr ")"
+   syntax KItem ::= value(value: ValueExpr, type: Type, where: Expr)
    rule <k> ( var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
            ~> havoc Xs ;
             )
@@ -258,7 +258,7 @@ Split procedures with a body into a procedure and an implementation:
             ...
         </k>
         <env> (.Map => X:Id |-> Loc) Rho </env>
-        <store> .Map => Loc:Int |-> value(inhabitants(T), type: T, where: Where) ... </store>
+        <store> .Map => Loc:Int |-> value(inhabitants(T), T, Where) ... </store>
         <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
 ```
@@ -305,11 +305,11 @@ TODO: This needs to work over lists of expressions and identifiers
     context _X := HOLE ;
     rule <k> X := V:ValueExpr ; => .K ... </k>
          <env> X |-> Loc ... </env>
-         <store> Loc |-> value(_ => V, type: _, where: _) ... </store>
+         <store> Loc |-> value(... value: _ => V) ... </store>
 
     rule <k> X := V:ValueExpr ; => .K ... </k>
          <env> Env </env>
-         <globals> X |-> value(_ => V, type: _, where: _) ... </globals>
+         <globals> X |-> value(... value: _ => V) ... </globals>
          <currentProc> CurrentProc </currentProc>
          <procName> CurrentProc </procName>
          <mods> Modifies </mods>
@@ -329,7 +329,7 @@ TODO: This needs to work over lists of expressions and identifiers
              ...
          </k>
          <env> X |-> Loc ... </env>
-         <store> Loc |-> value(_, type: _, where: Where) ... </store>
+         <store> Loc |-> value(... where: Where) ... </store>
 ```
 
 9.5 Label Statements and jumps
@@ -620,7 +620,7 @@ TODO: Take types into account.
              ...
          </k>
          <env> X |-> Loc ... </env>
-         <store> Loc |-> value(_, type: Type, where: _) ... </store>
+         <store> Loc |-> value(... type: Type) ... </store>
 ```
 
 ```k
