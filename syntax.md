@@ -19,12 +19,22 @@ module BOOGIE-COMMON-SYNTAX
     syntax Program ::= DeclList
     syntax DeclList   ::= List{Decl, ""} [klabel(DeclList)]
     syntax Decl    ::= VarDecl
+                     | ConstantDecl
                      | ProcedureDecl
                      | ImplementationDecl
+                     | TypeDecl
 ```
 
 2 Types
 -------
+
+2.0 Type constructors
+---------------------
+
+```k
+    syntax TypeDecl ::= TypeConstructor
+    syntax TypeConstructor ::= "type" AttributeList Id ";"
+```
 
 2.1 Built-in types
 ------------------
@@ -32,6 +42,7 @@ module BOOGIE-COMMON-SYNTAX
 ```k
     syntax Type ::= TypeAtom
     syntax TypeAtom ::= "bool" | "int"
+                      | Id
     syntax TypeArgs
 ```
 
@@ -66,6 +77,8 @@ module BOOGIE-COMMON-SYNTAX
 -------------------------
 
 ```k
+    syntax ConstantDecl ::= "const" AttributeList IdsType ";"
+
     syntax IdsType ::= IdList ":" Type [avoid]
     syntax IdsTypeList ::= List{IdsType, ","} [klabel(IdsTypeList)]
 ```

@@ -44,6 +44,31 @@ module BOOGIE
     rule <k> .DeclList => .K ... </k>
 ```
 
+2 Types
+-------
+
+TODO: We allow undeclared types for now
+
+```k
+  rule <k> type Attrs T:Id ; => .K ... </k>
+```
+
+3 Constants and functions
+-------------------------
+
+```k
+  rule <k> const Attrs X, Xs : T ;
+        => const Attrs X  : T ;
+        ~> const Attrs Xs : T ;
+           ...
+       </k>
+    requires notBool Xs ==K .IdList
+  rule <k> const _:AttributeList X:Id : T ; => .K ... </k>
+       <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
+     requires notBool( X in_keys(Rho) )
+```
+
+
 4 Expressions
 -------------
 
