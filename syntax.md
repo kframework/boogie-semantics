@@ -40,10 +40,13 @@ module BOOGIE-COMMON-SYNTAX
 ------------------
 
 ```k
-    syntax Type ::= TypeAtom
+    syntax Type ::= TypeAtom | MapType
     syntax TypeAtom ::= "bool" | "int"
                       | Id
+    syntax MapType ::= "[" TypeList "]" Type
     syntax TypeArgs
+
+    syntax TypeList ::= List{Type, ","} [klabel(TypeList)]
 ```
 
 4 Expressions
@@ -53,6 +56,7 @@ module BOOGIE-COMMON-SYNTAX
     syntax Expr ::= Bool | Int | Id
                   | "(" Expr ")" [bracket]
                   | old(Expr)
+                  > Expr MapOp
                   > UnOp Expr
                   > Expr MulOp  Expr [left]
                   > Expr AddOp  Expr [left]
@@ -61,6 +65,9 @@ module BOOGIE-COMMON-SYNTAX
                   | Expr "&&"   Expr [left]
                   > Expr "==>"  Expr [left]
                   > Expr "<==>" Expr [left]
+    syntax MapOp ::= "[" ExprList "]"             // Lookup
+                   | "[" ExprList ":=" Expr "]"   // Update
+
     syntax RelOp ::= "==" | "!="
                    | "<" | ">" | "<=" | ">="
     syntax AddOp ::= "+" | "-"
@@ -145,16 +152,18 @@ This allows us to parse more restrictively, and still have more freedom in the s
 ```
 
 ```k
-    syntax SimpleStmt ::= "assert" AttributeList Expr ";"
-                        | "assume" AttributeList Expr ";"
-                        | "havoc" IdList ";"
-                        | Id ":=" Expr ";"
-                       // Why are ValueLists as KResults work?
-                       // | IdList ":=" ExprList ";"
-                        | "call" OptionalCallLhs Id "(" ExprList ")" ";"
     syntax Stmt ::= SimpleStmt
                   | "goto" IdList ";"
                   | "return" ";"
+    syntax SimpleStmt ::= "assert" AttributeList Expr ";"
+                        | "assume" AttributeList Expr ";"
+                        | "havoc" IdList ";"
+                        | Lhs ":=" Expr ";"
+                       // Why are ValueLists as KResults work?
+                       // | IdList ":=" ExprList ";"
+                        | "call" OptionalCallLhs Id "(" ExprList ")" ";"
+
+    syntax Lhs ::= Id | Lhs "[" ExprList "]"
     syntax BlockStmt ::= "{" StmtList "}"
     syntax OptionalCallLhs ::= Nothing | CallLhs
     syntax CallLhs ::= Id ":=" // TODO: support IdList

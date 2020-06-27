@@ -174,6 +174,42 @@ distinct.
     rule <k> - I:Int => 0 -Int I ... </k>
 ```
 
+### 4.1 Map selection and update
+
+####  Selection
+
+```k
+    syntax ValueExpr ::= MapValue
+    syntax MapValue ::= map(id: Int, updates: Map)
+
+    rule <k> (X [ V:ValueExpr, .ExprList ]):Expr => Updates[V] ...  </k>
+         <env> X |-> Loc ... </env>
+         <store> Loc |-> value(... value: map(... updates: Updates))
+                 ...
+         </store>
+      requires V in_keys(Updates)
+
+    rule <k> (X [ V:ValueExpr, .ExprList ]):Expr => lookupMap(Id, V) ... </k>
+         <env> X |-> Loc ... </env>
+         <store> Loc |-> value(... value: map(Id, Updates))
+                 ...
+         </store>
+      requires notBool V in_keys(Updates)
+
+    // Uninterpreted function
+    syntax Int ::= lookupMap(mapId: Int, key: ValueExpr) [function, functional, smtlib(lookupMap)]
+```
+
+#### Update
+
+```k
+    rule <k> X [ Key:ValueExpr ] := Value:Int ; => .K ...  </k>
+         <env> X |-> Loc ... </env>
+         <store> Loc |-> value(... value: map(... updates: Updates => Updates[Key <- Value]))
+                 ...
+         </store>
+```
+
 ### 4.3 Old expressions
 
 ```k
@@ -681,10 +717,11 @@ Hence, we use a macro.
 ```k
     syntax ValueExpr ::= inhabitants(Type)
     rule inhabitants(T)
-      => #if T ==K int  #then ?_:Int  #else
-         #if T ==K bool #then ?_:Bool #else
+      => #if T ==K int    #then ?_:Int        #else
+         #if T ==K bool   #then ?_:Bool       #else
+         #if isMapType(T) #then map(1, .Map)  #else
          ?_:ValueExpr // TODO: Do we need something more structured?
-         #fi #fi
+         #fi #fi #fi
       [macro]
 ```
 
