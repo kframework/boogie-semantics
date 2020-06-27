@@ -86,7 +86,8 @@ must be unique, multiple entries aren't created for each type.
 ```k
     rule <k> const _:AttributeList .Nothing X, .IdList : T ; => .K ... </k>
          <typeName> T </typeName>
-         <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
+         <globals> (.Map => X:Id |-> value(inhabitants(T, FreshInt), T, true)) Rho </globals>
+         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
        requires notBool( X in_keys(Rho) )
 ```
 
@@ -227,7 +228,8 @@ distinct.
 
 ```k
   rule <k> var .AttributeList X:Id : T ;:Decl => .K ... </k>
-       <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
+       <globals> (.Map => X:Id |-> value(inhabitants(T, FreshInt), T, true)) Rho </globals>
+         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
 ```
 
@@ -361,7 +363,7 @@ Split procedures with a body into a procedure and an implementation:
             ...
         </k>
         <env> (.Map => X:Id |-> Loc) Rho </env>
-        <store> .Map => Loc:Int |-> value(inhabitants(T), T, Where) ... </store>
+        <store> .Map => Loc:Int |-> value(inhabitants(T, Loc), T, Where) ... </store>
         <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
 ```
@@ -715,11 +717,11 @@ The Haskell backend does not allow `[anywhere]` rules (or equations) to use exis
 Hence, we use a macro.
 
 ```k
-    syntax ValueExpr ::= inhabitants(Type)
-    rule inhabitants(T)
-      => #if T ==K int    #then ?_:Int        #else
-         #if T ==K bool   #then ?_:Bool       #else
-         #if isMapType(T) #then map(1, .Map)  #else
+    syntax ValueExpr ::= inhabitants(Type, Int)
+    rule inhabitants(T, FreshInt)
+      => #if T ==K int    #then ?_:Int               #else
+         #if T ==K bool   #then ?_:Bool              #else
+         #if isMapType(T) #then map(FreshInt, .Map)  #else
          ?_:ValueExpr // TODO: Do we need something more structured?
          #fi #fi #fi
       [macro]
@@ -734,12 +736,13 @@ TODO: Take types into account.
     syntax KItem ::= freshen(IdList)
     rule <k> freshen(.IdList) => .K ... </k>
     rule <k> freshen(X, Xs)
-          => X := inhabitants(Type) ;
+          => X := inhabitants(Type, FreshInt) ;
           ~> freshen(Xs)
              ...
          </k>
          <env> X |-> Loc ... </env>
          <store> Loc |-> value(... type: Type) ... </store>
+         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
 ```
 
 ```k
