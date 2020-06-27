@@ -274,7 +274,7 @@ Split procedures with a body into a procedure and an implementation:
             ...
         </k>
 
-   syntax KItem ::= value(value: ValueExpr, type: Type, where: Expr)
+   syntax Value ::= value(value: ValueExpr, type: Type, where: Expr)
    rule <k> ( var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
            ~> havoc Xs ;
             )
