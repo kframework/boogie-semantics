@@ -551,6 +551,21 @@ procedure R2()
 }
 ```
 
+and another:
+
+```
+procedure P()
+{
+  var x: int where 0 <= x;
+  x := -1 ;
+  while (*) { x := x; }
+  assert 0 <= x; //succeed
+  x := x - 1;
+  while (*) {  }
+  assert 0 <= x; // should fail
+}
+```
+
 9.6 Return statements
 ---------------------
 
