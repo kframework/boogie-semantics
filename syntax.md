@@ -69,8 +69,9 @@ module BOOGIE-COMMON-SYNTAX
     syntax UnOp  ::= "!"
                    | "-"
 
-    syntax IdList ::= List{Id, ","} [klabel(IdList)]
+    // TODO: We do not overload IdList and ExprList because of https://github.com/kframework/kore/issues/1817
     syntax ExprList ::= List{Expr, ","} [klabel(ExprList), symbol]
+    syntax IdList   ::= List{Id, ","}   [klabel(IdList)]
 ```
 
 3 Constants and functions
