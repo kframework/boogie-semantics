@@ -78,7 +78,9 @@ module BOOGIE-COMMON-SYNTAX
 -------------------------
 
 ```k
-    syntax ConstantDecl ::= "const" AttributeList IdsType ";"
+    syntax ConstantDecl ::= "const" AttributeList OptionalUnique IdsType ";"
+    syntax OptionalUnique ::= Nothing | "unique"
+
 
     syntax IdsType ::= IdList ":" Type [avoid]
     syntax IdsTypeList ::= List{IdsType, ","} [klabel(IdsTypeList)]

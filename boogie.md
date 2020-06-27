@@ -20,6 +20,12 @@ module BOOGIE
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
                     <currentProc multiplicity="?"> main </currentProc>
+                    <types>
+                      <type multiplicity="*" type="Map">
+                          <typeName> #token("TypeName", "Id") </typeName>
+                          <uniques> .IdList </uniques>
+                      </type>
+                    </types>
                     <procs>
                       <proc multiplicity="*" type="Map">
                         <procName> #token("ProcedureName", "Id") </procName>
@@ -47,27 +53,63 @@ module BOOGIE
 2 Types
 -------
 
-TODO: We allow undeclared types for now
+TODO: We do not check if a type has been declared before being used yet.
 
 ```k
-  rule <k> type Attrs T:Id ; => .K ... </k>
+    rule <k> type Attrs T:Id ; => .K ... </k>
+```
+
+When we first encounter a type , we create an entry in the list of types.
+Since `<type>` has `multiplicity="Map"` and the key for maps (i.e. the `<typeName>`)
+must be unique, multiple entries aren't created for each type.
+
+```k
+    rule <k> const Attrs OptionalUnique _:Id : T ; ... </k>
+         <types> .Bag
+              => <type> <typeName> T </typeName> ... </type>
+                 ...
+         </types>
 ```
 
 3 Constants and functions
 -------------------------
 
 ```k
-  rule <k> const Attrs X, Xs : T ;
-        => const Attrs X  : T ;
-        ~> const Attrs Xs : T ;
-           ...
-       </k>
-    requires notBool Xs ==K .IdList
-  rule <k> const _:AttributeList X:Id : T ; => .K ... </k>
-       <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
-     requires notBool( X in_keys(Rho) )
+    rule <k> const Attrs OptionalUnique X, Xs : T ;
+          => const Attrs OptionalUnique X  : T ;
+          ~> const Attrs OptionalUnique Xs : T ;
+             ...
+         </k>
+      requires notBool Xs ==K .IdList
 ```
 
+```k
+    rule <k> const _:AttributeList .Nothing X, .IdList : T ; => .K ... </k>
+         <typeName> T </typeName>
+         <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
+       requires notBool( X in_keys(Rho) )
+```
+
+### `unique`
+
+The `<uniques>` cell maintains a list of `unique` constants that are `assumed`
+distinct.
+
+```k
+    rule <k> const AttributeList (unique => .Nothing)  X:Id : T ;
+          ~> (.K => assume .AttributeList #distinct(X, Uniques) ;)
+             ...
+         </k>
+         <typeName> T </typeName>
+         <uniques> Uniques => X, Uniques </uniques>
+```
+
+```k
+    syntax Expr ::= #distinct(Id, IdList)
+    // TODO: Should be `#distinct(Expr, ExprList)`; blocked on https://github.com/kframework/kore/issues/1817
+    rule <k> #distinct(L, (R, Rs)) => L != R && #distinct(L, Rs) ... </k>
+    rule <k> #distinct(L, .IdList) => true ... </k>
+```
 
 4 Expressions
 -------------
@@ -641,7 +683,7 @@ Hence, we use a macro.
     rule inhabitants(T)
       => #if T ==K int  #then ?_:Int  #else
          #if T ==K bool #then ?_:Bool #else
-         ?_:ValueExpr // TODO: This should be an error instead
+         ?_:ValueExpr // TODO: Do we need something more structured?
          #fi #fi
       [macro]
 ```
