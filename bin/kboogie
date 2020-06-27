@@ -30,16 +30,11 @@ def parse_args(args):
     input_path = None
 
     while not(input_path):
-        if args[0] == '--infer-only':
-            infer_only = True
-            args.pop(0)
-        if args[0] == '--no-infer':
-            should_infer = False
-            args.pop(0)
-        if args[0] == '--full':
-            print_summary = False
-            args.pop(0)
-        input_path = args.pop(0)
+        arg = args.pop(0)
+        if   arg == '--infer-only': infer_only = True
+        elif arg == '--no-infer'  : should_infer = False
+        elif arg == '--full'      : print_summary = False
+        else                       : input_path = arg
     k_args = args
 
     return input_path, infer_only, should_infer, print_summary, k_args
