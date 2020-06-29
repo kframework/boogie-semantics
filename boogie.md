@@ -223,6 +223,21 @@ distinct.
          <globals> _ => Globals </globals>
 ```
 
+### 4.4 Logical quantifiers
+
+TODO: HACK: WARNING: This is only sound when used in the context of a post condition.
+It is unsound when used in an assume statement.
+
+```k
+    rule <k> (forall .IdsTypeList :: Expr ) => Expr ... </k>
+    rule <k> (forall X : T, Xs:IdsTypeList :: Expr )
+          => var .AttributeList X : T ; .LocalVarDeclList
+          ~> havoc X;
+          ~> (forall Xs:IdsTypeList :: Expr )
+             ...
+         </k>
+```
+
 7 Mutable Variables, states, and execution traces
 -------------------------------------------------
 

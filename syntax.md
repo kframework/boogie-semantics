@@ -56,6 +56,7 @@ module BOOGIE-COMMON-SYNTAX
     syntax Expr ::= Bool | Int | Id
                   | "(" Expr ")" [bracket]
                   | old(Expr)
+                  | "(" "forall" IdsTypeList "::" Expr ")"
                   > Expr MapOp
                   > UnOp Expr
                   > Expr MulOp  Expr [left]
