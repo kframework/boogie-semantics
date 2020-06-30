@@ -180,34 +180,37 @@ distinct.
 
 ```k
     syntax ValueExpr ::= MapValue
-    syntax MapValue ::= map(id: Int, updates: Map)
+    syntax MapValue ::= map(Int)
+                      | update(key: ExprList, value: ValueExpr, mapx: MapValue)
+    syntax Expr      ::= select(ExprList, MapValue)
 
-    rule <k> (X [ V:ValueExpr, .ExprList ]):Expr => Updates[V] ...  </k>
-         <env> X |-> Loc ... </env>
-         <store> Loc |-> value(... value: map(... updates: Updates))
-                 ...
-         </store>
-      requires V in_keys(Updates)
+    context (HOLE [ _ ]):Expr
+    context (_:MapValue [ HOLE ]):Expr
 
-    rule <k> (X [ V:ValueExpr, .ExprList ]):Expr => lookupMap(Id, V) ... </k>
-         <env> X |-> Loc ... </env>
-         <store> Loc |-> value(... value: map(Id, Updates))
-                 ...
-         </store>
-      requires notBool V in_keys(Updates)
+    rule <k> (Map:MapValue [ Key ]):Expr => select(Key, Map) ...  </k> requires isKResult(Key)
+
+    rule <k> select(Key, update(Key, Val, Map)) => Val ... </k>
+    rule <k> select(S, update(Key, _, Map)) =>  select(S, Map) ... </k> requires Key =/=K S
+    rule <k> select(S, map(Id)) => lookupMap(Id, S) ... </k>
 
     // Uninterpreted function
-    syntax Int ::= lookupMap(mapId: Int, key: ValueExpr) [function, functional, smtlib(lookupMap)]
+    syntax Int ::= lookupMap(mapId: Int, key: ExprList) [function, functional, smtlib(lookupMap), no-evaluators]
 ```
 
 #### Update
 
 ```k
-    rule <k> X [ Key:ValueExpr ] := Value:Int ; => .K ...  </k>
-         <env> X |-> Loc ... </env>
-         <store> Loc |-> value(... value: map(... updates: Updates => Updates[Key <- Value]))
-                 ...
-         </store>
+    rule <k> X:Id [ Key ] := Value ; => X := X [ Key := Value ] ; ... </k>
+
+    context HOLE [ _ := _ ]
+    context Map:MapValue [ HOLE := _Value ]
+    context Map:MapValue [ Key := HOLE ] requires isKResult(Key)
+    rule <k> Map:MapValue [ Key := Value ] => update(Key, Value, Map) ... </k> requires isKResult(Key)
+```
+
+```k
+    context (HOLE, _):ExprList
+    context (_:ValueExpr, HOLE):ExprList
 ```
 
 ### 4.3 Old expressions
@@ -725,9 +728,8 @@ Helpers
 
 Semantically, this is similar to matching logic's `[[ Sort ]]` (also pronounced "inhabitants").
 
-Note that this *cannot* be a function. Functions must return a single value,
-whereas here we return the set of all possible values of a type.
 The Haskell backend does not allow `[anywhere]` rules (or equations) to use existential variables.
+This *cannot* be a function. Functions must return a single value, whereas here we return the set of all possible values of a type.
 Hence, we use a macro.
 
 ```k
@@ -735,7 +737,7 @@ Hence, we use a macro.
     rule inhabitants(T, FreshInt)
       => #if T ==K int    #then ?_:Int               #else
          #if T ==K bool   #then ?_:Bool              #else
-         #if isMapType(T) #then map(FreshInt, .Map)  #else
+         #if isMapType(T) #then map(FreshInt)        #else
          ?_:ValueExpr // TODO: Do we need something more structured?
          #fi #fi #fi
       [macro]
