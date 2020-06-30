@@ -11,7 +11,9 @@ RUN    apt update                                                          \
            boogie                                                          \
            llvm-8                                                          \
            ninja-build                                                     \
-           python3
+           python3                                                        \
+           python3-pip
+RUN pip3 install lit OutputCheck
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
