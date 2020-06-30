@@ -8,10 +8,10 @@ jobs:
     - stage: Build Docker Image
       script: "travis_wait 10 docker build --build-arg K_COMMIT=$(cd ext/k && git rev-parse --short=7 HEAD) --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) --tag boogie-semantics ."
     - stage: Create Docker Container
-      script: "docker create --name boogie boogie"
+      script: "docker create --name boogie-semantics boogie-semantics"
     - stage: Build semantics
       script:
-      - "travis_wait 10 docker run boogie-semantics --tty --name boogie ./build boogie"
+      - "travis_wait 10 docker start boogie-semantics --tty --name boogie ./build boogie"
     - stage: Test
       script:
-      - "travis_wait 10 docker run boogie-semantics --tty  --name boogie ./build"
+      - "travis_wait 10 docker start boogie-semantics --tty  --name boogie ./build"
