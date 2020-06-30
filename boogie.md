@@ -3,13 +3,15 @@ Boogie Semantics
 
 ```k
 requires "syntax.md"
+requires "substitution.md"
 
 module BOOGIE
     imports BOOGIE-RULE-SYNTAX
-    imports MAP
-    imports INT
-    imports STRING
+    imports BOOGIE-SUBSTITUTION
     imports ID
+    imports INT
+    imports MAP
+    imports STRING
 
     configuration <boogie>
                     <k> $PGM:Program ~> #start </k>
@@ -710,13 +712,19 @@ procedure P()
 -------------------
 
 ```k
-    rule <k> call X:Id := ProcedureName:Id(_ArgVals) ;
-          => assert { :code "BPRequires" } { :source "???", 0 } Requires ;
+    rule <k> call X:Id := ProcedureName:Id(ArgVals) ;
+          => assert { :code "BPRequires" } { :source "???", 0 }
+               substitute(Requires, IdsTypeWhereListToIdList(Args), ArgVals) ;
           ~> freshen(X)
-          ~> assume .AttributeList Ensures ;
+          ~> assume .AttributeList substitute( Ensures
+                                             , IdsTypeWhereListToIdList(Args) ++IdList IdsTypeWhereListToIdList(Rets)
+                                             , ArgVals ++ExprList X
+                                             ) ;
              ...
          </k>
          <procName> ProcedureName </procName>
+         <args> Args </args>
+         <rets> Rets </rets>
          <pres> Requires </pres>
          <posts> Ensures </posts>
 ```
@@ -781,6 +789,12 @@ TODO: Take types into account.
 ```
 
 ```k
+    syntax ExprList ::= ExprList "++ExprList" ExprList [function, left, avoid]
+    rule (X1, X1s) ++ExprList X2s => X1, (X1s ++ExprList X2s)
+    rule .ExprList ++ExprList X2s => X2s
+```
+
+```k
     syntax IdList ::= IdList "++IdList" IdList [function, left, avoid]
     rule (X1, X1s) ++IdList X2s => X1, (X1s ++IdList X2s)
     rule .IdList ++IdList X2s => X2s
@@ -791,6 +805,13 @@ TODO: Take types into account.
     rule X in .IdList => false
     rule X in (X, Ys) => true
     rule X in (Y, Ys) => X in Ys requires Y =/=K X
+```
+
+```k
+    syntax IdList ::= IdsTypeWhereListToIdList(IdsTypeWhereList) [function]
+    rule IdsTypeWhereListToIdList(.IdsTypeWhereList) => .IdList
+    rule IdsTypeWhereListToIdList(Xs : T            , Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
+    rule IdsTypeWhereListToIdList((Xs : T where Exp), Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
 ```
 
 Verification syntax

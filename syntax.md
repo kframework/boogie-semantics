@@ -59,16 +59,20 @@ module BOOGIE-COMMON-SYNTAX
                   | "(" "forall" IdsTypeList "::" Expr ")"
                   > Expr MapOp
                   > UnOp Expr
-                  > Expr MulOp  Expr [left]
-                  > Expr AddOp  Expr [left]
-                  > Expr RelOp  Expr [left]
-                  > Expr "||"   Expr [left]
-                  | Expr "&&"   Expr [left]
-                  > Expr "==>"  Expr [left]
-                  > Expr "<==>" Expr [left]
+                  > Expr MulOp   Expr [left]
+                  > Expr AddOp   Expr [left]
+                  > Expr RelOp   Expr [left]
+                  > Expr OrOp    Expr [left]
+                  | Expr AndOp   Expr [left]
+                  > Expr ImplOp  Expr [left]
+                  > Expr EquivOp Expr [left]
     syntax MapOp ::= "[" ExprList "]"             // Lookup
                    | "[" ExprList ":=" Expr "]"   // Update
 
+    syntax EquivOp ::= "<==>"
+    syntax ImplOp ::= "==>"
+    syntax AndOp ::= "&&"
+    syntax OrOp ::= "||"
     syntax RelOp ::= "==" | "!="
                    | "<" | ">" | "<=" | ">="
     syntax AddOp ::= "+" | "-"

@@ -8,10 +8,10 @@ procedure p0(x: int, y: int) returns (z: int) requires true ; ensures z == 5;
 }
 
 procedure main() returns () {
-    var z: int;
-    call z := p0(27, 3);
+    var w: int;
+    call w := p0(27, 3);
 
-    assert  z == 5;
+    assert  w == 5;
 
 }
 
