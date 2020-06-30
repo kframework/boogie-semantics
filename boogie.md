@@ -117,10 +117,9 @@ distinct.
 
 ```k
     syntax KResult ::= ValueExpr
-                     | ValueList
-
-    syntax ValueList ::= List{ValueExpr, ","} [klabel(ExprList)]
     syntax Expr ::= ValueExpr
+    rule isKResult(E, Es:ExprList) => isKResult(E) andBool isKResult(Es)
+    rule isKResult(.ExprList) => true
     syntax ValueExpr ::= Bool | Int | String
 
     rule <k> X:Id => V ... </k>
