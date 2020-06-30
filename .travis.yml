@@ -7,10 +7,6 @@ jobs:
   include:
     - stage: Docker
       # Images do not persist across stages
-      script: >-   travis_wait 10 docker build --build-arg K_COMMIT=$(cd ext/k && git rev-parse --short=7 HEAD)
-                                               --build-arg USER_ID=$(id -u)
-                                               --build-arg GROUP_ID=$(id -g)
-                                               --tag boogie-semantics .
-                && travis_wait 20 docker run --tty --env KNINJA_USE_SYSTEM_K=true boogie-semantics ./build
+      script: "travis_wait 10 docker build --build-arg K_COMMIT=$(cd ext/k && git rev-parse --short=7 HEAD) --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) --tag boogie-semantics . && travis_wait 20 docker run --tty --env KNINJA_USE_SYSTEM_K=true boogie-semantics ./build"
 
 
