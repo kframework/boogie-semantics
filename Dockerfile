@@ -7,7 +7,11 @@ RUN    ln --symbolic --no-dereference --force /usr/share/zoneinfo/$TZ /etc/local
 
 RUN    apt update                                                          \
     && apt upgrade --yes                                                   \
-    && apt install --yes ninja-build boogie python3
+    && apt install --yes                                                   \
+           boogie                                                          \
+           llvm-8                                                          \
+           ninja-build                                                     \
+           python3
 
 ARG USER_ID=1000
 ARG GROUP_ID=1000
