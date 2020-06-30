@@ -16,7 +16,10 @@ def repo(*path):
 
 import json
 import re
-sys.path.append(repo('ext/k/k-distribution/target/release/k/lib/'))
+
+sys.path.append(repo('ext/k/k-distribution/target/release/k/lib/kframework'))
+# TODO: we should check for the correct one relative to the K binary
+sys.path.append('/usr/lib/kframework')
 import pyk
 
 # High-level helpers
