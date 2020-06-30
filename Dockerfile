@@ -15,8 +15,7 @@ RUN    groupadd --gid $GROUP_ID user                                        \
     && useradd --create-home --uid $USER_ID --shell /bin/sh --gid user user
 USER $USER_ID:$GROUP_ID
 
-ADD --chown=user . /home/user/matching-logic-prover
-WORKDIR /home/user/matching-logic-prover/prover
-RUN ./build
+ADD --chown=user . /home/user/boogie/
+WORKDIR /home/user/boogie/
 
 ENV LC_ALL=C.UTF-8
