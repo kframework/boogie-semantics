@@ -17,9 +17,17 @@ def repo(*path):
 import json
 import re
 
-sys.path.append(repo('ext/k/k-distribution/target/release/k/lib/kframework'))
-# TODO: we should check for the correct one relative to the K binary
-sys.path.append('/usr/lib/kframework')
+# Import PyK
+# ==========
+
+from shutil import which
+
+_krun = which('krun')
+if not _krun: raise RuntimeError('Could not find "krun" in PATH')
+_release_dir = os.path.dirname(os.path.dirname(_krun))
+def release_dir(*args): return os.path.join(_release_dir, *args)
+sys.path.append(release_dir('lib/kframework'))
+
 import pyk
 
 # High-level helpers
@@ -68,7 +76,7 @@ def krun(input, k_args):
     krun_input = tempfile.NamedTemporaryFile(delete = False)
     krun_input.write(input.encode())
     krun_input.close()
-    krun_output = subprocess.run( [ repo('ext/k/k-distribution/target/release/k/bin/krun')
+    krun_output = subprocess.run( [ 'krun'
                                   , '--directory', repo('.build/defn/boogie/')
                                   , '--search-final'
                                   , '--output', 'json'
