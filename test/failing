@@ -1,4 +1,3 @@
-test/test2/Arrays.bpl
 test/test2/AssertVerifiedUnder0.bpl
 test/test2/AssumeEnsures.bpl
 test/test2/AssumptionVariables0.bpl
