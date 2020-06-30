@@ -3,13 +3,13 @@ Boogie Semantics
 
 ```k
 requires "syntax.md"
-requires "fresh-generator.md"
 
 module BOOGIE
     imports BOOGIE-RULE-SYNTAX
     imports MAP
     imports INT
-    imports FRESH-GENERATOR
+    imports STRING
+    imports ID
 
     configuration <boogie>
                     <k> $PGM:Program ~> #start </k>
