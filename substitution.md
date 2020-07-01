@@ -34,7 +34,7 @@ module BOOGIE-SUBSTITUTION
     rule substituteSingle(old(E), Var, For) => old(substituteSingle(E, Var, For))
 
     // MapOp
-    rule substituteSingle(E [ Keys ] , Var, For) => substituteSingle(E  , Var, For) [ substituteSingle(E, Var, For) ]
+    rule substituteSingle(E [ Keys ]:MapOp , Var, For) => substituteSingle(E, Var, For) [ substituteSingle(Keys, Var, For) ]:MapOp
     rule substituteSingle(E [ Keys := Val ] , Var, For)
       => substituteSingle(E  , Var, For) [ substituteSingle(Keys, Var, For) := substituteSingle(Val, Var, For) ]
 
