@@ -234,15 +234,16 @@ distinct.
 
 TODO: HACK: WARNING: This is only sound when used in the context of a post condition.
 It is unsound when used in an assume statement.
+We alpha-rename the quantified variable with a fresh one.
 
 ```k
-    rule <k> (forall .IdsTypeList :: Expr ) => Expr ... </k>
-    rule <k> (forall X : T, Xs:IdsTypeList :: Expr )
-          => var .AttributeList X : T ; .LocalVarDeclList
-          ~> havoc X;
-          ~> (forall Xs:IdsTypeList :: Expr )
+    rule <k> (#forall X : T :: Expr )
+          => var .AttributeList freshId(N) : T ; .LocalVarDeclList
+          ~> havoc freshId(N);
+          ~> substituteSingle(Expr, X, freshId(N))
              ...
          </k>
+         <freshCounter> N => N +Int 1 </freshCounter>
 ```
 
 7 Mutable Variables, states, and execution traces

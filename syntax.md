@@ -56,7 +56,8 @@ module BOOGIE-COMMON-SYNTAX
     syntax Expr ::= Bool | Int | Id
                   | "(" Expr ")" [bracket]
                   | old(Expr)
-                  | "(" "forall" IdsTypeList "::" Expr ")"
+                  | "(" "forall" IdsTypeList "::" Expr ")" [avoid]
+                  | "(" "#forall" Id ":" Type "::" Expr ")"
                   > Expr MapOp
                   > UnOp Expr
                   > Expr MulOp   Expr [left]
@@ -194,6 +195,14 @@ want to detect cutpoints ourselves.
 
 ```k
     syntax Stmt ::= "cutpoint" ";"
+```
+
+We treat `forall`s with multiple bindings as multiple foralls with single bindings.
+
+```k
+    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) ) [macro-rec]
+    rule ( forall .IdList : T, IdsTypeList :: Expr ) => ( forall IdsTypeList :: Expr ) [macro-rec]
+    rule ( forall             .IdsTypeList :: Expr ) => Expr [macro-rec]
 ```
 
 ```k
