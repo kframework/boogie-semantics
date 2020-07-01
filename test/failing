@@ -6,7 +6,6 @@ test/test2/Axioms.bpl
 test/test2/B.bpl
 test/test2/BadLineNumber.bpl
 test/test2/BoundedTypeParameterQuantifier.bpl
-test/test2/Call.bpl
 test/test2/CallVerifiedUnder0.bpl
 test/test2/ContractEvaluationOrder.bpl
 test/test2/CutBackEdge.bpl
@@ -25,7 +24,6 @@ test/test2/LambdaPoly.bpl
 test/test2/LoopInvAssume.bpl
 test/test2/NeverPattern.bpl
 test/test2/NullaryMaps.bpl
-test/test2/Old.bpl
 test/test2/OldIllegal.bpl
 test/test2/Passification.bpl
 test/test2/Quantifiers.bpl
