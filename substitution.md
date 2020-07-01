@@ -33,6 +33,10 @@ module BOOGIE-SUBSTITUTION
     rule substituteSingle(I:Int,  Var, For) => I
     rule substituteSingle(old(E), Var, For) => old(substituteSingle(E, Var, For))
 
+    // Forall
+    rule substituteSingle( (#forall X:Id : T:Type :: Expr) , X,   For ) => Expr
+    rule substituteSingle( (#forall X:Id : T:Type :: Expr) , Var, For ) => (#forall X : T :: substituteSingle( Expr , Var, For )) requires X =/=K Var
+
     // MapOp
     rule substituteSingle(E [ Keys ]:MapOp , Var, For) => substituteSingle(E, Var, For) [ substituteSingle(Keys, Var, For) ]:MapOp
     rule substituteSingle(E [ Keys := Val ] , Var, For)
