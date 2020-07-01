@@ -439,7 +439,7 @@ Split procedures with a body into a procedure and an implementation:
 TODO: This needs to work over lists of expressions and identifiers
 
 ```k
-    context _X := HOLE ;
+    context _X:Id := HOLE ;
     rule <k> X := V:ValueExpr ; => .K ... </k>
          <env> X |-> Loc ... </env>
          <store> Loc |-> value(... value: _ => V) ... </store>
