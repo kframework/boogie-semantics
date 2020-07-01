@@ -21,7 +21,7 @@ module BOOGIE
                     <store> .Map </store>
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
-                    <currentProc multiplicity="?"> main </currentProc>
+                    <currentImpl multiplicity="?"> -1 </currentImpl>
                     <types>
                       <type multiplicity="*" type="Map">
                           <typeName> #token("TypeName", "Id") </typeName>
@@ -37,8 +37,11 @@ module BOOGIE
                         <posts> true:Expr </posts> // ensures
                         <mods> .IdList </mods>   // modifies
                         <impls>
-                          <impl multiplicity="*" type="Set">
-                            { .LocalVarDeclList .StmtList }
+                          <impl multiplicity="*" type="Map">
+                            <implId> -1 </implId>
+                            <body> { .LocalVarDeclList .StmtList } </body>
+                            <iargs> .IdsTypeWhereList </iargs>
+                            <irets> .IdsTypeWhereList </irets>
                           </impl>
                         </impls>
                       </proc>
@@ -321,15 +324,20 @@ Split procedures with a body into a procedure and an implementation:
 
 ```k
     rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) Body
-         => .K
-            ...
+          => .K
+             ...
          </k>
          <procName> ProcedureName </procName>
-         <args> PArgs </args>
-         <rets> PRets </rets>
-         <impls> .Bag => <impl>  Body </impl> ... </impls>
-      requires PArgs ==K IArgs andBool PRets ==K IRets
-      // TODO: `hook(SUBSTITUTION.substMany)` is not supported on the Haskell backend
+         <impls> .Bag
+              => <impl>
+                   <implId> N </implId>
+                   <body> Body </body>
+                   <iargs> IArgs </iargs>
+                   <irets> IRets </irets>
+                 </impl>
+                 ...
+         </impls>
+         <freshCounter> N => N +Int 1 </freshCounter>
 ```
 
 9 Statements
@@ -347,22 +355,27 @@ Split procedures with a body into a procedure and an implementation:
     syntax KItem ::= "#start"
 
     rule <k> #start
-          => makeDecls(Args) ++LocalVarDeclList
-             makeDecls(Rets) ++LocalVarDeclList
+          => makeDecls(IArgs) ++LocalVarDeclList
+             makeDecls(IRets) ++LocalVarDeclList
              VarList
           ~> havoc .IdList ;
-          ~> assume .AttributeList Requires;
+          ~> assume .AttributeList substitute(Requires, IdsTypeWhereListToIdList(PArgs), IdsTypeWhereListToExprList(IArgs) ) ;
           ~> StartLabel: StmtList
           ~> goto StartLabel;
          </k>
-         (.CurrentProcCell => <currentProc> ProcedureName </currentProc>)
+         (.CurrentImplCell => <currentImpl> N </currentImpl>)
          <globals> Globals </globals>
          <olds> .Map => Globals </olds>
          <procName> ProcedureName </procName>
-         <args> Args </args>
-         <rets> Rets </rets>
+         <args> PArgs </args>
+         <rets> PRets </rets>
          <pres> Requires </pres>
-         <impl> { VarList StartLabel: StmtList } </impl>
+         <impl>
+            <implId> N </implId>
+            <iargs> IArgs </iargs>
+            <irets> IRets </irets>
+            <body> { VarList StartLabel: StmtList } </body>
+         </impl>
 ```
 
 ```k
@@ -434,8 +447,8 @@ TODO: This needs to work over lists of expressions and identifiers
     rule <k> X := V:ValueExpr ; => .K ... </k>
          <env> Env </env>
          <globals> X |-> value(... value: _ => V) ... </globals>
-         <currentProc> CurrentProc </currentProc>
-         <procName> CurrentProc </procName>
+         <currentImpl> CurrentImpl </currentImpl>
+         <implId> CurrentImpl </implId>
          <mods> Modifies </mods>
       requires notBool X in_keys(Env)
        andBool         X in Modifies
@@ -695,11 +708,20 @@ procedure P()
 
 ```k
     rule <k> return ; ~> _
-          => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc } Ensures ;
+          => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc }
+                     substitute( Ensures
+                               , IdsTypeWhereListToIdList(PArgs) ++IdList IdsTypeWhereListToIdList(PRets)
+                               , IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets)
+                               ) ;
          </k>
-         <currentProc> CurrentProc </currentProc>
+         <currentImpl> CurrentImpl </currentImpl>
          <procName> CurrentProc </procName>
+         <iargs> IArgs </iargs>
+         <irets> IRets </irets>
+         <implId> CurrentImpl </implId>
          <posts> Ensures </posts>
+         <args> PArgs </args>
+         <rets> PRets </rets>
 ```
 
 9.7 If statements
@@ -812,6 +834,13 @@ TODO: Take types into account.
     rule IdsTypeWhereListToIdList(.IdsTypeWhereList) => .IdList
     rule IdsTypeWhereListToIdList(Xs : T            , Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
     rule IdsTypeWhereListToIdList((Xs : T where Exp), Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
+```
+
+```k
+    syntax ExprList ::= IdsTypeWhereListToExprList(IdsTypeWhereList) [function]
+    rule IdsTypeWhereListToExprList(.IdsTypeWhereList) => .ExprList
+    rule IdsTypeWhereListToExprList(Xs : T            , Rest) => Xs ++ExprList IdsTypeWhereListToExprList(Rest)
+    rule IdsTypeWhereListToExprList((Xs : T where Exp), Rest) => Xs ++ExprList IdsTypeWhereListToExprList(Rest)
 ```
 
 Verification syntax
