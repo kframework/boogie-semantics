@@ -523,11 +523,11 @@ So we mark them with fresh integers in this preprocessing pass.
     rule <k> #collectLabel(_L, _S1s)
           ~> ( ( cutpoint;
                  assume { :inferred .AttrArgList } Inferred;
-                 assert .AttributeList Invariant ;
+                 assert _:AttributeList Invariant ;
                  S2s:StmtList
                )
             => ( assert { :code "Inferred" } { :source "???", 0 } Inferred; // This should never fail
-                 assert { :code "BPInvariant" } { :source "???", 0 } Invariant;
+                 assert { :code "BP5004" } { :source "???", 0 } Invariant;
                  cutpoint(!_:Int) ;
                  assume { :inferred .AttrArgList } Inferred;
                  assume .AttributeList Invariant;
@@ -553,7 +553,7 @@ add one there so that the previous rule may fire.
 
              ...
          </k>
-      requires assert .AttributeList _ ; :/=K  S2
+      requires assert _:AttributeList _ ; :/=K  S2
 ```
 
 When we reach a paticular cutpoint the first time, we treat it as an abstraction point
