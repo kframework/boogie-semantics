@@ -58,6 +58,7 @@ module BOOGIE-COMMON-SYNTAX
                   | old(Expr)
                   | "(" "forall" IdsTypeList "::" Expr ")" [avoid]
                   | "(" "#forall" Id ":" Type "::" Expr ")"
+                  | "if" Expr "then" Expr "else" Expr // TODO: deal with ambiguities for nested ITEs
                   > Expr MapOp
                   > UnOp Expr
                   > Expr MulOp   Expr [left]

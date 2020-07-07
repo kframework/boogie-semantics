@@ -177,6 +177,10 @@ distinct.
     context _:UnOp HOLE
     rule <k> ! B => notBool(B) ... </k>
     rule <k> - I:Int => 0 -Int I ... </k>
+    
+    context if HOLE then _ else _
+    rule <k> if true  then True  else _     => True  ... </k>
+    rule <k> if false then _     else False => False ... </k>
 ```
 
 ### 4.1 Map selection and update
