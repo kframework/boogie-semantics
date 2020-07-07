@@ -37,6 +37,8 @@ def erase_unchecked_information(error):
         # So we may get more error messages than we'd like
         line = 'LINE' + str(fresh_counter)
         fresh_counter += 1
+    if error.code == 'BP5004' or error.code == 'BP5005':
+        code = 'BP500{4,5}' # KBoogie does not distinguish between maintaining the invariant vs invariant holding at the head
     return file + '(' + line + ',COLUMN): Error ' + code + ':'
 
 def read_errors(lines):
