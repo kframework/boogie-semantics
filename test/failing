@@ -1,45 +1,56 @@
 # Uses too much RAM
 test/test2/Arrays.bpl
 
-# Uses boogie internal features
-test/test2/AssertVerifiedUnder0.bpl
-test/test2/AssumptionVariables0.bpl
-
 # Unimplemented
-test/test2/AssumeEnsures.bpl
-test/test2/Axioms.bpl
-test/test2/B.bpl
-test/test2/BadLineNumber.bpl
-test/test2/BoundedTypeParameterQuantifier.bpl
-test/test2/CallVerifiedUnder0.bpl
+# -------------
+
+# Minor bugs/features
+test/test2/Ensures.bpl
 test/test2/ContractEvaluationOrder.bpl
 test/test2/CutBackEdge.bpl
-test/test2/Ensures.bpl
-test/test2/FormulaTerm.bpl
-test/test2/FormulaTerm2.bpl
-test/test2/FreeCall.bpl
 test/test2/IfThenElse1.bpl
-test/test2/Implies.bpl
-test/test2/InvariantVerifiedUnder0.bpl
-test/test2/Lambda.bpl
-test/test2/LambdaExt.bpl
-test/test2/LambdaLifting.bpl
-test/test2/LambdaOldExpressions.bpl
-test/test2/LambdaPoly.bpl
-test/test2/LoopInvAssume.bpl
-test/test2/NeverPattern.bpl
-test/test2/NullaryMaps.bpl
-test/test2/OldIllegal.bpl
-test/test2/Passification.bpl
+test/test2/TypeEncodingM.bpl                    # -typeEncoding:m command line option, can be ignored
+test/test2/UpdateExpr.bpl                       # Axiom, without forall
+
+# forall/exists/functions
+test/test2/Axioms.bpl
+test/test2/FormulaTerm2.bpl
+test/test2/NullaryMaps.bpl                      # Also, polymorphism
 test/test2/Quantifiers.bpl
-test/test2/Rlimitouts0.bpl
-test/test2/SelectiveChecking.bpl
 test/test2/Structured.bpl
-test/test2/Timeouts0.bpl
-test/test2/TypeEncodingM.bpl
-test/test2/UpdateExpr.bpl
-test/test2/Where.bpl
-test/test2/sk_hack.bpl
-test/test2/strings-no-where.bpl
-test/test2/strings-where.bpl
+
+# free
+test/test2/AssumeEnsures.bpl
+test/test2/FreeCall.bpl
+
+# lambda
+test/test2/Lambda.bpl
+test/test2/LambdaOldExpressions.bpl
+test/test2/LambdaLifting.bpl
+test/test2/LambdaExt.bpl                        # Also, polymorphism
+test/test2/LambdaPoly.bpl                       # Also, polymorphism
+
+# Unimplemented (polymorphism)
+test/test2/BoundedTypeParameterQuantifier.bpl   # Also, forall
+
+test/test2/strings-no-where.bpl                 # string, forall, free...
+
+# Won't implement
+# ---------------
+
+test/test2/Where.bpl                            # where is very esoteric
+test/test2/strings-where.bpl                    # where. Also, string, forall, free, where
+test/test2/OldIllegal.bpl                       # Ill-formed
+
+# Uses boogie internal features
+test/test2/AssertVerifiedUnder0.bpl             # {:verified_under A}
+test/test2/CallVerifiedUnder0.bpl               # {:verified_under A}
+test/test2/InvariantVerifiedUnder0.bpl          # {:verified_under A}
+test/test2/AssumptionVariables0.bpl             # {:assumption}
+test/test2/Implies.bpl                          # {:subsumption 0}
+test/test2/NeverPattern.bpl                     # {:never_pattern true}
+test/test2/Rlimitouts0.bpl                      # rlimit command line option; nott supported upstream
+test/test2/SelectiveChecking.bpl                # {:selective_checking}
+test/test2/Timeouts0.bpl                        # {:timeLimit 8}
+test/test2/sk_hack.bpl                          # sk_hack?
 
