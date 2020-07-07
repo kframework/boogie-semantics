@@ -414,8 +414,8 @@ Split procedures with a body into a procedure and an implementation:
       => #failure(Attrs, File +String "(" +String Int2String(Line) +String ",00): " +String Message)
     rule #failure({ :code Code, .AttrArgList } Attrs, Message)
       => #failure(Attrs, Message +String "Error " +String Code +String ": ")
-    rule #failure({ :procedure Procedure, .AttrArgList } Attrs, Message)
-      => #failure(Attrs, Message +String " " +String Id2String(Procedure))
+    rule #failure({ :procedure Procedure, Implementation, .AttrArgList } Attrs, Message)
+      => #failure(Attrs, Message +String " " +String Id2String(Procedure) +String Int2String(Implementation))
 ```
 
 ```k
@@ -709,7 +709,7 @@ procedure P()
 
 ```k
     rule <k> return ; ~> _
-          => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc }
+          => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc, CurrentImpl }
                      substitute( Ensures
                                , IdsTypeWhereListToIdList(PArgs) ++IdList IdsTypeWhereListToIdList(PRets)
                                , IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets)
