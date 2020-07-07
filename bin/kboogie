@@ -78,6 +78,8 @@ def krun(input, k_args):
     krun_input.close()
     krun_output = subprocess.run( [ 'krun'
                                   , '--directory', repo('.build/defn/boogie/')
+                                #  , '--haskell-backend-command', 'kore-exec --breadth 1' # depth first only
+                                #  , '--haskell-backend-command', 'kore-exec --log-entries DebugSolverSend' # Log SMT Queries
                                   , '--search-final'
                                   , '--output', 'json'
                                   , krun_input.name, *k_args

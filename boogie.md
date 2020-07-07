@@ -4,12 +4,13 @@ Boogie Semantics
 ```k
 requires "syntax.md"
 requires "substitution.md"
+requires "quantifiable-builtins.md"
 
 module BOOGIE
     imports BOOGIE-RULE-SYNTAX
     imports BOOGIE-SUBSTITUTION
     imports ID
-    imports INT
+    imports QUANTIFIABLE-BUILTINS
     imports MAP
     imports STRING
 
@@ -125,7 +126,7 @@ distinct.
     syntax Expr ::= ValueExpr
     rule isKResult(E, Es:ExprList) => isKResult(E) andBool isKResult(Es)
     rule isKResult(.ExprList) => true
-    syntax ValueExpr ::= Bool | Int | String
+    syntax ValueExpr ::= QBool | QInt | String
 
     rule <k> X:Id => V ... </k>
          <env> X |-> Loc ... </env>
@@ -143,13 +144,13 @@ distinct.
     rule <k> LHS:ValueExpr != RHS:ValueExpr => LHS =/=K RHS ... </k>
 
     rule <k> LHS <  RHS => LHS  <Int RHS ... </k>
-    rule <k> LHS >  RHS => LHS  >Int RHS ... </k>
+    rule <k> LHS >  RHS => LHS  >QInt RHS ... </k>
     rule <k> LHS <= RHS => LHS <=Int RHS ... </k>
     rule <k> LHS >= RHS => LHS >=Int RHS ... </k>
 
     context HOLE _:AddOp _E2
     context _:ValueExpr _:AddOp HOLE
-    rule <k> V1 + V2 => V1 +Int V2 ... </k>
+    rule <k> V1 + V2 => V1 +QInt V2 ... </k>
     rule <k> V1 - V2 => V1 -Int V2 ... </k>
 
     context HOLE _:MulOp _E2
@@ -232,18 +233,36 @@ distinct.
 
 ### 4.4 Logical quantifiers
 
-TODO: HACK: WARNING: This is only sound when used in the context of a post condition.
-It is unsound when used in an assume statement.
-We alpha-rename the quantified variable with a fresh one.
+In denotational semantics:
+
+`[[ forall X . E ]] \sigma =  \forall x . ( [[ E ]] \sigma[X/x] )`
+
+where $\forall$ is the matching logic forall.
+I.e. if, for all values of `X` the denotation of `E` agrees, then `forall X . E` has that denotation.
+Otherwise `forall X . E` denotes bottom.
+
+In a big step semantics:
+
+```
+ forall x \in inhabitants(T)   (E ~> K, sigma[ X / x]) => V
+----------------------------------------------------------------
+       ( forall X : T . E ~> K , sigma ) =>  V
+```
+
+The expression `forall X : T . E` reaches a value `V`, iff for all values of `X`
+the evaluation of `E` reaches `V`.
+
 
 ```k
-    rule <k> (#forall X : T :: Expr )
-          => var .AttributeList freshId(N) : T ; .LocalVarDeclList
-          ~> havoc freshId(N);
-          ~> substituteSingle(Expr, X, freshId(N))
+    syntax Expr ::= "#hole"
+    rule <k> (#forall X : T :: Expr ) => substitute(Expr, X, bound(X)) ~> (#forall X : T :: #hole) ... </k> requires notBool isKResult(Expr)
+    rule <k> B:QBool ~> (#forall X : T :: #hole)
+          => (#forall X : T :: B)
              ...
          </k>
-         <freshCounter> N => N +Int 1 </freshCounter>
+
+    syntax Bool ::= smtforall(Id, QBool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #3))]
+    rule <k> (#forall X : int :: Expr) => smtforall(X , Int, Expr) ... </k>
 ```
 
 7 Mutable Variables, states, and execution traces
