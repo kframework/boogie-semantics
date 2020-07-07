@@ -4,7 +4,6 @@ test/test2/Arrays.bpl                           # Uses too much RAM; passes when
 # -------------
 
 # Minor bugs/features
-test/test2/IfThenElse1.bpl
 test/test2/TypeEncodingM.bpl                    # -typeEncoding:m command line option, can be ignored
 test/test2/UpdateExpr.bpl                       # Axiom, without forall
 
