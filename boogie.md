@@ -250,6 +250,13 @@ We alpha-rename the quantified variable with a fresh one.
          <freshCounter> N => N +Int 1 </freshCounter>
 ```
 
+6 Axiom
+-------
+
+```k
+    rule <k> axiom Attrs Expr ; => assume Attrs Expr ; ... </k>
+```
+
 7 Mutable Variables, states, and execution traces
 -------------------------------------------------
 

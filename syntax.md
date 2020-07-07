@@ -20,6 +20,7 @@ module BOOGIE-COMMON-SYNTAX
     syntax DeclList   ::= List{Decl, ""} [klabel(DeclList)]
     syntax Decl    ::= VarDecl
                      | ConstantDecl
+                     | AxiomDecl
                      | ProcedureDecl
                      | ImplementationDecl
                      | TypeDecl
@@ -98,6 +99,13 @@ module BOOGIE-COMMON-SYNTAX
 
     syntax IdsType ::= IdList ":" Type [avoid]
     syntax IdsTypeList ::= List{IdsType, ","} [klabel(IdsTypeList)]
+```
+
+6 Axioms
+--------
+
+```k
+    syntax AxiomDecl ::= "axiom" AttributeList Expr ";"
 ```
 
 7 Mutable Variables, states, and execution traces
