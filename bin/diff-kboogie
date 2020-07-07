@@ -12,7 +12,7 @@ sys.argv.pop(0)
 expected = sys.argv.pop(0)
 actual   = sys.argv.pop(0)
 
-Error = namedtuple('Error', ['file', 'line', 'column', 'code', 'message'])
+Error = namedtuple('Error', ['code', 'file', 'line', 'column', 'message'])
 
 def parse_errors(line):
     match = re.search(r'([^\(]*)\((\d*),(\d*)\): Error ([\w\d]*): (.*)$', line)
@@ -43,7 +43,7 @@ def read_errors(lines):
     errors = lines
     errors = map(parse_errors, errors)
     errors = filter(None, errors)
-    errors = map(erase_unchecked_information, errors)
+    errors = map(erase_unchecked_information, sorted(errors))
     return sorted(set(errors))
 
 fresh_counter=1
