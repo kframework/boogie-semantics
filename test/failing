@@ -4,8 +4,6 @@ test/test2/Arrays.bpl                           # Uses too much RAM; passes when
 # -------------
 
 # Minor bugs/features
-test/test2/Ensures.bpl
-test/test2/ContractEvaluationOrder.bpl
 test/test2/CutBackEdge.bpl
 test/test2/IfThenElse1.bpl
 test/test2/TypeEncodingM.bpl                    # -typeEncoding:m command line option, can be ignored
@@ -17,6 +15,7 @@ test/test2/FormulaTerm2.bpl
 test/test2/NullaryMaps.bpl                      # Also, polymorphism
 test/test2/Quantifiers.bpl
 test/test2/Structured.bpl
+test/test2/Ensures.bpl                          # forall used in ensures clause; Becomes an assume at call site
 
 # free
 test/test2/AssumeEnsures.bpl
