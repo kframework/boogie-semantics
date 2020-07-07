@@ -1,5 +1,4 @@
-# Uses too much RAM
-test/test2/Arrays.bpl
+test/test2/Arrays.bpl                           # Uses too much RAM; passes when split into multiple smaller tests
 
 # Unimplemented
 # -------------
