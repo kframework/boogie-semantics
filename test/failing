@@ -5,7 +5,6 @@ test/test2/Arrays.bpl                           # Uses too much RAM; passes when
 
 # Minor bugs/features
 test/test2/TypeEncodingM.bpl                    # -typeEncoding:m command line option, can be ignored
-test/test2/UpdateExpr.bpl                       # Axiom, without forall
 
 # forall/exists/functions
 test/test2/Axioms.bpl
@@ -19,8 +18,8 @@ test/test2/Ensures.bpl                          # forall used in ensures clause;
 test/test2/AssumeEnsures.bpl
 test/test2/FreeCall.bpl
 
-# lambda
-test/test2/Lambda.bpl
+# lambda: These look like maps with extensionality
+test/test2/Lambda.bpl                           # Also, forall
 test/test2/LambdaOldExpressions.bpl
 test/test2/LambdaLifting.bpl
 test/test2/LambdaExt.bpl                        # Also, polymorphism
@@ -28,6 +27,7 @@ test/test2/LambdaPoly.bpl                       # Also, polymorphism
 
 # Unimplemented (polymorphism)
 test/test2/BoundedTypeParameterQuantifier.bpl   # Also, forall
+test/test2/UpdateExpr.bpl
 
 test/test2/strings-no-where.bpl                 # string, forall, free...
 
