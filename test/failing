@@ -1,7 +1,12 @@
+# Uses too much RAM
 test/test2/Arrays.bpl
+
+# Uses boogie internal features
 test/test2/AssertVerifiedUnder0.bpl
-test/test2/AssumeEnsures.bpl
 test/test2/AssumptionVariables0.bpl
+
+# Unimplemented
+test/test2/AssumeEnsures.bpl
 test/test2/Axioms.bpl
 test/test2/B.bpl
 test/test2/BadLineNumber.bpl
