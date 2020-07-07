@@ -172,7 +172,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
     syntax Lhs ::= Id | Lhs "[" ExprList "]"
     syntax BlockStmt ::= "{" StmtList "}"
     syntax OptionalCallLhs ::= Nothing | CallLhs
-    syntax CallLhs ::= Id ":=" // TODO: support IdList
+    syntax CallLhs ::= IdList ":="
 ```
 
 11 Tool directives

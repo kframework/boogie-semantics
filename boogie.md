@@ -735,13 +735,18 @@ procedure P()
 -------------------
 
 ```k
-    rule <k> call X:Id := ProcedureName:Id(ArgVals) ;
-          => assert { :code "BPRequires" } { :source "???", 0 }
+    rule <k> call .Nothing ProcedureName:Id(ArgVals) ;
+          => call .IdList := ProcedureName:Id(ArgVals) ;
+             ...
+         </k>
+
+    rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
+          => assert { :code "BP5002" } { :source "???", 0 }
                substitute(Requires, IdsTypeWhereListToIdList(Args), ArgVals) ;
           ~> freshen(X)
           ~> assume .AttributeList substitute( Ensures
                                              , IdsTypeWhereListToIdList(Args) ++IdList IdsTypeWhereListToIdList(Rets)
-                                             , ArgVals ++ExprList X
+                                             , ArgVals ++ExprList IdListToExprList(X)
                                              ) ;
              ...
          </k>
@@ -828,6 +833,12 @@ TODO: Take types into account.
     rule X in .IdList => false
     rule X in (X, Ys) => true
     rule X in (Y, Ys) => X in Ys requires Y =/=K X
+```
+
+```k
+    syntax ExprList ::= IdListToExprList(IdList) [function]
+    rule IdListToExprList(.IdList) => .ExprList
+    rule IdListToExprList(X, Xs) => X, IdListToExprList(Xs)
 ```
 
 ```k
