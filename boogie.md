@@ -567,12 +567,12 @@ add one there so that the previous rule may fire.
 
 When we reach a particular cutpoint the first time, we treat it as an abstraction point
 and replace modifiable variables with fresh symbolic values.
-BUG: This needs to also `#generalize` modifiable globals 
 
 ```k
     syntax Stmt ::= "cutpoint" "(" Int ")" ";"
-    rule <k> cutpoint(I) ; => #generalize(keys_list(Rho)) ... </k>
+    rule <k> cutpoint(I) ; => #generalize(envToIds(Rho) ++IdList Modifiable) ... </k>
          <locals> Rho </locals>
+         <mods> Modifiable </mods>
          <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
       requires notBool I in Cutpoints
 ```
@@ -589,9 +589,15 @@ the states when we first encountered the cutpoint (modulo `free invariant`s and
 ```
 
 ```k
-    syntax KItem ::= "#generalize" "(" List ")"
-    rule <k> #generalize(.List) => .K ... </k>
-    rule <k> #generalize(ListItem(X:Id) Rest) => freshen(X) ~> #generalize(Rest) ... </k>
+    syntax KItem ::= "#generalize" "(" IdList ")"
+    rule <k> #generalize(.IdList) => .K ... </k>
+    rule <k> #generalize(X, Rest) => freshen(X) ~> #generalize(Rest) ... </k>
+```
+
+```k
+    syntax IdList ::= envToIds(Map) [function]
+    rule envToIds(.Map) => .IdList
+    rule envToIds(X:Id |-> Val Rho) => (X, envToIds(Rho))
 ```
 
 #### `where`-cutpoint interactions
