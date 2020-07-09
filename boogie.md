@@ -15,7 +15,7 @@ module BOOGIE
 
     configuration <boogie>
                     <k> $PGM:Program ~> #start </k>
-                    <env> .Map </env>
+                    <locals> .Map </locals>
                     <globals> .Map </globals>
                     <olds> .Map </olds>
                     <store> .Map </store>
@@ -128,11 +128,11 @@ distinct.
     syntax ValueExpr ::= Bool | Int | String
 
     rule <k> X:Id => V ... </k>
-         <env> X |-> Loc ... </env>
+         <locals> X |-> Loc ... </locals>
          <store> Loc |-> value(... value: V) ... </store>
 
     rule <k> X:Id => V ... </k>
-         <env> Env </env>
+         <locals> Env </locals>
          <globals> X |-> value(... value: V) ... </globals>
       requires notBool X in_keys(Env)
 
@@ -406,7 +406,7 @@ Split procedures with a body into a procedure and an implementation:
          ~> havoc Xs ++IdList X ;
             ...
         </k>
-        <env> (.Map => X:Id |-> Loc) Rho </env>
+        <locals> (.Map => X:Id |-> Loc) Rho </locals>
         <store> .Map => Loc:Int |-> value(inhabitants(T, Loc), T, Where) ... </store>
         <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
@@ -453,11 +453,11 @@ TODO: This needs to work over lists of expressions and identifiers
 ```k
     context _X:Id := HOLE ;
     rule <k> X := V:ValueExpr ; => .K ... </k>
-         <env> X |-> Loc ... </env>
+         <locals> X |-> Loc ... </locals>
          <store> Loc |-> value(... value: _ => V) ... </store>
 
     rule <k> X := V:ValueExpr ; => .K ... </k>
-         <env> Env </env>
+         <locals> Env </locals>
          <globals> X |-> value(... value: _ => V) ... </globals>
          <currentImpl> CurrentImpl </currentImpl>
          <implId> CurrentImpl </implId>
@@ -477,7 +477,7 @@ TODO: This needs to work over lists of expressions and identifiers
           ~> assume .AttributeList Where ;
              ...
          </k>
-         <env> X |-> Loc ... </env>
+         <locals> X |-> Loc ... </locals>
          <store> Loc |-> value(... where: Where) ... </store>
 ```
 
@@ -573,7 +573,7 @@ and replace all values in the `<store>` with fresh symbolic values.
 ```k
     syntax Stmt ::= "cutpoint" "(" Int ")" ";"
     rule <k> cutpoint(I) ; => #generalize(keys_list(Rho)) ... </k>
-         <env> Rho </env>
+         <locals> Rho </locals>
          <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
       requires notBool I in Cutpoints
 ```
@@ -803,7 +803,7 @@ TODO: Take types into account.
           ~> freshen(Xs)
              ...
          </k>
-         <env> X |-> Loc ... </env>
+         <locals> X |-> Loc ... </locals>
          <store> Loc |-> value(... type: Type) ... </store>
          <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
 ```
