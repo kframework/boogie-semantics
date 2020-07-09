@@ -20,7 +20,6 @@ module BOOGIE
                       <globals> .Map </globals>
                       <olds> .Map </olds>
                     </environment>
-                    <store> .Map </store>
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
                     <currentImpl multiplicity="?"> -1 </currentImpl>
@@ -130,8 +129,7 @@ distinct.
     syntax ValueExpr ::= Bool | Int | String
 
     rule <k> X:Id => V ... </k>
-         <locals> X |-> Loc ... </locals>
-         <store> Loc |-> value(... value: V) ... </store>
+         <locals> X |-> value(... value: V) ... </locals>
 
     rule <k> X:Id => V ... </k>
          <locals> Env </locals>
@@ -408,8 +406,7 @@ Split procedures with a body into a procedure and an implementation:
          ~> havoc Xs ++IdList X ;
             ...
         </k>
-        <locals> (.Map => X:Id |-> Loc) Rho </locals>
-        <store> .Map => Loc:Int |-> value(inhabitants(T, Loc), T, Where) ... </store>
+        <locals> (.Map => X:Id |-> value(inhabitants(T, Loc), T, Where)) Rho </locals>
         <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
 ```
@@ -444,7 +441,7 @@ Split procedures with a body into a procedure and an implementation:
     context assume _ HOLE ;
     rule <k> assume _ true ;      => .K ... </k>
     rule <k> assume _ false; ~> K => .K </k>
-         <store> _ => .Map </store>
+         <locals> _ => .Map </locals>
 ```
 
 9.3 Assignments
@@ -455,8 +452,7 @@ TODO: This needs to work over lists of expressions and identifiers
 ```k
     context _X:Id := HOLE ;
     rule <k> X := V:ValueExpr ; => .K ... </k>
-         <locals> X |-> Loc ... </locals>
-         <store> Loc |-> value(... value: _ => V) ... </store>
+         <locals> X |-> value(... value: _ => V) ... </locals>
 
     rule <k> X := V:ValueExpr ; => .K ... </k>
          <locals> Env </locals>
@@ -479,8 +475,7 @@ TODO: This needs to work over lists of expressions and identifiers
           ~> assume .AttributeList Where ;
              ...
          </k>
-         <locals> X |-> Loc ... </locals>
-         <store> Loc |-> value(... where: Where) ... </store>
+         <locals> X |-> value(... where: Where) ... </locals>
 ```
 
 9.5 Label Statements and jumps
@@ -524,8 +519,9 @@ See [note below](#where-cutpoint-interactions) about the interaction between `wh
 Boogie does not place the `cutpoint` mark, the inferred invariants and the loop
 invariant assertsions in the "right" order. The following code rearranges them
 into an order that makes more sense for us. In particular, we must `assert` all
-invariants (inferred or annotated) before the cutpoint, replace the store with
-fresh symbolic values `<store>` and finally `assume` the invariants.
+invariants (inferred or annotated) before the cutpoint, replace local variables
+and global variables with fresh symbolic values and finally `assume` the
+invariants.
 
 We also need to be able to distinguish between different cutpoints.
 Ideally, \K would mark this with source line information but it does not.
@@ -569,8 +565,9 @@ add one there so that the previous rule may fire.
       requires assert _:AttributeList _ ; :/=K  S2
 ```
 
-When we reach a paticular cutpoint the first time, we treat it as an abstraction point
-and replace all values in the `<store>` with fresh symbolic values.
+When we reach a particular cutpoint the first time, we treat it as an abstraction point
+and replace modifiable variables with fresh symbolic values.
+BUG: This needs to also `#generalize` modifiable globals 
 
 ```k
     syntax Stmt ::= "cutpoint" "(" Int ")" ";"
@@ -805,8 +802,7 @@ TODO: Take types into account.
           ~> freshen(Xs)
              ...
          </k>
-         <locals> X |-> Loc ... </locals>
-         <store> Loc |-> value(... type: Type) ... </store>
+         <locals> X |-> value(... type: Type) ... </locals>
          <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
 ```
 
