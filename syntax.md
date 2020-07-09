@@ -50,6 +50,18 @@ module BOOGIE-COMMON-SYNTAX
     syntax TypeList ::= List{Type, ","} [klabel(TypeList)]
 ```
 
+3 Constants and functions
+-------------------------
+
+```k
+    syntax ConstantDecl ::= "const" AttributeList OptionalUnique IdsType ";"
+    syntax OptionalUnique ::= Nothing | "unique"
+
+
+    syntax IdsType ::= IdList ":" Type [avoid]
+    syntax IdsTypeList ::= List{IdsType, ","} [klabel(IdsTypeList)]
+```
+
 4 Expressions
 -------------
 
@@ -87,18 +99,6 @@ module BOOGIE-COMMON-SYNTAX
     // TODO: We do not overload IdList and ExprList because of https://github.com/kframework/kore/issues/1817
     syntax ExprList ::= List{Expr, ","} [klabel(ExprList), symbol]
     syntax IdList   ::= List{Id, ","}   [klabel(IdList)]
-```
-
-3 Constants and functions
--------------------------
-
-```k
-    syntax ConstantDecl ::= "const" AttributeList OptionalUnique IdsType ";"
-    syntax OptionalUnique ::= Nothing | "unique"
-
-
-    syntax IdsType ::= IdList ":" Type [avoid]
-    syntax IdsTypeList ::= List{IdsType, ","} [klabel(IdsTypeList)]
 ```
 
 6 Axioms
