@@ -15,9 +15,11 @@ module BOOGIE
 
     configuration <boogie>
                     <k> $PGM:Program ~> #start </k>
-                    <locals> .Map </locals>
-                    <globals> .Map </globals>
-                    <olds> .Map </olds>
+                    <environment>
+                      <locals> .Map </locals>
+                      <globals> .Map </globals>
+                      <olds> .Map </olds>
+                    </environment>
                     <store> .Map </store>
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
