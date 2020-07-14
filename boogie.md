@@ -798,8 +798,6 @@ Hence, we use a macro.
 Update an variable to store an *unconstrained* sybmolic value of the appropriate
 type.
 
-TODO: Take types into account.
-
 ```k
     syntax KItem ::= freshen(IdList)
     rule <k> freshen(.IdList) => .K ... </k>
