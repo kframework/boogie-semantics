@@ -23,11 +23,9 @@ module BOOGIE
 
     configuration <boogie>
                     <k> $PGM:Program ~> #start </k>
-                    <environment>
-                      <locals> .Map </locals>
-                      <globals> .Map </globals>
-                      <olds> .Map </olds>
-                    </environment>
+                    <locals> .Map </locals>
+                    <globals> .Map </globals>
+                    <olds> .Map </olds>
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
                     <currentImpl multiplicity="?"> -1 </currentImpl>
