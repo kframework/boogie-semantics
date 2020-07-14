@@ -69,8 +69,8 @@ module BOOGIE-COMMON-SYNTAX
     syntax Expr ::= Bool | Int | Id
                   | "(" Expr ")" [bracket]
                   | old(Expr)
-                  | "(" "forall" IdsTypeList "::" Expr ")" [avoid]
-                  | "(" "#forall" Id ":" Type "::" Expr ")"
+                  | "(" "forall" IdsTypeList "::" Expr ")"
+                  | "(" "#forall" Id ":" Type "::" Expr ")" // TODO: This shouldn't be exposed to parser
                   | "if" Expr "then" Expr "else" Expr // TODO: deal with ambiguities for nested ITEs
                   > Expr MapOp
                   > UnOp Expr

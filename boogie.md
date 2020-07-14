@@ -241,7 +241,7 @@ It is unsound when used in an assume statement.
 We alpha-rename the quantified variable with a fresh one.
 
 ```k
-    rule <k> (#forall X : T :: Expr )
+    rule <k> (#forall X : T :: Expr)
           => var .AttributeList freshId(N) : T ; .LocalVarDeclList
           ~> havoc freshId(N);
           ~> substituteSingle(Expr, X, freshId(N))
