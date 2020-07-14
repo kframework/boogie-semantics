@@ -4,10 +4,18 @@ Boogie Semantics
 ```k
 requires "syntax.md"
 requires "substitution.md"
+requires "procedures.md"
+
+module BOOGIE-FRESH-COUNTER
+    imports INT-SYNTAX
+    configuration <freshCounter> 0 </freshCounter>
+endmodule
 
 module BOOGIE
     imports BOOGIE-RULE-SYNTAX
     imports BOOGIE-SUBSTITUTION
+    imports BOOGIE-PROCEDURES
+    imports BOOGIE-FRESH-COUNTER
     imports ID
     imports INT
     imports MAP
@@ -29,25 +37,8 @@ module BOOGIE
                           <uniques> .IdList </uniques>
                       </type>
                     </types>
-                    <procs>
-                      <proc multiplicity="*" type="Map">
-                        <procName> #token("ProcedureName", "Id") </procName>
-                        <args> .IdsTypeWhereList </args>
-                        <rets> .IdsTypeWhereList </rets>
-                        <pres> true:Expr </pres>   // requires
-                        <posts> true:Expr </posts> // ensures
-                        <mods> .IdList </mods>   // modifies
-                        <impls>
-                          <impl multiplicity="*" type="Map">
-                            <implId> -1 </implId>
-                            <body> { .LocalVarDeclList .StmtList } </body>
-                            <iargs> .IdsTypeWhereList </iargs>
-                            <irets> .IdsTypeWhereList </irets>
-                          </impl>
-                        </impls>
-                      </proc>
-                    </procs>
-                    <freshCounter> 0 </freshCounter>
+                    <procs/>
+                    <freshCounter/>
                   </boogie>
 ```
 
@@ -265,91 +256,6 @@ We alpha-rename the quantified variable with a fresh one.
        <globals> (.Map => X:Id |-> value(inhabitants(T, FreshInt), T, true)) Rho </globals>
          <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
-```
-
-8 Procedures and implementations
---------------------------------
-
-Split procedures with a body into a procedure and an implementation:
-
-```k
-    rule <k> (procedure Attrs:AttributeList
-                ProcedureName .Nothing ( Args ) returns ( Rets ) SpecList
-                Body):Decl
-          => procedure Attrs:AttributeList
-               ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList
-          ~> implementation Attrs ProcedureName .Nothing ( Args ) returns ( Rets )
-               Body
-             ...
-         </k>
-```
-
-```k
-    rule <k> procedure      _:AttributeList _ProcedureName .Nothing ( _Args ) (.Nothing => returns (.IdsTypeWhereList)) ; _SpecList            ... </k>
-    rule <k> implementation _:AttributeList _ProcedureName .Nothing ( _Args ) (.Nothing => returns (.IdsTypeWhereList)) { _VarList _StmtList } ... </k>
-```
-
-```k
-    syntax KItem ::= "#populateProcedure"
-    rule <k> (.K => #populateProcedure)
-          ~> procedure _:AttributeList ProcedureName _TypeArgs ( Args ) returns ( Rets ) ; _SpecList
-             ...
-         </k>
-         <procs> .Bag =>
-           <proc>
-             <procName> ProcedureName </procName>
-             <args> Args </args>
-             <rets> Rets </rets>
-             ...
-           </proc>
-           ...
-         </procs>
-
-    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
-             ; (.Nothing requires NewReq ; SpecList => SpecList)
-             ...
-         </k>
-         <procName> ProcedureName </procName>
-         <pres> Reqs => Reqs && NewReq </pres>
-
-    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
-             ; (.Nothing ensures NewEnsures ; SpecList => SpecList)
-             ...
-         </k>
-         <procName> ProcedureName </procName>
-         <posts> Ensures => Ensures && NewEnsures </posts>
-
-    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
-             ; (modifies Modifies ; SpecList => SpecList)
-             ...
-         </k>
-         <procName> ProcedureName </procName>
-         <mods> .IdList => Modifies </mods>
-
-    rule <k> ( #populateProcedure ~> procedure _:AttributeList _ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
-               ; .SpecList
-             )
-          => .K
-             ...
-         </k>
-```
-
-```k
-    rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) Body
-          => .K
-             ...
-         </k>
-         <procName> ProcedureName </procName>
-         <impls> .Bag
-              => <impl>
-                   <implId> N </implId>
-                   <body> Body </body>
-                   <iargs> IArgs </iargs>
-                   <irets> IRets </irets>
-                 </impl>
-                 ...
-         </impls>
-         <freshCounter> N => N +Int 1 </freshCounter>
 ```
 
 9 Statements
