@@ -20,6 +20,7 @@ module BOOGIE-COMMON-SYNTAX
     syntax DeclList   ::= List{Decl, ""} [klabel(DeclList)]
     syntax Decl    ::= VarDecl
                      | ConstantDecl
+                     | FunctionDecl
                      | AxiomDecl
                      | ProcedureDecl
                      | ImplementationDecl
@@ -57,16 +58,26 @@ module BOOGIE-COMMON-SYNTAX
     syntax ConstantDecl ::= "const" AttributeList OptionalUnique IdsType ";"
     syntax OptionalUnique ::= Nothing | "unique"
 
-
     syntax IdsType ::= IdList ":" Type [avoid]
     syntax IdsTypeList ::= List{IdsType, ","} [klabel(IdsTypeList)]
+```
+
+TODO: Signature should allow unnamed arguments;
+TODO: Signature should allow "returns" syntax
+
+```k
+    syntax FunctionDecl ::= "function" AttributeList Id FSig ";"
+                          | "function" AttributeList Id FSig "{" Expr "}"
+    syntax FSig ::= "(" IdsTypeList ")" ":" Type
 ```
 
 4 Expressions
 -------------
 
 ```k
-    syntax Expr ::= Bool | Int | Id
+    syntax Expr ::= Bool | Int
+                  | Id
+                  | Id "(" ExprList ")" // function application
                   | "(" Expr ")" [bracket]
                   | old(Expr)
                   | "(" "forall" IdsTypeList "::" Expr ")"
