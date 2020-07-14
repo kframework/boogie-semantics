@@ -117,13 +117,7 @@ distinct.
     rule isKResult(.ExprList) => true
     syntax ValueExpr ::= Bool | Int | String
 
-    rule <k> X:Id => V ... </k>
-         <locals> X |-> value(... value: V) ... </locals>
-
-    rule <k> X:Id => V ... </k>
-         <locals> Env </locals>
-         <globals> X |-> value(... value: V) ... </globals>
-      requires notBool X in_keys(Env)
+    rule <k> X:Id => value(lookupVariable(X)) ... </k>
 
     context HOLE _:RelOp _RHS
     context _LHS:ValueExpr _:RelOp HOLE
@@ -166,7 +160,7 @@ distinct.
     context _:UnOp HOLE
     rule <k> ! B => notBool(B) ... </k>
     rule <k> - I:Int => 0 -Int I ... </k>
-    
+
     context if HOLE then _ else _
     rule <k> if true  then True  else _     => True  ... </k>
     rule <k> if false then _     else False => False ... </k>
@@ -268,6 +262,19 @@ We alpha-rename the quantified variable with a fresh one.
 -----------------------
 
 ```k
+    syntax Value ::= value(value: ValueExpr, type: Type, where: Expr)
+
+    syntax Value ::= lookupVariable(Id) [function]
+    rule [[ lookupVariable(X:Id) => V ]]
+         <locals> X |-> V:Value ... </locals>
+
+    rule [[ lookupVariable(X:Id) => V ]]
+         <locals> Env </locals>
+         <globals> X |-> V:Value ... </globals>
+      requires notBool X in_keys(Env)
+```
+
+```k
     syntax KItem ::= "#start"
 
     rule <k> #start
@@ -302,7 +309,6 @@ We alpha-rename the quantified variable with a fresh one.
             ...
         </k>
 
-   syntax Value ::= value(value: ValueExpr, type: Type, where: Expr)
    rule <k> ( var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
            ~> havoc Xs ;
             )
@@ -376,10 +382,9 @@ TODO: This needs to work over lists of expressions and identifiers
     rule <k> havoc X, Xs ;
           => freshen(X)
           ~> havoc Xs;
-          ~> assume .AttributeList Where ;
+          ~> assume .AttributeList where(lookupVariable(X)) ;
              ...
          </k>
-         <locals> X |-> value(... where: Where) ... </locals>
 ```
 
 9.5 Label Statements and jumps
@@ -706,11 +711,10 @@ type.
     syntax KItem ::= freshen(IdList)
     rule <k> freshen(.IdList) => .K ... </k>
     rule <k> freshen(X, Xs)
-          => X := inhabitants(Type, FreshInt) ;
+          => X := inhabitants(type(lookupVariable(X)), FreshInt) ;
           ~> freshen(Xs)
              ...
          </k>
-         <locals> X |-> value(... type: Type) ... </locals>
          <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
 ```
 
