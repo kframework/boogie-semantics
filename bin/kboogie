@@ -22,6 +22,9 @@ import re
 
 from shutil import which
 
+# submodule's krun to PATH as fallback
+os.environ['PATH'] = os.environ['PATH']  + ':' + repo('ext/k/k-distribution/target/release/k/bin/')
+
 _krun = which('krun')
 if not _krun: raise RuntimeError('Could not find "krun" in PATH')
 _release_dir = os.path.dirname(os.path.dirname(_krun))
