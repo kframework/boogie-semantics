@@ -25,6 +25,7 @@ module BOOGIE-COMMON-SYNTAX
                      | ProcedureDecl
                      | ImplementationDecl
                      | TypeDecl
+                     | TypeSynonym
 ```
 
 2 Types
@@ -36,6 +37,7 @@ module BOOGIE-COMMON-SYNTAX
 ```k
     syntax TypeDecl ::= TypeConstructor
     syntax TypeConstructor ::= "type" AttributeList Id ";"
+    syntax TypeSynonym ::= "type" AttributeList Id "=" Type ";"
 ```
 
 2.1 Built-in types
