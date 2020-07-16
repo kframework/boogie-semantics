@@ -20,7 +20,6 @@ module BOOGIE
     imports BOOGIE-RUNTIME
     imports BOOGIE-SUBSTITUTION
     imports BOOGIE-HELPERS
-    imports ID
     imports INT
     imports MAP
 

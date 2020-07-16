@@ -97,7 +97,6 @@ module BOOGIE-RUNTIME
       requires notBool X in_keys(Env)
 ```
 
-
 ### 4.1 Map selection and update
 
 ####  Selection
