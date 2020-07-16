@@ -1,36 +1,53 @@
-\newcommand{\inhabitants}[1] {\llbrackets #1 \rrbrackets}
-\newcommand{\bforall}        {\mathtt{forall}}
-\newcommand{\rforall}        {\mathrm{forall}}
-\newcommand{\true}           {\mathrm{true}}
-\newcommand{\false}          {\mathrm{false}}
-\newcommand{\next}           {\circle}
+\newcommand{\inhabitants}[1] {\llbracket #1 \rrbracket}
+
+\newcommand{\extension}        {\mathrm{extension}}
+\newcommand{\bforall}[2]        {\mathtt{forall } #1 \mathtt{ : int . } #2}
+\newcommand{\rforall}        {\mathrm{\#forall }}
+\newcommand{\true}           {\mathrm{true }}
+\newcommand{\false}          {\mathrm{false }}
+\newcommand{\next}           {\bullet}
+
+\newcommand{\Int}          {\mathrm{Int}}
+\newcommand{\Exp}          {\mathrm{Exp}}
+\newcommand{\Bool}          {\mathrm{Bool}}
+\newcommand{\rewrites}     {\Longrightarrow_1}
 
 Symbols:
 
-* Var               a sort constant
-* Exp               a sort constant
-* Bool              a sort constant
-* $\true$, $\false$ inhabitants of the Bool sort
+* $\Exp$               a sort constant
+* $\Bool$              a sort constant
+* $\Int$               a sort constant
+* $\true$, $\false$    inhabitants of the Bool sort
 
-* $\bforall$    Boogie's forall expression
+* $\bforall \_ \mathtt{: int .} \_$    Boogie's forall expression
 * $\rforall$    the retraction symbol
 
 Axioms:
 
-* $\inhabitants{Var}  \subset \inhabitants{Exp}$
-* $\inhabitants{Bool} \subset \inhabitants{Exp}$
+* $\inhabitants{Int} \subset \inhabitants{\Exp}$
+* $\inhabitants{Bool} \subset \inhabitants{\Exp}$
 * $\inhabitants{Bool} = \true \lor \false$
 
+* Binding: $\bforall{x}{e} \equiv \rforall [ x : \Int ] e$
 
-* Binding: $\bforall x . e \equiv \rforall [ x : Var ] e$
+*  The graph of the constant $\true$ function evaluates to $\true$:
 
-* $\rforall [ x : Var ] true  \in \next(true)$
+   $C[\bforall{x}{\true}] \rewrites C[true]$
 
-* If the graph contains any non-$\true$ Bool elements, then the expression evaluates to false.
+* If the graph contains any non-$\true$ Bool elements, then the expression evaluates to $\false$:
 
-  $\rforall [ x : Var ] e) \in \next(false)$
-  if   $extension [ x : Var ] e \subset \exists x : Var \langle x, \true \or \false \rangle$
-  and  $[ x : Var ] e \not\eq [ x : Var ] \true$
+  | $C[\bforall{x}{e}) \rewrites C[\false]$
+  |     if   $\extension [ x : \Int ] e \subseteq \exists x : \Int . \langle x, \true \lor \false \rangle$
+  |     and  $[ x : \Int ] e \neq [ x : \Int ] \true$
 
-* Any steps taken on the inner expression can by taken by the 
-  $\next(\rforall([ x : Var ] e)) \implies \rforall([ x : Var ] \next(e))$
+*  a graph who's inner expression can be further reducted can be reduced to the intension of the set of all the states $e$ can evaluate to:
+
+   $C[\bforall{x}{e}] \rewrites C[\bforall{x}{\exists e' : Exp . e' \land ( C[e] \rewrites C[e'])))}]$ 
+
+where $x \rewrites y \equiv x \in \next y$
+
+
+- Use booigie forall everywhere
+- 
+- Prove that this is functional
+- Soundness
