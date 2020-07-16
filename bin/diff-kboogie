@@ -54,5 +54,6 @@ fresh_counter=1
 actual_errors   = read_errors(open(actual).readlines())
 
 diff = list(difflib.unified_diff(expected_errors, actual_errors, fromfile = 'expected', tofile = 'actual'))
-print('\n'.join(diff))
-if diff: sys.exit(1)
+if diff:
+    print('\n'.join(diff))
+    sys.exit(1)
