@@ -133,9 +133,6 @@ def print_search_summary(failures, stucks):
 # `pyk` helpers
 # =============
 
-compiled = pyk.readKastTerm(definition_dir('boogie-kompiled', 'compiled.json'))
-symbolTable = pyk.buildSymbolTable(compiled)
-
 def find_subterms_by_label(label, term):
     if term['node'] == 'KApply':
         if term['label'] == label: return [term]
@@ -150,6 +147,10 @@ def find_subterms_by_label(label, term):
 
 sys.argv.pop(0)
 parse_args(sys.argv)
+
+compiled = pyk.readKastTerm(definition_dir('boogie-kompiled', 'compiled.json'))
+symbolTable = pyk.buildSymbolTable(compiled)
+
 output = open(input_path).readlines()
 output = preprocess(output, os.path.basename(input_path))
 if (should_infer): output = infer(output)
