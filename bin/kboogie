@@ -41,7 +41,7 @@ should_infer = True
 post_processes = True
 print_summary = True
 input_path = None
-defn_name = 'boogie'
+defn_name = 'verification'
 k_args = []
 
 def parse_args(args):
