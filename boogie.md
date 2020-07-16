@@ -116,7 +116,11 @@ distinct.
 
 ```k
     syntax KItem ::= "#start"
+```
 
+In the case of the verification semantics, we verify all procedures:
+
+```verification
     rule <k> #start
           => makeDecls(IArgs) ++LocalVarDeclList
              makeDecls(IRets) ++LocalVarDeclList
@@ -139,6 +143,13 @@ distinct.
             <irets> IRets </irets>
             <body> { VarList StartLabel: StmtList } </body>
          </impl>
+```
+
+However, in the operational semantics we only execute the main procedure:
+
+```operational
+    syntax Id ::= "main" [token]
+    rule <k> #start => call .Nothing main(.ExprList); ... </k>
 ```
 
 ```k
