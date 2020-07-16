@@ -36,22 +36,27 @@ import pyk
 # High-level helpers
 # ==================
 
-def parse_args(args):
-    infer_only = False
-    should_infer = True
-    post_processes = True
-    print_summary = True
-    input_path = None
+infer_only = False
+should_infer = True
+post_processes = True
+print_summary = True
+input_path = None
+defn_name = 'boogie'
+k_args = []
 
+def parse_args(args):
+    global infer_only , should_infer , post_processes , print_summary , input_path , defn_name, k_args
     while not(input_path):
         arg = args.pop(0)
         if   arg == '--infer-only': infer_only = True
         elif arg == '--no-infer'  : should_infer = False
         elif arg == '--full'      : print_summary = False
-        else                       : input_path = arg
+        elif arg == '--definition': defn_name = args.pop(0)
+        else                      : input_path = arg
     k_args = args
 
-    return input_path, infer_only, should_infer, print_summary, k_args
+def definition_dir(*args):
+    return repo('.build/defn/', defn_name, *args)
 
 def preprocess(input_lines, filename):
     """ Annotate `assert` statements with line numbers"""
@@ -80,7 +85,7 @@ def krun(input, k_args):
     krun_input.write(input.encode())
     krun_input.close()
     krun_output = subprocess.run( [ 'krun'
-                                  , '--directory', repo('.build/defn/boogie/')
+                                  , '--directory', definition_dir()
                                   , '--search-final'
                                   , '--output', 'json'
                                   , krun_input.name, *k_args
@@ -128,8 +133,8 @@ def print_search_summary(failures, stucks):
 # `pyk` helpers
 # =============
 
-definition = pyk.readKastTerm(repo('.build/defn/boogie/boogie-kompiled/compiled.json'))
-symbolTable = pyk.buildSymbolTable(definition)
+compiled = pyk.readKastTerm(definition_dir('boogie-kompiled', 'compiled.json'))
+symbolTable = pyk.buildSymbolTable(compiled)
 
 def find_subterms_by_label(label, term):
     if term['node'] == 'KApply':
@@ -144,8 +149,7 @@ def find_subterms_by_label(label, term):
 # ====
 
 sys.argv.pop(0)
-input_path, infer_only, should_infer, print_summary, k_args = parse_args(sys.argv)
-
+parse_args(sys.argv)
 output = open(input_path).readlines()
 output = preprocess(output, os.path.basename(input_path))
 if (should_infer): output = infer(output)

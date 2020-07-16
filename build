@@ -19,35 +19,66 @@ from kninja import *
 # =====
 
 proj = KProject(extdir = extdir)
-boogie = proj.definition( alias         = 'boogie'
-                        , main          = 'boogie.md'
-                        , other         = ['syntax.md', 'nothing.md', 'substitution.md', 'procedures.md']
-                        , backend       = 'haskell'
-                        , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --emit-json'
-                        )
+
+def build(alias):
+    selector = 'k | ' + alias
+    return proj.definition( alias         = alias
+                          , main          = 'boogie.md'
+                          , other         = ['syntax.md', 'nothing.md', 'substitution.md', 'procedures.md']
+                          , backend       = 'haskell'
+                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --emit-json --md-selector "%s"' % selector
+                          )
+
+verification = build('verification')
+operational  = build('operational')
 
 # Tests
 # =====
 
-def lit_runner(input):
-    rule = proj.rule( 'lit'
-                    , description = 'lit: $in'
-                    , command = 'lit -v $in > $out 2>&1 || (cat $out; false)'
-                    , ext = 'lit')
-    implicit_deps = [ boogie.target
-                    , proj.source('test/lit.site.cfg')
-                    , proj.source('bin/diff-kboogie')
-                    , proj.source('bin/kboogie')
-                    ]
-    ret = proj.source(input).then(rule.implicit(implicit_deps))
-    proj.alias(input + '.lit', [ret])
-    return ret
+def kboogie_runner(definition, expected_extension):
+    def runner(input):
+        kboogie_rule = proj.rule( 'kboogie'
+                                , description = 'kboogie $definition: $in'
+                                , command = 'bin/kboogie --definition "$definition" $in > $out 2>&1 || (cat $out; false)'
+                                , ext = definition._alias
+                                )
+        implicit_deps = [ definition.target , proj.source('bin/kboogie') ]
+        kboogie_rule = kboogie_rule.implicit(implicit_deps)
+        kboogie_rule = kboogie_rule.variable('definition', definition._alias)
+        kboogie_out = proj.source(input).then(kboogie_rule)
 
-all_tests     = glob('test/**/*.bpl')
-failing_tests = readlines('test/failing')
-passing_tests = filter_out(all_tests, failing_tests)
-proj.suite('test',         passing_tests, lit_runner)
-proj.suite('test-failing', failing_tests, lit_runner, default = False)
+        kboogie_diff_rule = proj.rule( 'diff-kboo'
+                                     , description = 'diff-kboogie: $in'
+                                     , command = 'bin/diff-kboogie $in $expected'
+                                     , ext = 'diff'
+                                     )
+        kboogie_diff_rule = kboogie_diff_rule.variable('expected', input + '.' + expected_extension)
+        ret = kboogie_out.then(kboogie_diff_rule)
+        proj.alias(input + '.' + definition._alias, [ret])
+        return ret
+
+    return runner
+
+# TODO: Merge upstream
+def suite(name, runner, tests, failing = None):
+    all_tests     = tests
+    failing_tests = failing
+    passing_tests = filter_out(all_tests, failing_tests)
+    proj.suite(name,              passing_tests, runner)
+    proj.suite(name + '-failing', failing_tests, runner, default = False)
+
+# Run all test as verification tests
+suite('test-verification'
+     , runner = kboogie_runner(verification, expected_extension = 'expect')
+     , tests   = glob('test/*/*/*.bpl')
+     , failing = readlines('test/failing.verification')
+     )
+
+suite('test-operational'
+     , runner = kboogie_runner(operational, expected_extension = 'opexpect')
+     , tests   = glob('test/operational/*/*.bpl')
+     , failing = readlines('test/failing.operational')
+     )
 
 # Main
 # ====

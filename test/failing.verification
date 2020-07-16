@@ -1,0 +1,52 @@
+test/verification/test2/Arrays.bpl                           # Uses too much RAM; passes when split into multiple smaller tests
+
+# Unimplemented
+# -------------
+
+# Minor bugs/features
+test/verification/test2/TypeEncodingM.bpl                    # -typeEncoding:m command line option, can be ignored
+
+# forall/exists/functions
+test/verification/test2/Axioms.bpl
+test/verification/test2/FormulaTerm2.bpl
+test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
+test/verification/test2/Quantifiers.bpl
+test/verification/test2/Structured.bpl
+test/verification/test2/Ensures.bpl                          # forall used in ensures clause; Becomes an assume at call site
+
+# free
+test/verification/test2/AssumeEnsures.bpl
+test/verification/test2/FreeCall.bpl
+
+# lambda: These look like maps with extensionality
+test/verification/test2/Lambda.bpl                           # Also, forall
+test/verification/test2/LambdaOldExpressions.bpl
+test/verification/test2/LambdaLifting.bpl
+test/verification/test2/LambdaExt.bpl                        # Also, polymorphism
+test/verification/test2/LambdaPoly.bpl                       # Also, polymorphism
+
+# Unimplemented (polymorphism)
+test/verification/test2/BoundedTypeParameterQuantifier.bpl   # Also, forall
+test/verification/test2/UpdateExpr.bpl
+
+test/verification/test2/strings-no-where.bpl                 # string, forall, free...
+
+# Won't implement
+# ---------------
+
+test/verification/test2/Where.bpl                            # where is very esoteric
+test/verification/test2/strings-where.bpl                    # where. Also, string, forall, free, where
+test/verification/test2/OldIllegal.bpl                       # Ill-formed
+
+# Uses boogie internal features
+test/verification/test2/AssertVerifiedUnder0.bpl             # {:verified_under A}
+test/verification/test2/CallVerifiedUnder0.bpl               # {:verified_under A}
+test/verification/test2/InvariantVerifiedUnder0.bpl          # {:verified_under A}
+test/verification/test2/AssumptionVariables0.bpl             # {:assumption}
+test/verification/test2/Implies.bpl                          # {:subsumption 0}
+test/verification/test2/NeverPattern.bpl                     # {:never_pattern true}
+test/verification/test2/Rlimitouts0.bpl                      # rlimit command line option; nott supported upstream
+test/verification/test2/SelectiveChecking.bpl                # {:selective_checking}
+test/verification/test2/Timeouts0.bpl                        # {:timeLimit 8}
+test/verification/test2/sk_hack.bpl                          # sk_hack?
+
