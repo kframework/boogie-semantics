@@ -29,12 +29,7 @@ module BOOGIE
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
                     <currentImpl multiplicity="?"> -1 </currentImpl>
-                    <types>
-                      <type multiplicity="*" type="Map">
-                          <typeName> #token("TypeName", "Id") </typeName>
-                          <uniques> .IdList </uniques>
-                      </type>
-                    </types>
+                    <types/>
                     <procs/>
                     <freshCounter/>
                   </boogie>
@@ -57,6 +52,15 @@ TODO: We do not check if a type has been declared before being used yet.
 When we first encounter a type , we create an entry in the list of types.
 Since `<type>` has `multiplicity="Map"` and the key for maps (i.e. the `<typeName>`)
 must be unique, multiple entries aren't created for each type.
+
+```k
+    configuration <types>
+                    <type multiplicity="*" type="Map">
+                        <typeName> #token("TypeName", "Id") </typeName>
+                        <uniques> .IdList </uniques>
+                    </type>
+                  </types>
+```
 
 ```k
     rule <k> const Attrs OptionalUnique _:Id : T ; ... </k>
