@@ -1,0 +1,19 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+ifelse-fail.bpl(14,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    ifelse-fail.bpl(8,6): anon0
+    ifelse-fail.bpl(11,5): anon10_Else
+    ifelse-fail.bpl(14,5): anon2
+ifelse-fail.bpl(30,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    ifelse-fail.bpl(8,6): anon0
+    ifelse-fail.bpl(12,10): anon10_Then
+    ifelse-fail.bpl(14,5): anon2
+    ifelse-fail.bpl(14,5): anon11_Else
+    ifelse-fail.bpl(19,10): anon12_Then
+    ifelse-fail.bpl(21,5): anon5
+    ifelse-fail.bpl(21,5): anon13_Else
+    ifelse-fail.bpl(28,10): anon14_Else
+    ifelse-fail.bpl(30,5): anon9
+
+Boogie program verifier finished with 0 verified, 2 errors
