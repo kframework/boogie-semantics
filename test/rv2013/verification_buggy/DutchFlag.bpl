@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Dutch flag problem.
   Original example by Carlo A. Furia from the loop invariant study.
@@ -79,4 +81,3 @@ procedure MakeFlag (A: ARRAY_COLOR, n: int)
     }
   }
 }
-

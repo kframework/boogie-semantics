@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Splitting seconds into hours, minutes and seconds.
   Original example from "Kuncak, Mayer, Piskac, Suter: Complete Functional Synthesis (PLDI'10)"

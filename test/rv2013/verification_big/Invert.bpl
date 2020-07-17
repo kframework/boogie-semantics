@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Invert a permutation.
   Example inspired by: 1st Verified Software Competition (https://sites.google.com/a/vscomp.org), problem II.

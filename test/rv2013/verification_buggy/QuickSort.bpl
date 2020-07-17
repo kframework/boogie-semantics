@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Quick Sort with partial specification (does not say the output is a permutation of the input, loop invariants are missing).
   
