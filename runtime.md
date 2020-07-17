@@ -12,7 +12,7 @@ module BOOGIE-RUNTIME
     imports STRING
 ```
 
-```symbolic
+```verification
     configuration <runtime>
                     <locals> .Map </locals>
                     <globals> .Map </globals>
