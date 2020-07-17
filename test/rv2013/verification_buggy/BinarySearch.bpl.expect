@@ -1,0 +1,15 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_buggy/BinarySearch.bpl(28,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    test/rv2013/verification_buggy/BinarySearch.bpl(24,13): anon0
+    test/rv2013/verification_buggy/BinarySearch.bpl(27,11): anon8_LoopBody
+test/rv2013/verification_buggy/BinarySearch.bpl(40,3): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_buggy/BinarySearch.bpl(21,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_buggy/BinarySearch.bpl(24,13): anon0
+    test/rv2013/verification_buggy/BinarySearch.bpl(27,11): anon8_LoopBody
+    test/rv2013/verification_buggy/BinarySearch.bpl(32,11): anon9_Else
+    test/rv2013/verification_buggy/BinarySearch.bpl(35,7): anon10_Then
+    test/rv2013/verification_buggy/BinarySearch.bpl(39,11): anon11_Then
+
+Boogie program verifier finished with 0 verified, 2 errors

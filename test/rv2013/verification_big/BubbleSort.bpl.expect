@@ -1,0 +1,42 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_big/BubbleSort.bpl(40,5): Error BP5004: This loop invariant might not hold on entry.
+Execution trace:
+    test/rv2013/verification_big/BubbleSort.bpl(32,5): anon0
+    test/rv2013/verification_big/BubbleSort.bpl(33,3): anon9_LoopDone
+test/rv2013/verification_big/BubbleSort.bpl(46,7): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_big/BubbleSort.bpl(28,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/BubbleSort.bpl(32,5): anon0
+    test/rv2013/verification_big/BubbleSort.bpl(33,3): anon9_LoopDone
+    test/rv2013/verification_big/BubbleSort.bpl(39,3): anon10_LoopHead
+    test/rv2013/verification_big/BubbleSort.bpl(44,7): anon10_LoopBody
+    test/rv2013/verification_big/BubbleSort.bpl(46,7): anon11_Then
+test/rv2013/verification_big/BubbleSort.bpl(46,7): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_big/BubbleSort.bpl(26,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/BubbleSort.bpl(32,5): anon0
+    test/rv2013/verification_big/BubbleSort.bpl(33,3): anon9_LoopDone
+    test/rv2013/verification_big/BubbleSort.bpl(39,3): anon10_LoopHead
+    test/rv2013/verification_big/BubbleSort.bpl(44,7): anon10_LoopBody
+    test/rv2013/verification_big/BubbleSort.bpl(46,7): anon11_Then
+test/rv2013/verification_big/BubbleSort.bpl(46,7): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_big/BubbleSort.bpl(25,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/BubbleSort.bpl(32,5): anon0
+    test/rv2013/verification_big/BubbleSort.bpl(33,3): anon9_LoopDone
+    test/rv2013/verification_big/BubbleSort.bpl(39,3): anon10_LoopHead
+    test/rv2013/verification_big/BubbleSort.bpl(44,7): anon10_LoopBody
+    test/rv2013/verification_big/BubbleSort.bpl(46,7): anon11_Then
+test/rv2013/verification_big/BubbleSort.bpl(53,7): Error BP5005: This loop invariant might not be maintained by the loop.
+Execution trace:
+    test/rv2013/verification_big/BubbleSort.bpl(32,5): anon0
+    test/rv2013/verification_big/BubbleSort.bpl(33,3): anon9_LoopDone
+    test/rv2013/verification_big/BubbleSort.bpl(39,3): anon10_LoopHead
+    test/rv2013/verification_big/BubbleSort.bpl(44,7): anon10_LoopBody
+    test/rv2013/verification_big/BubbleSort.bpl(45,5): anon11_Else
+    test/rv2013/verification_big/BubbleSort.bpl(50,5): anon12_LoopHead
+    test/rv2013/verification_big/BubbleSort.bpl(56,7): anon12_LoopBody
+    test/rv2013/verification_big/BubbleSort.bpl(57,13): anon13_Then
+    test/rv2013/verification_big/BubbleSort.bpl(61,9): anon8
+
+Boogie program verifier finished with 1 verified, 5 errors

@@ -1,0 +1,8 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_big/TuringFactorial.bpl(20,3): Error BP5004: This loop invariant might not hold on entry.
+Execution trace:
+    test/rv2013/verification_big/TuringFactorial.bpl(12,8): anon0
+    test/rv2013/verification_big/TuringFactorial.bpl(13,1): TOP
+    test/rv2013/verification_big/TuringFactorial.bpl(17,3): anon5_Else
+
+Boogie program verifier finished with 1 verified, 1 error

@@ -1,0 +1,8 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_big/LinkedListTraversal.bpl(44,5): Error BP5005: This loop invariant might not be maintained by the loop.
+Execution trace:
+    test/rv2013/verification_big/LinkedListTraversal.bpl(40,8): anon0
+    test/rv2013/verification_big/LinkedListTraversal.bpl(43,3): anon2_LoopHead
+    test/rv2013/verification_big/LinkedListTraversal.bpl(46,10): anon2_LoopBody
+
+Boogie program verifier finished with 0 verified, 1 error

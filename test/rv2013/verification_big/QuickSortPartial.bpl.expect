@@ -1,0 +1,8 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_big/QuickSortPartial.bpl(57,3): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_big/QuickSortPartial.bpl(47,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/QuickSortPartial.bpl(52,3): anon0
+    test/rv2013/verification_big/QuickSortPartial.bpl(53,16): anon2_Then
+
+Boogie program verifier finished with 2 verified, 1 error
