@@ -11,7 +11,18 @@ module BOOGIE-RUNTIME
     imports STRING
 ```
 
-```k
+```verification
+    configuration <runtime>
+                    <locals> .Map </locals>
+                    <globals> .Map </globals>
+                    <olds> .Map </olds>
+                    <labels> .Map </labels>
+                    <cutpoints> .List </cutpoints>
+                    <currentImpl multiplicity="?"> -1 </currentImpl>
+                  </runtime>
+```
+
+```operational
     configuration <runtime>
                     <locals> .Map </locals>
                     <globals> .Map </globals>
@@ -375,6 +386,9 @@ and replace modifiable variables with fresh symbolic values.
 
 ```k
     syntax Stmt ::= "cutpoint" "(" Int ")" ";"
+```
+
+```verification
     rule <k> cutpoint(I) ; => #generalize(envToIds(Rho) ++IdList Modifiable) ... </k>
          <locals> Rho </locals>
          <mods> Modifiable </mods>
@@ -387,10 +401,16 @@ assert/assume structure ensures that our current program state is a subset of
 the states when we first encountered the cutpoint (modulo `free invariant`s and
 `where` clauses.)
 
-```k
+```verification
     rule <k> cutpoint(I) ; => assume .AttributeList (false); ... </k>
          <cutpoints> Cutpoints </cutpoints>
       requires I in Cutpoints
+```
+
+When executing concretely, cutpoints are simply a no-op.
+
+```operational
+    rule cutpoint(_) ; => .
 ```
 
 ```k
@@ -559,7 +579,12 @@ procedure P()
           => call .IdList := ProcedureName:Id(ArgVals) ;
              ...
          </k>
+```
 
+When verifying a program, we don't need to run a program at its call site, we only need
+to
+
+```verification
     rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
           => assert { :code "BP5002" } { :source "???", 0 }
                (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
@@ -574,6 +599,31 @@ procedure P()
          <rets> Rets </rets>
          <pres> Requires </pres>
          <posts> Ensures </posts>
+```
+
+```operational
+    rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
+          => makeDecls(IArgs) ++LocalVarDeclList
+             makeDecls(IRets) ++LocalVarDeclList
+             VarList
+          ~> havoc .IdList ;
+          ~> assume .AttributeList substitute(Requires, IdsTypeWhereListToIdList(PArgs), IdsTypeWhereListToExprList(IArgs) ) ;
+          ~> StartLabel: StmtList
+          ~> goto StartLabel;
+         </k>
+         (.CurrentImplCell => <currentImpl> N </currentImpl>)
+         <globals> Globals </globals>
+         <olds> .Map => Globals </olds>
+         <procName> ProcedureName </procName>
+         <args> PArgs </args>
+         <rets> PRets </rets>
+         <pres> Requires </pres>
+         <impl>
+            <implId> N </implId>
+            <iargs> IArgs </iargs>
+            <irets> IRets </irets>
+            <body> { VarList StartLabel: StmtList } </body>
+         </impl>
 ```
 
 Inhabitants
