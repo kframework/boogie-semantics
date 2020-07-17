@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Insert a new linked list node after a given node.
   Original example from "Le Goues, Leino, Moskal: The Boogie Verification Debugger (SEFM 2011)".

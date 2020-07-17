@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Verbal arithmetic puzzle: find digits that correspond to letters so that the following equalition holds
       S E N D

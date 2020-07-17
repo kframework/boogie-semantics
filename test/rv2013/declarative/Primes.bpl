@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Generating primes defined with recursive constraints.
   Original example from "Koksal, Kuncak, Suter: Constraints as Control (POPL'12)"
