@@ -1,0 +1,13 @@
+This directory contains examples used in the experimental evaluation of the paper "To Run What No One Has Run Before", 
+submitted to RV'13.
+
+The directory is structured as follows.
+- verification: 
+  Implementations of algorithms equipped with correct but generally incomplete specification. 
+  Boogaloo can generate passing executions with the goal of validating specifications.
+- verification_buggy: 
+  Buggy versions of programs from previous directory (with either implementation or specification errors injected). 
+  Boogaloo can generate failing executions and reveal bugs.
+- declarative: 
+  Examples of declarative programming, which exercise Boogaloo’s constraint solving capabilities 
+  to generate outputs satisfying given properties, in the absence of imperative implementations.
