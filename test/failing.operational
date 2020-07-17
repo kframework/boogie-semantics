@@ -1,10 +1,9 @@
 test/operational/havoc/Where.bpl
 test/operational/control-flow/procedure.bpl
 test/operational/control-flow/implementation.bpl
-test/operational/control-flow/while-nondet.bpl
 test/operational/arithmetic/unique.bpl
 test/operational/arithmetic/arrays.bpl
 test/operational/arithmetic/Old.bpl
-test/operational/case-studies/sum-to-n.bpl
-test/operational/case-studies/coin-flip.bpl
 
+# may not halt, runs forever under operational semantics
+test/operational/control-flow/while-nondet.bpl
