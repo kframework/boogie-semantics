@@ -13,6 +13,44 @@ test/test2/NullaryMaps.bpl                      # Also, polymorphism
 test/test2/Quantifiers.bpl
 test/test2/Structured.bpl
 test/test2/Ensures.bpl                          # forall used in ensures clause; Becomes an assume at call site
+test/rv2013/declarative/NQueens.bpl
+test/rv2013/declarative/Primes.bpl
+test/rv2013/declarative/SendMoreMoney.bpl
+test/rv2013/verification/ArrayMax.bpl
+test/rv2013/verification/ArraySum.bpl
+test/rv2013/verification/BinarySearch.bpl
+test/rv2013/verification/BubbleSort.bpl
+test/rv2013/verification/DutchFlag.bpl
+test/rv2013/verification/Fibonacci.bpl
+test/rv2013/verification/Invert.bpl
+test/rv2013/verification/LinkedListTraversal.bpl
+test/rv2013/verification/ListInsert.bpl
+test/rv2013/verification/QuickSort.bpl
+test/rv2013/verification/QuickSortPartial.bpl
+test/rv2013/verification/TuringFactorial.bpl
+test/rv2013/verification_big/ArrayMax.bpl
+test/rv2013/verification_big/ArraySum.bpl
+test/rv2013/verification_big/BinarySearch.bpl
+test/rv2013/verification_big/BubbleSort.bpl
+test/rv2013/verification_big/DutchFlag.bpl
+test/rv2013/verification_big/Invert.bpl
+test/rv2013/verification_big/LinkedListTraversal.bpl
+test/rv2013/verification_big/ListInsert.bpl
+test/rv2013/verification_big/QuickSort.bpl
+test/rv2013/verification_big/QuickSortPartial.bpl
+test/rv2013/verification_big/TuringFactorial.bpl
+test/rv2013/verification_buggy/ArrayMax.bpl
+test/rv2013/verification_buggy/ArraySum.bpl
+test/rv2013/verification_buggy/BinarySearch.bpl
+test/rv2013/verification_buggy/BubbleSort.bpl
+test/rv2013/verification_buggy/DutchFlag.bpl
+test/rv2013/verification_buggy/Fibonacci.bpl
+test/rv2013/verification_buggy/Invert.bpl
+test/rv2013/verification_buggy/LinkedListTraversal.bpl
+test/rv2013/verification_buggy/ListInsert.bpl
+test/rv2013/verification_buggy/QuickSort.bpl
+test/rv2013/verification_buggy/QuickSortPartial.bpl
+test/rv2013/verification_buggy/TuringFactorial.bpl
 
 # free
 test/test2/AssumeEnsures.bpl
