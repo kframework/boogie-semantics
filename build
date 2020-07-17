@@ -70,7 +70,7 @@ def suite(name, runner, tests, failing = None):
 # Run all test as verification tests
 suite('test-verification'
      , runner = kboogie_runner(verification, expected_extension = 'expect')
-     , tests   = glob('test/*/*/*.bpl')
+     , tests   = glob('test/verification/*/*.bpl')
      , failing = readlines('test/failing.verification')
      )
 
