@@ -1,0 +1,4 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+sum-to-n.bpl(1,0): error: Unrecognized pragma: ## Sum to N
+sum-to-n.bpl(3,1): error: EOF expected
+2 parse errors detected in sum-to-n.bpl

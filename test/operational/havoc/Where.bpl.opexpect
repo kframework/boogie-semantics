@@ -1,0 +1,18 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+Where.bpl(11,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(9,3): anon0
+Where.bpl(25,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(19,5): anon0
+Where.bpl(35,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(33,3): anon0
+Where.bpl(47,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(43,5): anon0
+Where.bpl(60,3): Error BP5001: This assertion might not hold.
+Execution trace:
+    Where.bpl(55,3): anon0
+
+Boogie program verifier finished with 0 verified, 5 errors

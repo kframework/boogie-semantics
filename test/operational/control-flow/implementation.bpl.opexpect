@@ -1,0 +1,14 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+implementation.bpl(21,5): Error BP5003: A postcondition might not hold on this return path.
+implementation.bpl(4,64): Related location: This is the postcondition that might not hold.
+Execution trace:
+    implementation.bpl(20,7): anon0
+implementation.bpl(26,5): Error BP5003: A postcondition might not hold on this return path.
+implementation.bpl(4,64): Related location: This is the postcondition that might not hold.
+Execution trace:
+    implementation.bpl(26,5): anon0
+implementation.bpl(36,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    implementation.bpl(34,5): anon0
+
+Boogie program verifier finished with 2 verified, 3 errors

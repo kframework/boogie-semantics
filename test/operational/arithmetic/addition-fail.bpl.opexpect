@@ -1,0 +1,6 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+addition-fail.bpl(10,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    addition-fail.bpl(8,6): anon0
+
+Boogie program verifier finished with 0 verified, 1 error

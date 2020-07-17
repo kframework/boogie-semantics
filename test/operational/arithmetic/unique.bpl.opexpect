@@ -1,0 +1,18 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+unique.bpl(13,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    unique.bpl(13,5): anon0
+unique.bpl(14,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    unique.bpl(13,5): anon0
+unique.bpl(19,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    unique.bpl(19,5): anon0
+unique.bpl(20,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    unique.bpl(19,5): anon0
+unique.bpl(26,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    unique.bpl(25,5): anon0
+
+Boogie program verifier finished with 0 verified, 5 errors
