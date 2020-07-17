@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Turing factorial with recursive specificaiton and unstructured control flow.
   Original example from the Boogie repository.

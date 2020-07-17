@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Naive computation of Fibonacci numbers using a recursive procedure.
   An assertion defines the semantics using a recursive function.

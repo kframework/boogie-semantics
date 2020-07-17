@@ -1,3 +1,5 @@
+// RUN: %boogie "%s" > "%t"
+// RUN: %diff "%s".expect "%t"
 /*
   Quick Sort with partial implementation:
   implementation of Partition is missing; in return its specification is complete.
