@@ -1,0 +1,8 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_big/ArraySum.bpl(18,5): Error BP5005: This loop invariant might not be maintained by the loop.
+Execution trace:
+    test/rv2013/verification_big/ArraySum.bpl(15,9): anon0
+    test/rv2013/verification_big/ArraySum.bpl(16,2): anon2_LoopHead
+    test/rv2013/verification_big/ArraySum.bpl(20,7): anon2_LoopBody
+
+Boogie program verifier finished with 1 verified, 1 error

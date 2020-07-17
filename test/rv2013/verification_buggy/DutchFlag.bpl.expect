@@ -1,0 +1,16 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+Prover error: line 35 column 25: unknown sort 'String'
+Prover error: line 36 column 30: unknown sort 'String'
+Prover error: line 37 column 31: unknown sort 'String'
+Prover error: line 38 column 36: unknown sort 'String'
+Prover error: line 87 column 22: unknown sort 'String'
+test/rv2013/verification_buggy/DutchFlag.bpl(29,11): Verification inconclusive (Swap)
+Prover error: Invalid PING response from the prover: unsat
+Prover error: line 227 column 25: unknown sort 'String'
+Prover error: line 228 column 30: unknown sort 'String'
+Prover error: line 229 column 31: unknown sort 'String'
+Prover error: line 230 column 36: unknown sort 'String'
+Prover error: line 279 column 22: unknown sort 'String'
+test/rv2013/verification_buggy/DutchFlag.bpl(44,11): Verification inconclusive (MakeFlag)
+
+Boogie program verifier finished with 0 verified, 0 errors, 2 inconclusives
