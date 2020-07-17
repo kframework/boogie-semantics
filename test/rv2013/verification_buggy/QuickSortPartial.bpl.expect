@@ -1,0 +1,13 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_buggy/QuickSortPartial.bpl(58,5): Error BP5002: A precondition for this call might not hold.
+test/rv2013/verification_buggy/QuickSortPartial.bpl(47,3): Related location: This is the precondition that might not hold.
+Execution trace:
+    test/rv2013/verification_buggy/QuickSortPartial.bpl(54,3): anon0
+    test/rv2013/verification_buggy/QuickSortPartial.bpl(55,16): anon2_Then
+test/rv2013/verification_buggy/QuickSortPartial.bpl(59,3): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_buggy/QuickSortPartial.bpl(49,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_buggy/QuickSortPartial.bpl(54,3): anon0
+    test/rv2013/verification_buggy/QuickSortPartial.bpl(55,16): anon2_Then
+
+Boogie program verifier finished with 0 verified, 2 errors

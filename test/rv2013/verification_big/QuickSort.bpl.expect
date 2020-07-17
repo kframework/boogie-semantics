@@ -1,0 +1,28 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_big/QuickSort.bpl(60,1): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_big/QuickSort.bpl(46,2): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/QuickSort.bpl(49,19): anon0
+    test/rv2013/verification_big/QuickSort.bpl(52,3): anon5_LoopDone
+test/rv2013/verification_big/QuickSort.bpl(60,1): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_big/QuickSort.bpl(45,2): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/QuickSort.bpl(49,19): anon0
+    test/rv2013/verification_big/QuickSort.bpl(52,3): anon5_LoopDone
+test/rv2013/verification_big/QuickSort.bpl(60,1): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_big/QuickSort.bpl(43,2): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/QuickSort.bpl(49,19): anon0
+    test/rv2013/verification_big/QuickSort.bpl(52,3): anon5_LoopDone
+test/rv2013/verification_big/QuickSort.bpl(60,1): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_big/QuickSort.bpl(44,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/QuickSort.bpl(49,19): anon0
+    test/rv2013/verification_big/QuickSort.bpl(52,3): anon5_LoopDone
+test/rv2013/verification_big/QuickSort.bpl(75,3): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_big/QuickSort.bpl(66,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/QuickSort.bpl(69,3): anon0
+    test/rv2013/verification_big/QuickSort.bpl(70,16): anon2_Then
+
+Boogie program verifier finished with 2 verified, 5 errors

@@ -1,0 +1,26 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_buggy/QuickSort.bpl(67,3): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_buggy/QuickSort.bpl(47,2): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_buggy/QuickSort.bpl(52,22): anon0
+    test/rv2013/verification_buggy/QuickSort.bpl(53,2): anon9_LoopDone
+    test/rv2013/verification_buggy/QuickSort.bpl(66,11): anon12_Else
+test/rv2013/verification_buggy/QuickSort.bpl(67,3): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_buggy/QuickSort.bpl(49,2): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_buggy/QuickSort.bpl(52,22): anon0
+    test/rv2013/verification_buggy/QuickSort.bpl(53,2): anon9_LoopDone
+    test/rv2013/verification_buggy/QuickSort.bpl(66,11): anon12_Else
+test/rv2013/verification_buggy/QuickSort.bpl(67,3): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_buggy/QuickSort.bpl(48,2): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_buggy/QuickSort.bpl(52,22): anon0
+    test/rv2013/verification_buggy/QuickSort.bpl(53,2): anon9_LoopDone
+    test/rv2013/verification_buggy/QuickSort.bpl(66,11): anon12_Else
+test/rv2013/verification_buggy/QuickSort.bpl(83,3): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_buggy/QuickSort.bpl(74,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_buggy/QuickSort.bpl(77,3): anon0
+    test/rv2013/verification_buggy/QuickSort.bpl(78,16): anon2_Then
+
+Boogie program verifier finished with 1 verified, 4 errors

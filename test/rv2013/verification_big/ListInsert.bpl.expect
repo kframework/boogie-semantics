@@ -1,0 +1,8 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_big/ListInsert.bpl(48,5): Error BP5002: A precondition for this call might not hold.
+test/rv2013/verification_big/ListInsert.bpl(22,3): Related location: This is the precondition that might not hold.
+Execution trace:
+    test/rv2013/verification_big/ListInsert.bpl(38,3): anon0
+    test/rv2013/verification_big/ListInsert.bpl(46,5): anon2_LoopBody
+
+Boogie program verifier finished with 1 verified, 1 error

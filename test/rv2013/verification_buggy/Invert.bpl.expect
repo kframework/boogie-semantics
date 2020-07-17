@@ -1,0 +1,9 @@
+Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
+test/rv2013/verification_buggy/Invert.bpl(19,2): Error BP5003: A postcondition might not hold on this return path.
+test/rv2013/verification_buggy/Invert.bpl(15,2): Related location: This is the postcondition that might not hold.
+Execution trace:
+    test/rv2013/verification_buggy/Invert.bpl(18,4): anon0
+    test/rv2013/verification_buggy/Invert.bpl(19,2): anon2_LoopHead
+    test/rv2013/verification_buggy/Invert.bpl(19,2): anon2_LoopDone
+
+Boogie program verifier finished with 0 verified, 1 error
