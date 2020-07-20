@@ -106,5 +106,17 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax LhsList ::= LhsList "++LhsList" LhsList [function, left, avoid]
+    rule (X1, X1s) ++LhsList X2s => X1, (X1s ++LhsList X2s)
+    rule .LhsList ++LhsList X2s => X2s
+```
+
+```k
+    syntax LhsList ::= IdListToLhsList(IdList) [function]
+    rule IdListToLhsList(.IdList) => .LhsList
+    rule IdListToLhsList(X, Rest) => X ++LhsList IdListToLhsList(Rest)
+```
+
+```k
 endmodule
 ```

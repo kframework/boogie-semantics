@@ -23,13 +23,15 @@ module BOOGIE-RUNTIME
 ```
 
 ```operational
+    syntax KItem ::=  (Int, K, Map, Map, Map) // Impl, K, olds, locals, labels TODO how do I work CurrentImplCell in here?
     configuration <runtime>
                     <locals> .Map </locals>
                     <globals> .Map </globals>
                     <olds> .Map </olds>
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
-                    <currentImpl multiplicity="?"> -1 </currentImpl>
+                    <implStack> .List </implStack>
+                    <currentImpl> -1 </currentImpl>
                   </runtime>
 ```
 
@@ -133,7 +135,7 @@ module BOOGIE-RUNTIME
 #### Update
 
 ```k
-    rule <k> X:Id [ Key ] := Value ; => X := X [ Key := Value ] ; ... </k>
+    rule <k> X:Id [ Key ], .LhsList := Value, .ExprList ; => X := X [ Key := Value ], .ExprList ; ... </k>
 
     context HOLE [ _ := _ ]
     context Map:MapValue [ HOLE := _Value ]
@@ -250,14 +252,17 @@ We alpha-rename the quantified variable with a fresh one.
 9.3 Assignments
 ---------------
 
-TODO: This needs to work over lists of expressions and identifiers
-
 ```k
-    context _X:Id := HOLE ;
-    rule <k> X := V:ValueExpr ; => .K ... </k>
+    context _:LhsList := HOLE ;
+    rule (X:Lhs, X2:Lhs, Xs:LhsList := Y:Expr, Y2:Expr, Ys:ExprList ;):StmtList =>
+        X := Y, .ExprList ; X2 := Y2, .ExprList ; Xs := Ys ; [structural]
+
+    rule .LhsList := .ExprList ; => .K [structural]
+
+    rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
          <locals> X |-> value(... value: _ => V) ... </locals>
 
-    rule <k> X := V:ValueExpr ; => .K ... </k>
+    rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
          <locals> Env </locals>
          <globals> X |-> value(... value: _ => V) ... </globals>
          <currentImpl> CurrentImpl </currentImpl>
@@ -286,8 +291,8 @@ type.
 ```k
     syntax KItem ::= freshen(IdList)
     rule <k> freshen(.IdList) => .K ... </k>
-    rule <k> freshen(X, Xs)
-          => X := inhabitants(type(lookupVariable(X)), FreshInt) ;
+    rule <k> freshen(X:Id, Xs:IdList)
+          => X, .LhsList := inhabitants(type(lookupVariable(X)), FreshInt), .ExprList ;
           ~> freshen(Xs)
              ...
          </k>
@@ -298,7 +303,7 @@ type.
 ------------------------------
 
 `#collectLabel` splits procedure bodies into labeled blocks, and populates the
-`<label>` cell with a map from labels to their bodies.
+`<labels>` cell with a map from labels to their bodies.
 
 ```k
     syntax KItem ::= #collectLabel(Id, StmtList)
@@ -548,12 +553,13 @@ procedure P()
 9.6 Return statements
 ---------------------
 
-```k
+```verification
     rule <k> return ; ~> _
           => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc, CurrentImpl }
-                     (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
-                          :: Ensures
-                     ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
+                     substitute( Ensures
+                               , IdsTypeWhereListToIdList(PArgs) ++IdList IdsTypeWhereListToIdList(PRets)
+                               , IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets)
+                               ) ;
          </k>
          <currentImpl> CurrentImpl </currentImpl>
          <procName> CurrentProc </procName>
@@ -563,6 +569,46 @@ procedure P()
          <posts> Ensures </posts>
          <args> PArgs </args>
          <rets> PRets </rets>
+```
+
+TODO: this first rule is identical to the one above except for the ~> #return stuff at the end.
+Can we figure out a way to not duplicate code?
+
+```operational
+    syntax KItem ::= "#return" ExprList
+    rule <k> return ; ~> _
+          => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc, CurrentImpl }
+                     (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
+                          :: Ensures
+                     ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
+          ~> #return IdsTypeWhereListToExprList(IRets)
+         </k>
+         <currentImpl> CurrentImpl </currentImpl>
+         <procName> CurrentProc </procName>
+         <iargs> IArgs </iargs>
+         <irets> IRets </irets>
+         <implId> CurrentImpl </implId>
+         <posts> Ensures </posts>
+         <args> PArgs </args>
+         <rets> PRets </rets>
+
+    context #return HOLE
+    rule <k> #return X, Xs:ExprList => X, Xs ~> K </k>
+         <currentImpl> _ => N </currentImpl>
+         <procName> CurrentProc </procName>
+         <implStack> ListItem((N, K:K, Olds:Map, Locals:Map, Labels:Map)) => .List ... </implStack>
+         <olds> _ => Olds </olds>
+         <locals> _ => Locals </locals>
+         <labels> _ => Labels </labels>
+      requires isKResult(X ++ExprList Xs)
+
+    rule <k> #return .ExprList => K </k>
+         <currentImpl> _ => N </currentImpl>
+         <procName> CurrentProc </procName>
+         <implStack> ListItem((N, K:K, Olds:Map, Locals:Map, Labels:Map)) => .List ... </implStack>
+         <olds> _ => Olds </olds>
+         <locals> _ => Locals </locals>
+         <labels> _ => Labels </labels>
 ```
 
 9.7 If statements
@@ -602,28 +648,38 @@ to
 ```
 
 ```operational
-    rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
+    syntax AssignRhs ::= "#call" Id "(" ExprList ")"
+    rule call Xs:IdList := ProcedureName:Id(ArgVals:ExprList) ; => IdListToLhsList(Xs) := #call ProcedureName(ArgVals) ;
+
+    context #call _:Id(HOLE:ExprList)
+    rule <k> #call ProcedureName:Id(ArgVals:ExprList) ~> K
           => makeDecls(IArgs) ++LocalVarDeclList
              makeDecls(IRets) ++LocalVarDeclList
              VarList
+             // TODO havoc all the local variables just in case they are used without being initialized?
           ~> havoc .IdList ;
-          ~> assume .AttributeList substitute(Requires, IdsTypeWhereListToIdList(PArgs), IdsTypeWhereListToExprList(IArgs) ) ;
+          ~> IdListToLhsList(IdsTypeWhereListToIdList(IArgs)) := ArgVals ;
+          ~> assert .AttributeList substitute(Requires, IdsTypeWhereListToIdList(PArgs), IdsTypeWhereListToExprList(IArgs) ) ;
           ~> StartLabel: StmtList
           ~> goto StartLabel;
          </k>
-         (.CurrentImplCell => <currentImpl> N </currentImpl>)
+         <implStack> .List => ListItem((CurrentImpl, K:K, Olds:Map, Locals:Map, Labels:Map)) ... </implStack>
+         <currentImpl> CurrentImpl => N </currentImpl>
          <globals> Globals </globals>
-         <olds> .Map => Globals </olds>
+         <olds> Olds => Globals </olds>
          <procName> ProcedureName </procName>
          <args> PArgs </args>
          <rets> PRets </rets>
          <pres> Requires </pres>
+         <locals> Locals => .Map </locals>
+         <labels> Labels => .Map </labels>
          <impl>
             <implId> N </implId>
             <iargs> IArgs </iargs>
             <irets> IRets </irets>
             <body> { VarList StartLabel: StmtList } </body>
          </impl>
+         requires isKResult(ArgVals)
 ```
 
 Inhabitants

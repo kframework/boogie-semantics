@@ -156,7 +156,7 @@ However, in the operational semantics we only execute the main procedure:
 
 ```operational
     syntax Id ::= "main" [token]
-    rule <k> #start => call .Nothing main(.ExprList); ... </k>
+    rule <k> #start => #call main(.ExprList) ... </k>
 ```
 
 ```k
