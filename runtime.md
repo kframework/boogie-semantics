@@ -24,13 +24,15 @@ module BOOGIE-RUNTIME
 ```
 
 ```operational
+    syntax KItem ::=  (Int, K, Map, Map, Map) // Impl, K, olds, locals, labels TODO how do I work CurrentImplCell in here?
     configuration <runtime>
                     <locals> .Map </locals>
                     <globals> .Map </globals>
                     <olds> .Map </olds>
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
-                    <currentImpl multiplicity="?"> -1 </currentImpl>
+                    <implStack> .List </implStack>
+                    <currentImpl> -1 </currentImpl>
                   </runtime>
 ```
 
@@ -583,22 +585,30 @@ to
 ```
 
 ```operational
-    rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
+
+    context call X:IdList := HOLE ;
+    // rule <k> call X:IdList := Y:ExprList  => </k>
+
+    rule <k> ProcedureName:Id(ArgVals:ExprList) ~> K
           => makeDecls(IArgs) ++LocalVarDeclList
              makeDecls(IRets) ++LocalVarDeclList
              VarList
+             // TODO actually assign the values that were passed in
           ~> havoc .IdList ;
           ~> assume .AttributeList substitute(Requires, IdsTypeWhereListToIdList(PArgs), IdsTypeWhereListToExprList(IArgs) ) ;
           ~> StartLabel: StmtList
           ~> goto StartLabel;
          </k>
-         (.CurrentImplCell => <currentImpl> N </currentImpl>)
+         <implStack> .List => ListItem((CurrentImpl, K:K, Olds:Map, Locals:Map, Labels:Map)) ... </implStack>
+         <currentImpl> CurrentImpl => N </currentImpl>
          <globals> Globals </globals>
-         <olds> .Map => Globals </olds>
+         <olds> Olds => Globals </olds>
          <procName> ProcedureName </procName>
          <args> PArgs </args>
          <rets> PRets </rets>
          <pres> Requires </pres>
+         <locals> Locals => .Map </locals>
+         <labels> Labels => .Map </labels>
          <impl>
             <implId> N </implId>
             <iargs> IArgs </iargs>
