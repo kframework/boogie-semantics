@@ -79,7 +79,7 @@ TODO: Signature should allow "returns" syntax
 ```k
     syntax Expr ::= Bool | Int
                   | Id
-                  | Id "(" ExprList ")" // function application
+                  | FuncApplication // function application
                   | "(" Expr ")" [bracket]
                   | old(Expr)
                   | "(" "forall" IdsTypeList "::" Expr ")"
@@ -189,12 +189,13 @@ This allows us to parse more restrictively, and still have more freedom in the s
                         | Lhs ":=" Expr ";"
                        // Why are ValueLists as KResults work?
                        // | IdList ":=" ExprList ";"
-                        | "call" OptionalCallLhs Id "(" ExprList ")" ";"
+                        | "call" OptionalCallLhs FuncApplication ";"
 
     syntax Lhs ::= Id | Lhs "[" ExprList "]"
     syntax BlockStmt ::= "{" StmtList "}"
     syntax OptionalCallLhs ::= Nothing | CallLhs
     syntax CallLhs ::= IdList ":="
+    syntax FuncApplication ::= Id "(" ExprList ")"
 ```
 
 11 Tool directives
