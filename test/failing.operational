@@ -1,6 +1,7 @@
 test/operational/havoc/Where.bpl
 test/operational/control-flow/procedure.bpl
 test/operational/control-flow/implementation.bpl
+test/operational/control-flow/square-proc.bpl
 test/operational/arithmetic/unique.bpl
 test/operational/arithmetic/arrays.bpl
 test/operational/arithmetic/Old.bpl
