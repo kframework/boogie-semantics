@@ -50,18 +50,3 @@ test/verification/test2/SelectiveChecking.bpl                # {:selective_check
 test/verification/test2/Timeouts0.bpl                        # {:timeLimit 8}
 test/verification/test2/sk_hack.bpl                          # sk_hack?
 
-
-
-# Disable almost all tests, so that I can just have a simple sanity test on verification while
-# working on the operational semantics
-test/verification/test2/BadLineNumber.bpl
-# test/verification/test2/B.bpl
-test/verification/test2/Call.bpl
-test/verification/test2/ContractEvaluationOrder.bpl
-test/verification/test2/CutBackEdge.bpl
-test/verification/test2/False.bpl
-test/verification/test2/FormulaTerm.bpl
-test/verification/test2/IfThenElse1.bpl
-test/verification/test2/LoopInvAssume.bpl
-test/verification/test2/Old.bpl
-test/verification/test2/Passification.bpl
