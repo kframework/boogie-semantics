@@ -1,3 +1,7 @@
+---
+geometry: margin=2cm
+---
+
 \newcommand{\inhabitants}[1] {\llbracket #1 \rrbracket}
 
 \newcommand{\extension}        {\mathrm{extension}}
@@ -10,44 +14,69 @@
 \newcommand{\Int}          {\mathrm{Int}}
 \newcommand{\Exp}          {\mathrm{Exp}}
 \newcommand{\Bool}          {\mathrm{Bool}}
-\newcommand{\rewrites}     {\Longrightarrow_1}
+
+\newcommand{\PredicatePatternToBool}          {\mathrm{PredicatePatternToBool}}
+
+\newcommand{\limplies}  {\longrightarrow}
+\newcommand{\rewrites}[1]  {\Longrightarrow^{#1}}
+
+Notations:
+
+*   One step rewrite: $x \rewrites{1} y \equiv x \in \next y$
+*   $\PredicatePatternToBool(\phi) \equiv (\phi \land \true) \lor (\lnot(\phi) \land \false)$
+*   Binding: $\bforall{x}{e} \equiv \rforall [ x : \Int ] e$
 
 Symbols:
 
-* $\Exp$               a sort constant
-* $\Bool$              a sort constant
-* $\Int$               a sort constant
-* $\true$, $\false$    inhabitants of the Bool sort
+1.  $\Exp$ a sort constant
+2.  $\Bool$ a sort constant
+3.  $\Int$ a sort constant
+4.  $\true$, $\false$ inhabitants of the Bool sort
 
-* $\bforall \_ \mathtt{: int .} \_$    Boogie's forall expression
-* $\rforall$    the retraction symbol
+1.  $\bforall \_ \_$ Boogie's forall expression
+2.  $\rforall$ the retraction symbol
 
 Axioms:
 
-* $\inhabitants{Int} \subset \inhabitants{\Exp}$
-* $\inhabitants{Bool} \subset \inhabitants{\Exp}$
-* $\inhabitants{Bool} = \true \lor \false$
+1.  $\inhabitants{Int} \subset \inhabitants{\Exp}$
+2.  $\inhabitants{Bool} \subset \inhabitants{\Exp}$
+3.  $\inhabitants{Bool} = \true \lor \false$
 
-* Binding: $\bforall{x}{e} \equiv \rforall [ x : \Int ] e$
+Small step semantics of `forall` in terms of a big step semantics:
 
-*  The graph of the constant $\true$ function evaluates to $\true$:
+5.  $C[\bforall{x}{e}] \rewrites{1} C[\true]$ if
+    $\forall x : \Int . C[e] \rewrites{*}_{\forall} C[\true]$
+6.  $C[\bforall{x}{e}] \rewrites{1} C[\false]$ if
+    $\exists x : \Int . C[e] \rewrites{*}_{\exists} C[\false]$
 
-   $C[\bforall{x}{\true}] \rewrites C[true]$
+Or, in terms of a small step semantics:
 
-* If the graph contains any non-$\true$ Bool elements, then the expression evaluates to $\false$:
+5.  If the inner expression is fully reduced, we can replace `forall` with matching logic's forall:
 
-  | $C[\bforall{x}{e}) \rewrites C[\false]$
-  |     if   $\extension [ x : \Int ] e \subseteq \exists x : \Int . \langle x, \true \lor \false \rangle$
-  |     and  $[ x : \Int ] e \neq [ x : \Int ] \true$
+    | $(\forall x : \Int . e : \Bool) \limplies$
+    |    $C[\bforall{x}{e}] \rewrites1 C[ \PredicatePatternToBool(\forall x . e = \true) ]$
 
-*  a graph who's inner expression can be further reducted can be reduced to the intension of the set of all the states $e$ can evaluate to:
+6.  Otherwise, progress on the inner expression is progress on the outer expression:
 
-   $C[\bforall{x}{e}] \rewrites C[\bforall{x}{\exists e' : Exp . e' \land ( C[e] \rewrites C[e'])))}]$ 
+    | $(\forall x : \Int . \lnot(e : \Bool) \land e : \Exp) \limplies$
+    |    $C[\bforall{x}{e}] \rewrites1 C[\bforall{x}{\exists e' : Exp . e' \land ( C[e] \rewrites1 C[e'])))}]$ 
 
-where $x \rewrites y \equiv x \in \next y$
+<!--
+    
+5.  The graph of the constant $\true$ function evaluates to $\true$:
 
+    $C[\bforall{x}{\true}] \rewrites1 C[true]$
 
-- Use booigie forall everywhere
-- 
+6.  If the graph contains any non-$\true$ Bool elements, then the expression evaluates to $\false$:
+
+    | $C[\bforall{x}{e}] \rewrites1 C[\false]$
+    |     if   $\extension [ x : \Int ] e \subseteq \exists x : \Int . \langle x, \true \lor \false \rangle$
+    |     and  $[ x : \Int ] e \neq [ x : \Int ] \true$
+
 - Prove that this is functional
-- Soundness
+
+  i.e. prove that
+ 
+- Soundness?
+
+-->
