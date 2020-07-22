@@ -563,17 +563,17 @@ procedure P()
          </k>
 ```
 
-When verifying a program, we don't need to run a program at its call site, we only need
-to
+```k
+    context call _ := _:Id(HOLE:ExprList) ;
+```
 
 ```verification
-    rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
-          => assert { :code "BP5002" } { :source "???", 0 }
-               substitute(Requires, IdsTypeWhereListToIdList(Args), ArgVals) ;
-          ~> freshen(X)
+    rule <k> call RetAssigns := ProcedureName:Id(ArgVals) ;
+          => assert { :code "BP5002" } { :source "???", 0 } substitute(Requires, IdsTypeWhereListToIdList(Args), ArgVals) ;
+          ~> freshen(RetAssigns)
           ~> assume .AttributeList substitute( Ensures
-                                             , IdsTypeWhereListToIdList(Args) ++IdList IdsTypeWhereListToIdList(Rets)
-                                             , ArgVals ++ExprList IdListToExprList(X)
+                                             , IdsTypeWhereListToIdList(Args) ++IdList   IdsTypeWhereListToIdList(Rets)
+                                             , ArgVals                        ++ExprList IdListToExprList(RetAssigns)
                                              ) ;
              ...
          </k>
@@ -582,13 +582,12 @@ to
          <rets> Rets </rets>
          <pres> Requires </pres>
          <posts> Ensures </posts>
+      requires isKResult(ArgVals)
 ```
 
 ```operational
-
-    context call X:IdList := HOLE ;
-    // rule <k> call X:IdList := Y:ExprList  => </k>
-
+    context call RetAssigns := (_:Id(ArgVals) #as HOLE) ;
+      requires isKResult(ArgVals)
     rule <k> ProcedureName:Id(ArgVals:ExprList) ~> K
           => makeDecls(IArgs) ++LocalVarDeclList
              makeDecls(IRets) ++LocalVarDeclList
@@ -615,6 +614,7 @@ to
             <irets> IRets </irets>
             <body> { VarList StartLabel: StmtList } </body>
          </impl>
+      requires isKResult(ArgVals)
 ```
 
 Inhabitants
