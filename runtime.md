@@ -593,6 +593,7 @@ procedure P()
              makeDecls(IRets) ++LocalVarDeclList
              VarList
              // TODO actually assign the values that were passed in
+             // TODO Add assertion for requires, remove assume
           ~> havoc .IdList ;
           ~> assume .AttributeList substitute(Requires, IdsTypeWhereListToIdList(PArgs), IdsTypeWhereListToExprList(IArgs) ) ;
           ~> StartLabel: StmtList
