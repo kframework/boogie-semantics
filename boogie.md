@@ -28,7 +28,7 @@ module BOOGIE
                     <runtime/>
                     <types>
                       <type multiplicity="*" type="Map">
-                          <typeName> #token("TypeName", "Id") </typeName>
+                          <typeName> #token("TypeName", "Id"):Type </typeName>
                           <uniques> .IdList </uniques>
                       </type>
                     </types>
@@ -56,7 +56,7 @@ Since `<type>` has `multiplicity="Map"` and the key for maps (i.e. the `<typeNam
 must be unique, multiple entries aren't created for each type.
 
 ```k
-    rule <k> const Attrs OptionalUnique _:Id : T ; ... </k>
+    rule <k> (const _:AttributeList _:OptionalUnique _:IdList : T:Type ;) ... </k>
          <types> .Bag
               => <type> <typeName> T </typeName> ... </type>
                  ...
