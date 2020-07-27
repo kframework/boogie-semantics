@@ -48,7 +48,7 @@ module BOOGIE
 TODO: We do not check if a type has been declared before being used yet.
 
 ```k
-    rule <k> type Attrs T:Id ; => .K ... </k>
+    rule <k> type _Attrs _T:Id ; => .K ... </k>
 ```
 
 When we first encounter a type , we create an entry in the list of types.
