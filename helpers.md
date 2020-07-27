@@ -68,5 +68,11 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax IdList ::= LocalVarDeclListToIdList(LocalVarDeclList) [function]
+    rule LocalVarDeclListToIdList(.LocalVarDeclList) => .IdList
+    rule LocalVarDeclListToIdList(var _:AttributeList Vs; Rest) => IdsTypeWhereListToIdList(Vs) ++IdList LocalVarDeclListToIdList(Rest)
+```
+
+```k
 endmodule
 ```

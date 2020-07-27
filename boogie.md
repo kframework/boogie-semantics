@@ -122,10 +122,8 @@ In the case of the verification semantics, we verify all procedures:
 
 ```verification
     rule <k> #start
-          => makeDecls(IArgs) ++LocalVarDeclList
-             makeDecls(IRets) ++LocalVarDeclList
-             VarList
-          ~> havoc .IdList ;
+          => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
+          ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
           ~> assume .AttributeList substitute(Requires, IdsTypeWhereListToIdList(PArgs), IdsTypeWhereListToExprList(IArgs) ) ;
           ~> StartLabel: StmtList
           ~> goto StartLabel;
@@ -141,7 +139,7 @@ In the case of the verification semantics, we verify all procedures:
             <implId> N </implId>
             <iargs> IArgs </iargs>
             <irets> IRets </irets>
-            <body> { VarList StartLabel: StmtList } </body>
+            <body> { VarDeclList StartLabel: StmtList } </body>
          </impl>
 ```
 
@@ -160,11 +158,8 @@ However, in the operational semantics we only execute the main procedure:
             ...
         </k>
 
-   rule <k> ( var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
-           ~> havoc Xs ;
-            )
+   rule <k> var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
          => Vs
-         ~> havoc Xs ++IdList X ;
             ...
         </k>
         <locals> (.Map => X:Id |-> value(inhabitants(T, Loc), T, Where)) Rho </locals>
