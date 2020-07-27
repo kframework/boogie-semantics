@@ -83,6 +83,17 @@ must be unique, multiple entries aren't created for each type.
        requires notBool( X in_keys(Rho) )
 ```
 
+Functions are constant maps:
+
+```k
+    rule <k> function Attrs F (X:Id : TX:Type, .IdsTypeList) : TR ;
+          => const Attrs .Nothing (F, .IdList) : ([TX]TR):Type ;
+             ...
+         </k>
+    rule <k> (F:Id (Args:ExprList) => F[Args]):Expr ... </k>
+
+```
+
 ### `unique`
 
 The `<uniques>` cell maintains a list of `unique` constants that are `assumed`
