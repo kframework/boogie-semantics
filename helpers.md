@@ -17,6 +17,13 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax StmtList ::= makeAssignments(IdList, ExprList) [function]
+    rule makeAssignments(.IdList, .ExprList) => .StmtList
+    rule makeAssignments((X , Xs), (V, Vs))
+      => X := V ; makeAssignments(Xs, Vs)
+```
+
+```k
     syntax StmtList ::= StmtList "++StmtList" StmtList [function, left, avoid]
     rule (S1 S1s) ++StmtList S2s => S1 (S1s ++StmtList S2s)
     rule .StmtList ++StmtList S2s => S2s
@@ -41,6 +48,12 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax IdsTypeList ::= IdsTypeList "++IdsTypeList" IdsTypeList [function, left, avoid]
+    rule (X1, X1s) ++IdsTypeList X2s => X1, (X1s ++IdsTypeList X2s)
+    rule .IdsTypeList ++IdsTypeList X2s => X2s
+```
+
+```k
     syntax Bool ::= Id "in" IdList [function]
     rule X in .IdList => false
     rule X in (X, Ys) => true
@@ -54,10 +67,22 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax IdList ::= IdsTypeListToIdList(IdsTypeList) [function]
+    rule IdsTypeListToIdList(.IdsTypeList) => .IdList
+    rule IdsTypeListToIdList(Xs : T, Rest) => Xs, IdsTypeListToIdList(Rest)
+```
+
+```k
     syntax IdList ::= IdsTypeWhereListToIdList(IdsTypeWhereList) [function]
     rule IdsTypeWhereListToIdList(.IdsTypeWhereList) => .IdList
-    rule IdsTypeWhereListToIdList(Xs : T            , Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
-    rule IdsTypeWhereListToIdList((Xs : T where Exp), Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
+    rule IdsTypeWhereListToIdList(Xs : T            , Rest) => Xs, IdsTypeWhereListToIdList(Rest)
+    rule IdsTypeWhereListToIdList((Xs : T where Exp), Rest) => Xs, IdsTypeWhereListToIdList(Rest)
+```
+
+```k
+    syntax IdsTypeWhereList ::= IdsTypeListToIdsTypeWhereList(IdsTypeList) [function]
+    rule IdsTypeListToIdsTypeWhereList(.IdsTypeList) => .IdsTypeWhereList
+    rule IdsTypeListToIdsTypeWhereList(Xs : T            , Rest) => Xs : T, IdsTypeListToIdsTypeWhereList(Rest)
 ```
 
 ```k
@@ -65,6 +90,13 @@ module BOOGIE-HELPERS
     rule IdsTypeWhereListToExprList(.IdsTypeWhereList) => .ExprList
     rule IdsTypeWhereListToExprList(Xs : T            , Rest) => Xs ++ExprList IdsTypeWhereListToExprList(Rest)
     rule IdsTypeWhereListToExprList((Xs : T where Exp), Rest) => Xs ++ExprList IdsTypeWhereListToExprList(Rest)
+```
+
+```k
+    syntax IdsTypeList ::= IdsTypeWhereListToIdsTypeList(IdsTypeWhereList) [function]
+    rule IdsTypeWhereListToIdsTypeList(.IdsTypeWhereList) => .IdsTypeList
+    rule IdsTypeWhereListToIdsTypeList(Xs : T            , Rest) => Xs : T ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rest)
+    rule IdsTypeWhereListToIdsTypeList((Xs : T where Exp), Rest) => Xs : T ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rest)
 ```
 
 ```k

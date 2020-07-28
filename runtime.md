@@ -5,7 +5,6 @@ module BOOGIE-RUNTIME
     imports syntax BOOGIE-PROCEDURES
     imports BOOGIE-RULE-SYNTAX
     imports BOOGIE-HELPERS
-    imports BOOGIE-SUBSTITUTION
     imports MAP
     imports INT
     imports ID
@@ -136,6 +135,30 @@ module BOOGIE-RUNTIME
     context (_:ValueExpr, HOLE):ExprList
 ```
 
+### Lambdas
+
+```k
+    context _:LambdaExpr [ HOLE ]
+    syntax ValueExpr ::= LambdaExpr
+    rule <k> (lambda Bound :: Exp)[Vals]
+          => makeDecls(IdsTypeListToIdsTypeWhereList(Bound))
+          ~> makeAssignments(IdsTypeListToIdList(Bound), Vals)
+          ~> restoreLocals(Exp, Locals)
+             ...
+         </k>
+         <locals> Locals </locals>
+      requires isKResult(Vals)
+```
+
+TODO: Done in this strange way because of https://github.com/kframework/kore/issues/2023
+
+```k
+    syntax KItem ::= restoreLocals(Expr, Map) [strict(1)]
+    rule <k> restoreLocals(E:ValueExpr, Locals) => E ... </k>
+         <locals> _ => Locals </locals>
+```
+
+
 ### 4.3 Old expressions
 
 ```k
@@ -156,12 +179,10 @@ We alpha-rename the quantified variable with a fresh one.
 
 ```k
     rule <k> (#forall X : T :: Expr)
-          => var .AttributeList freshId(N) : T ; .LocalVarDeclList
-          ~> havoc freshId(N);
-          ~> substituteSingle(Expr, X, freshId(N))
+          => (lambda X : T :: Expr)[ inhabitants(T, FreshInt) ]
              ...
          </k>
-         <freshCounter> N => N +Int 1 </freshCounter>
+         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
 ```
 
 7 Mutable Variables, states, and execution traces
@@ -510,10 +531,9 @@ procedure P()
 ```k
     rule <k> return ; ~> _
           => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc, CurrentImpl }
-                     substitute( Ensures
-                               , IdsTypeWhereListToIdList(PArgs) ++IdList IdsTypeWhereListToIdList(PRets)
-                               , IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets)
-                               ) ;
+                     (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
+                          :: Ensures
+                     ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
          </k>
          <currentImpl> CurrentImpl </currentImpl>
          <procName> CurrentProc </procName>
@@ -542,12 +562,11 @@ procedure P()
 
     rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
           => assert { :code "BP5002" } { :source "???", 0 }
-               substitute(Requires, IdsTypeWhereListToIdList(Args), ArgVals) ;
+               (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
           ~> freshen(X)
-          ~> assume .AttributeList substitute( Ensures
-                                             , IdsTypeWhereListToIdList(Args) ++IdList IdsTypeWhereListToIdList(Rets)
-                                             , ArgVals ++ExprList IdListToExprList(X)
-                                             ) ;
+          ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
+                                         :: Ensures )
+                                   [ ArgVals ++ExprList IdListToExprList(X) ] ;
              ...
          </k>
          <procName> ProcedureName </procName>

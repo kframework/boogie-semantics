@@ -24,7 +24,7 @@ def build(alias):
     selector = 'k | ' + alias
     return proj.definition( alias         = alias
                           , main          = 'boogie.md'
-                          , other         = ['syntax.md', 'nothing.md', 'substitution.md', 'procedures.md', 'helpers.md', 'runtime.md']
+                          , other         = ['syntax.md', 'nothing.md', 'procedures.md', 'helpers.md', 'runtime.md']
                           , backend       = 'haskell'
                           , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --emit-json --md-selector "%s"' % selector
                           )

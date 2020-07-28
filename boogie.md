@@ -3,7 +3,6 @@ Boogie Semantics
 
 ```k
 requires "syntax.md"
-requires "substitution.md"
 requires "procedures.md"
 requires "runtime.md"
 requires "helpers.md"
@@ -18,7 +17,6 @@ module BOOGIE
     imports BOOGIE-FRESH-COUNTER
     imports BOOGIE-PROCEDURES
     imports BOOGIE-RUNTIME
-    imports BOOGIE-SUBSTITUTION
     imports BOOGIE-HELPERS
     imports INT
     imports MAP
@@ -135,7 +133,7 @@ In the case of the verification semantics, we verify all procedures:
     rule <k> #start
           => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
           ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
-          ~> assume .AttributeList substitute(Requires, IdsTypeWhereListToIdList(PArgs), IdsTypeWhereListToExprList(IArgs) ) ;
+          ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)] ;
           ~> StartLabel: StmtList
           ~> goto StartLabel;
          </k>
@@ -176,6 +174,13 @@ However, in the operational semantics we only execute the main procedure:
         <locals> (.Map => X:Id |-> value(inhabitants(T, Loc), T, Where)) Rho </locals>
         <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
      requires notBool( X in_keys(Rho) )
+     
+   rule <k> var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
+         => Vs
+            ...
+        </k>
+        <locals> X |-> (_ => value(inhabitants(T, Loc), T, Where)) ... </locals>
+        <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
 ```
 
 ```k

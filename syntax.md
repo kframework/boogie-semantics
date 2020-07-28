@@ -84,6 +84,7 @@ TODO: Signature should allow "returns" syntax
                   | old(Expr)
                   | "(" "forall" IdsTypeList "::" Expr ")"
                   | "(" "#forall" Id ":" Type "::" Expr ")" // TODO: This shouldn't be exposed to parser
+                  | LambdaExpr
                   | "if" Expr "then" Expr "else" Expr // TODO: deal with ambiguities for nested ITEs
                   > Expr MapOp
                   > UnOp Expr
@@ -94,6 +95,7 @@ TODO: Signature should allow "returns" syntax
                   | Expr AndOp   Expr [left]
                   > Expr ImplOp  Expr [left]
                   > Expr EquivOp Expr [left]
+    syntax LambdaExpr ::= "(" "lambda" IdsTypeList "::" Expr ")"
     syntax MapOp ::= "[" ExprList "]"             // Lookup
                    | "[" ExprList ":=" Expr "]"   // Update
 
