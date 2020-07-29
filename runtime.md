@@ -171,16 +171,15 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
          <locals> _ => Locals </locals>
 ```
 
-
 ### 4.3 Old expressions
 
 ```k
-    rule <k> old(E) => E ~> #endOld(Globals) ... </k>
+    rule <k> old(E) => E ~> restoreGlobals(Globals) ... </k>
          <globals> Globals => Olds </globals>
          <olds> Olds </olds>
 
-    syntax KItem ::= "#endOld" "(" Map ")"
-    rule <k> E:ValueExpr ~> (#endOld(Globals) => .K) ... </k>
+    syntax KItem ::= restoreGlobals(Map)
+    rule <k> E:ValueExpr ~> (restoreGlobals(Globals) => .K) ... </k>
          <globals> _ => Globals </globals>
 ```
 
