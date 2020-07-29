@@ -17,7 +17,7 @@ module BOOGIE-COMMON-SYNTAX
 
 ```k
     syntax Program ::= DeclList
-    syntax DeclList   ::= List{Decl, ""} [klabel(DeclList)]
+    syntax DeclList   ::= List{Decl, ""} [klabel(DeclList), symbol]
     syntax Decl    ::= VarDecl
                      | ConstantDecl
                      | FunctionDecl
@@ -83,7 +83,7 @@ TODO: Signature should allow "returns" syntax
                   | "(" Expr ")" [bracket]
                   | old(Expr)
                   | "(" "forall" IdsTypeList "::" Expr ")"
-                  | "(" "#forall" Id ":" Type "::" Expr ")" // TODO: This shouldn't be exposed to parser
+                  | "(" "#forall" Id ":" Type "::" Expr ")" [klabel(forall), symbol] // TODO: This shouldn't be public
                   | LambdaExpr
                   | "if" Expr "then" Expr "else" Expr // TODO: deal with ambiguities for nested ITEs
                   > Expr MapOp

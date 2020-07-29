@@ -185,18 +185,6 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 
 ### 4.4 Logical quantifiers
 
-TODO: HACK: WARNING: This is only sound when used in the context of a post condition.
-It is unsound when used in an assume statement.
-We alpha-rename the quantified variable with a fresh one.
-
-```k
-    rule <k> (#forall X : T :: Expr)
-          => (lambda X : T :: Expr)[ inhabitants(T, FreshInt) ]
-             ...
-         </k>
-         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
-```
-
 7 Mutable Variables, states, and execution traces
 -------------------------------------------------
 
