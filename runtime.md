@@ -254,14 +254,15 @@ We alpha-rename the quantified variable with a fresh one.
 
 ```k
     context _:LhsList := HOLE ;
-    rule (X:Lhs, X2:Lhs, Xs:LhsList := Y:Expr, Y2:Expr, Ys:ExprList ;):StmtList =>
-        X := Y, .ExprList ; X2 := Y2, .ExprList ; Xs := Ys ; [structural]
 
-    rule .LhsList := .ExprList ; => .K [structural]
+    rule <k> .LhsList := .ExprList ; => .K ... </k>
+    rule <k> X, Xs := V:ValueExpr, Vs ; => X := V, .ExprList ; ~> Xs := Vs ; ... </k>
+      requires isKResult(Vs)
+```
 
+```k
     rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
          <locals> X |-> value(... value: _ => V) ... </locals>
-
     rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
          <locals> Env </locals>
          <globals> X |-> value(... value: _ => V) ... </globals>
