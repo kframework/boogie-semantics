@@ -556,10 +556,9 @@ procedure P()
 ```verification
     rule <k> return ; ~> _
           => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc, CurrentImpl }
-                     substitute( Ensures
-                               , IdsTypeWhereListToIdList(PArgs) ++IdList IdsTypeWhereListToIdList(PRets)
-                               , IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets)
-                               ) ;
+                     (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
+                          :: Ensures
+                     ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
          </k>
          <currentImpl> CurrentImpl </currentImpl>
          <procName> CurrentProc </procName>
@@ -656,7 +655,7 @@ Can we figure out a way to not duplicate code?
              // TODO havoc all the local variables just in case they are used without being initialized?
           ~> havoc .IdList ;
           ~> IdListToLhsList(IdsTypeWhereListToIdList(IArgs)) := ArgVals ;
-          ~> assert .AttributeList substitute(Requires, IdsTypeWhereListToIdList(PArgs), IdsTypeWhereListToExprList(IArgs) ) ;
+          ~> assert .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)];
           ~> StartLabel: StmtList
           ~> goto StartLabel;
          </k>
