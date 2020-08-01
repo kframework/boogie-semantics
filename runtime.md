@@ -553,27 +553,9 @@ procedure P()
 9.6 Return statements
 ---------------------
 
-```verification
-    rule <k> return ; ~> _
-          => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc, CurrentImpl }
-                     (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
-                          :: Ensures
-                     ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
-         </k>
-         <currentImpl> CurrentImpl </currentImpl>
-         <procName> CurrentProc </procName>
-         <iargs> IArgs </iargs>
-         <irets> IRets </irets>
-         <implId> CurrentImpl </implId>
-         <posts> Ensures </posts>
-         <args> PArgs </args>
-         <rets> PRets </rets>
-```
+When returning, we first `assert` that the post condition holds:
 
-TODO: this first rule is identical to the one above except for the ~> #return stuff at the end.
-Can we figure out a way to not duplicate code?
-
-```operational
+```k
     syntax KItem ::= "#return" ExprList
     rule <k> return ; ~> _
           => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc, CurrentImpl }
@@ -590,25 +572,28 @@ Can we figure out a way to not duplicate code?
          <posts> Ensures </posts>
          <args> PArgs </args>
          <rets> PRets </rets>
-
-    context #return HOLE
-    rule <k> #return X, Xs:ExprList => X, Xs ~> K </k>
-         <currentImpl> _ => N </currentImpl>
-         <procName> CurrentProc </procName>
-         <implStack> ListItem((N, K:K, Olds:Map, Locals:Map, Labels:Map)) => .List ... </implStack>
-         <olds> _ => Olds </olds>
-         <locals> _ => Locals </locals>
-         <labels> _ => Labels </labels>
-      requires isKResult(X ++ExprList Xs)
-
-    rule <k> #return .ExprList => K </k>
-         <currentImpl> _ => N </currentImpl>
-         <procName> CurrentProc </procName>
-         <implStack> ListItem((N, K:K, Olds:Map, Locals:Map, Labels:Map)) => .List ... </implStack>
-         <olds> _ => Olds </olds>
-         <locals> _ => Locals </locals>
-         <labels> _ => Labels </labels>
 ```
+
+and (for the operational semantics) pop the stack frame:
+
+```operational
+    context #return HOLE
+    rule <k> #return Rets => Rets ~> K </k>
+         <currentImpl> _ => N </currentImpl>
+         <procName> CurrentProc </procName>
+         <implStack> ListItem((N, K:K, Olds:Map, Locals:Map, Labels:Map)) => .List ... </implStack>
+         <olds> _ => Olds </olds>
+         <locals> _ => Locals </locals>
+         <labels> _ => Labels </labels>
+      requires isKResult(Rets)
+```
+
+In the verification, we simply throw away the return values: all assertion have succeeded:
+
+```verification
+    rule <k> #return _ => .K ... </k>
+```
+
 
 9.7 If statements
 -----------------
