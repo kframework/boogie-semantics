@@ -627,9 +627,6 @@ Can we figure out a way to not duplicate code?
          </k>
 ```
 
-When verifying a program, we don't need to run a program at its call site, we only need
-to
-
 ```verification
     rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
           => assert { :code "BP5002" } { :source "???", 0 }
