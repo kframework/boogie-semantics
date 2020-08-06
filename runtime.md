@@ -256,8 +256,12 @@ We alpha-rename the quantified variable with a fresh one.
     context _:LhsList := HOLE ;
 
     rule <k> .LhsList := .ExprList ; => .K ... </k>
-    rule <k> X, Xs := V:ValueExpr, Vs ; => X := V, .ExprList ; ~> Xs := Vs ; ... </k>
-      requires isKResult(Vs)
+    rule <k> (X, Xs:LhsList) := (V:ValueExpr, Vs:ExprList) ;
+          => X := V, .ExprList ;
+          ~> Xs := Vs ;
+             ...
+         </k>
+      requires isKResult(Vs) andBool Xs =/=K .LhsList
 ```
 
 ```k
