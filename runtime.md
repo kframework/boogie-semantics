@@ -312,14 +312,18 @@ type.
 
 ```k
     syntax KItem ::= #collectLabel(Id, StmtList)
-    rule <k> Id:  => #collectLabel(Id, .StmtList) ... </k>
     rule <k> (#collectLabel(L, S1s) ~> S2:Stmt S2s:StmtList)
           => (#collectLabel(L, S1s ++StmtList S2 .StmtList) ~> S2s)
              ...
          </k>
       requires S2 =/=K cutpoint;
-    rule <k> (#collectLabel(L, S1s) => .K)
-          ~> (L2: _S2 _S2s:StmtList) #Or .StmtList
+    rule <k> (#collectLabel(L1, S1s)       ~> L2: S2s:StmtList)
+          => (#collectLabel(L2, .StmtList) ~> S2s:StmtList)
+             ...
+         </k>
+         <labels> (.Map => L1 |-> S1s) Labels </labels>
+    rule <k> (#collectLabel(L, S1s) ~> .StmtList)
+          => .K
              ...
          </k>
          <labels> (.Map => L |-> S1s) Labels </labels>
@@ -649,7 +653,7 @@ In the verification, we simply throw away the return values: all assertion have 
           ~> havoc .IdList ;
           ~> IdListToLhsList(IdsTypeWhereListToIdList(IArgs)) := ArgVals ;
           ~> assert .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)];
-          ~> StartLabel: StmtList
+          ~> #collectLabel(StartLabel, .StmtList) ~> StmtList
           ~> goto StartLabel;
          </k>
          <implStack> .List => ListItem((CurrentImpl, K:K, Olds:Map, Locals:Map, Labels:Map)) ... </implStack>
