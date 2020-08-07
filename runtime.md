@@ -600,9 +600,8 @@ and (for the operational semantics) pop the stack frame:
 In the verification, we simply throw away the return values: all assertion have succeeded:
 
 ```verification
-    rule <k> #return _ => .K ... </k>
+    rule <k> (#return Rets ~> K:K) => .K </k>
 ```
-
 
 9.7 If statements
 -----------------
