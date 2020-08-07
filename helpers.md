@@ -20,7 +20,7 @@ module BOOGIE-HELPERS
     syntax StmtList ::= makeAssignments(IdList, ExprList) [function]
     rule makeAssignments(.IdList, .ExprList) => .StmtList
     rule makeAssignments((X , Xs), (V, Vs))
-      => X := V ; makeAssignments(Xs, Vs)
+      => X := V, .ExprList ; makeAssignments(Xs, Vs)
 ```
 
 ```k
