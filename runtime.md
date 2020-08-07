@@ -635,7 +635,10 @@ In the verification, we simply throw away the return values: all assertion have 
 
 ```operational
     syntax AssignRhs ::= "#call" Id "(" ExprList ")"
-    rule call Xs:IdList := ProcedureName:Id(ArgVals:ExprList) ; => IdListToLhsList(Xs) := #call ProcedureName(ArgVals) ;
+    rule <k> call Xs:IdList := ProcedureName:Id(ArgVals:ExprList) ;
+          => IdListToLhsList(Xs) := #call ProcedureName(ArgVals) ;
+             ...
+         </k>
 
     context #call _:Id(HOLE:ExprList)
     rule <k> #call ProcedureName:Id(ArgVals:ExprList) ~> K
