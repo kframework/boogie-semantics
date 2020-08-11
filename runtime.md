@@ -185,6 +185,23 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 
 ### 4.4 Logical quantifiers
 
+```k
+   syntax Expr ::= "(" "forallbinder"       ValueExpr "::" Expr ")"  [klabel(forallbinder)      , symbol]
+                 | "(" "forallbinderheated" ValueExpr "::" Expr ")"  [klabel(forallbinderheated), symbol, strict(2)]
+                 | "(" "forallbindercooled" ValueExpr "::" Expr ")"  [klabel(forallbindercooled), symbol, strict(2)]
+   syntax Bool ::= smtforall(Int, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
+
+    rule <k> (#forall X : int :: Expr)
+          => (forallbinder ?I:Int :: (lambda X : int :: Expr)[?I:Int])
+             ...
+         </k>
+
+    rule <k> (forallbindercooled V :: B)
+          => smtforall(V, B)
+             ...
+         </k>
+```
+
 7 Mutable Variables, states, and execution traces
 -------------------------------------------------
 

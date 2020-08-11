@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eu
+basedir=$(cd $(dirname $0); cd ..; pwd)
+PATH="$basedir/ext/k/k-distribution/target/release/k/bin/:$PATH"
+
+definition=$1; shift
+program=$1; shift
+
+mkdir -p "$(pwd)/.build/tmp/"
+working_dir=$(mktemp -d $(pwd)/.build/tmp/boogie-driver-XXXXXX)
+
+bin/kboogie --infer-only $program > "$working_dir/infered"
+krun --directory "$definition" --output kore --depth 0 --search-final "$working_dir/infered"  > "$working_dir/initconfig"
+krun --directory $basedir/.build/defn/driver/ "$working_dir/initconfig" -cDefinition=\"$definition\" -cWorkingDir=\"$working_dir\" "$@"
