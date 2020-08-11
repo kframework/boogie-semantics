@@ -156,7 +156,9 @@ However, in the operational semantics we only execute the main procedure:
 
 ```operational
     syntax Id ::= "main" [token]
-    rule <k> #start => #call main(.ExprList) ... </k>
+    syntax KItem ::= "#dropReturnValue"
+    rule <k> #start => #call main(.ExprList) ~> #dropReturnValue ... </k>
+    rule <k> (_:ExprList ~> #dropReturnValue) => .K ... </k>
 ```
 
 ```k
