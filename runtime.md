@@ -129,7 +129,7 @@ module BOOGIE-RUNTIME
     rule <k> select(S, map(Id)) => lookupMap(Id, S) ... </k>
 
     // Uninterpreted function
-    syntax Int ::= lookupMap(mapId: Int, key: Int) [function, functional, smtlib(lookupMap), no-evaluators]
+    syntax Int ::= lookupMap(mapId: Int, key: ExprList) [function, functional, smtlib(lookupMap), no-evaluators]
 ```
 
 #### Update
