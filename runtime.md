@@ -618,6 +618,7 @@ In the verification, we simply throw away the return values: all assertion have 
 ```
 
 ```verification
+    context call X:IdList := ProcedureName:Id(HOLE) ;
     rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
           => assert { :code "BP5002" } { :source "???", 0 }
                (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
@@ -632,6 +633,7 @@ In the verification, we simply throw away the return values: all assertion have 
          <rets> Rets </rets>
          <pres> Requires </pres>
          <posts> Ensures </posts>
+      requires isKResult(ArgVals)
 ```
 
 ```operational
@@ -669,7 +671,7 @@ In the verification, we simply throw away the return values: all assertion have 
             <irets> IRets </irets>
             <body> { VarList StartLabel: StmtList } </body>
          </impl>
-         requires isKResult(ArgVals)
+      requires isKResult(ArgVals)
 ```
 
 Inhabitants

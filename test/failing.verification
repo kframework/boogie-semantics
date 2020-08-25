@@ -1,7 +1,3 @@
-# Not sure why they're not passing, looks like a whitespace issue in the diff?
-test/operational/control-flow/while-no-invar.bpl
-test/operational/control-flow/square-proc.bpl
-
 test/verification/test2/Arrays.bpl                           # Uses too much RAM; passes when split into multiple smaller tests
 # Unimplemented
 # -------------
