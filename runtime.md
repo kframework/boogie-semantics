@@ -243,9 +243,8 @@ We alpha-rename the quantified variable with a fresh one.
 
 ```k
     context assume _ HOLE ;
-    rule <k> assume _ true ;      => .K ... </k>
-    rule <k> assume _ false; ~> K => .K </k>
-         <locals> _ => .Map </locals>
+    rule <k> assume _ true ; => .K      ... </k>
+    rule <k> assume _ false; => #Bottom ... </k>
 ```
 
 9.3 Assignments
