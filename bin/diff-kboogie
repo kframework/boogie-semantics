@@ -15,7 +15,7 @@ actual   = sys.argv.pop(0)
 Error = namedtuple('Error', ['code', 'file', 'line', 'column', 'message'])
 
 def parse_errors(line):
-    match = re.search(r'([^\(]*)\((\d*),(\d*)\): Error ([\w\d]*): (.*)$', line)
+    match = re.search(r'^([^\(]*)\((\d*),(\d*)\): Error ([\w\d]*): (.*)$', line)
     if not match: return None
     return Error( file = match.group(1)
                 , line = match.group(2)
