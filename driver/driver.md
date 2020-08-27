@@ -215,6 +215,7 @@ Forall:
     rule setKCell(\equals { S1, S2 } ( P1, P2 )        , KCell ) => \equals { S1, S2 } ( setKCell(P1, KCell), setKCell(P2, KCell))
     rule setKCell(inj{ S1, S2 } (P)                    , KCell ) => inj { S1, S2 } ( setKCell(P, KCell) )
     rule setKCell(\not{ S1 } (P)                       , KCell ) => \not{ S1 } ( setKCell(P, KCell) )
+    rule setKCell(\top{ S1 } ()                        ,_KCell ) => \top{ S1 } ( )
     rule setKCell(\dv{ S } (P)                         ,_KCell ) => \dv{ S } (P)
     rule setKCell(S : Sort                             ,_KCell ) => S : Sort
 
