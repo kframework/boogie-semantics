@@ -1,12 +1,15 @@
 ```k
+requires "substitution.md"
+
 module KORE
     imports STRING-SYNTAX
+    imports KVAR-SYNTAX
 
-    syntax Name ::= r"[A-Za-z'-][A-Za-z'0-9-]*" [token]
-    syntax Sort ::= Name "{" "}"
-    syntax Symbol ::= Name "{" "}"
+    syntax KVar ::= r"[A-Za-z'-][A-Za-z'0-9-]*" [token]
+    syntax Sort ::= KVar "{" "}"
+    syntax Symbol ::= KVar "{" "}"
     syntax Pattern ::= "\\dv" "{" Sort "}" "(" String ")"                           [klabel(\dv)]
-                     | Name ":" Sort                                                [klabel(variable)]
+                     | KVar ":" Sort                                                [klabel(variable)]
                      | Symbol "(" Patterns ")"                                      [klabel(application)]
                      | "\\not" "{" Sort "}" "(" Pattern ")"                          [klabel(\not)]
                      | "inj" "{" Sort "," Sort "}" "(" Pattern ")"                  [klabel(inj)]
@@ -26,7 +29,7 @@ module KORE-UNPARSE
 
     syntax String ::= unparsePattern(Pattern) [function, functional]
     rule unparsePattern(\equals { S1 , S2 } (P1, P2)) => "\\equals{" +String unparseSort(S1) +String "," +String unparseSort(S2)  +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
-    rule unparsePattern(Name : Sort)                  => NameToString(Name) +String ":" +String unparseSort(Sort)
+    rule unparsePattern(KVar : Sort)                  => NameToString(KVar) +String ":" +String unparseSort(Sort)
     rule unparsePattern(\dv { S } (Value))            => "\\dv{" +String unparseSort(S)  +String "} (\"" +String Value +String "\")"
     rule unparsePattern(\top { S } ())                => "\\top{" +String unparseSort(S)  +String "} ()"
     rule unparsePattern(inj { S1 , S2 } (P1))         => "inj{" +String unparseSort(S1) +String "," +String unparseSort(S2)  +String "} (" +String unparsePattern(P1) +String ")"
@@ -38,13 +41,13 @@ module KORE-UNPARSE
     rule unparsePattern(\or { S1 } (P1, P2))
       => "\\or{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
 
-    syntax String ::= NameToString(Name) [function, functional, hook(STRING.token2string)]
+    syntax String ::= NameToString(KVar) [function, functional, hook(STRING.token2string)]
 
     syntax String ::= unparseSort(Sort) [function, functional]
-    rule unparseSort(Name {}) => NameToString(Name) +String "{}"
+    rule unparseSort(KVar {}) => NameToString(KVar) +String "{}"
 
     syntax String ::= unparseSymbol(Symbol) [function, functional]
-    rule unparseSymbol(Name {}) => NameToString(Name) +String "{}"
+    rule unparseSymbol(KVar {}) => NameToString(KVar) +String "{}"
 
     syntax String ::= unparsePatterns(Patterns) [function, functional]
     rule unparsePatterns(P, Ps) => unparsePattern(P) +String "," +String unparsePatterns(Ps) requires notBool Ps ==K .Patterns
@@ -60,6 +63,7 @@ module DRIVER
     imports K-IO
     imports K-REFLECTION
     imports LIST
+    imports SUBSTITUTION
 ```
 
 ```k
@@ -99,7 +103,7 @@ We convert this to a constrained confiuration:
 ```
 
 ```k
-    syntax Name ::= "SortK" [token]
+    syntax KVar ::= "SortK" [token]
                   | "SortKItem" [token]
                   | "VarResult" [token]
                   | "kseq" [token]
@@ -113,10 +117,8 @@ We convert this to a constrained confiuration:
     rule (P, (Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Config), Ps)
       => Config, P, Ps [anywhere]
 
-    rule <k> Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Pgm
-          => \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}())
-             ...
-         </k>
+    rule <k> Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Pgm => \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}()) ... </k>
+    rule <k> _ ~> (Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Pgm => \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}())) ... </k>
 ```
 
 Search
@@ -131,7 +133,7 @@ We perform a depth first search over branches:
 For each constrained configuration, we triage according to the content of the `<k>` cell:
 
 ```k
-    syntax Name ::= "Lbl'-LT-'generatedTop'-GT-'" [token]
+    syntax KVar ::= "Lbl'-LT-'generatedTop'-GT-'" [token]
     rule <k> \and { SortGeneratedTopCell { } }(Lbl'-LT-'generatedTop'-GT-' { } (_) #as Config, _Constraints) #as ConstrainedConfiguration
           => triage(getKCell(Config), ConstrainedConfiguration)
              ...
@@ -144,11 +146,11 @@ For each constrained configuration, we triage according to the content of the `<
 
 ```k
     syntax KItem ::= "init"
-    rule <k> triage(_, Pgm) ~> init => exec(Pgm) ... </k>
+    rule <k> triage(_, Pgm)  ~> init => exec(Pgm) ... </k>
 ```
 
 ```k
-    syntax Name ::= "SortString" [token]
+    syntax KVar ::= "SortString" [token]
                   | "Lbl'Hash'failure" [token]
     rule <k> triage(kseq{ } ( Lbl'Hash'failure { } ( \dv { SortString { } } ( Message ) ), _) , Pgm) => .K ... </k>
          <out> ... .List
@@ -173,10 +175,11 @@ Succeeded:
 Forall:
 
 ```k
-    syntax Name ::= "Lblforallbinder"       [token]
+    syntax KVar ::= "Lblforallbinder"       [token]
                   | "Lblforallbinderheated" [token]
                   | "Lblforallbindercooled" [token]
-                  | "SortExpr"        [token]
+                  | "SortExpr"              [token]
+                  | "SortBool"              [token]
     syntax KItem ::= forallFreezer(kcellRest: Pattern, config: Pattern)
     rule <k> triage(kseq{ } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinder { } ( V, E )), Rest) , Pgm) => .K
           ~> exec(setKCell(Pgm, kseq{ } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated { } ( V, E )), dotk{}(.Patterns))))
@@ -191,6 +194,48 @@ Forall:
           => exec(setKCell(Pgm, kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbindercooled{}(V,inj{SortBool{},SortExpr{}}(E))),Rest)))
              ...
          </k> 
+    rule <k> (triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(_,inj{SortBool{},SortExpr{}}(_))), dotk{}(.Patterns)), _) #as Now)
+          ~> (\and { SortGeneratedTopCell { } } ( _, _ ) #as Next)
+          => (Next:KItem ~> Now:KItem)
+             ...
+         </k>
+
+    syntax KVar ::= "Lblite" [token]
+    // TODO: Why do we need alpha renaming?
+    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V1,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
+          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V2,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
+          => triage( kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V2,inj{SortBool{},SortExpr{}}(Lblite{}(PredicateToBooleanExpression(PathConditions1), E1[V1/V2], Lblite{}(PredicateToBooleanExpression(PathConditions2), E2, E2/*!!: Need Bottom here */) )))), dotk{}(.Patterns))
+                   , \and {GTC} (C, \top {GTC}())
+                   )
+             ...
+         </k>
+
+//    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V1,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
+//          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V2,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
+//          => "matched"
+//             ...
+//         </k>
+//     [owise]
+
+
+//    mlPredToBoolRules = [ (KApply('#Top', [])  , KToken('true', 'Bool'))
+//                        , (KApply('#Bottom', []) , KToken('false', 'Bool'))
+//                        , (KApply('#And'    , [KVariable('#V1'), KVariable('#V2')]) , KApply('_andBool_' , [KVariable('#V1'), KVariable('#V2')]))
+//                        , (KApply('#Or'     , [KVariable('#V1'), KVariable('#V2')]) , KApply('_orBool_'  , [KVariable('#V1'), KVariable('#V2')]))
+//                        , (KApply('#Not'    , [KVariable('#V1')])                   , KApply('notBool_'  , [KVariable('#V1')]))
+//                        , (KApply('#Equals' , [KVariable('#V1'), KVariable('#V2')]) , KApply('_==K_'     , [KVariable('#V1'), KVariable('#V2')]))
+//                        ]
+//
+    syntax Pattern ::= PredicateToBooleanExpression(Pattern) [function]
+    syntax KVar ::= "Lbl'Unds'andBool'Unds'"   [token]
+                  | "Lbl'Unds'orBool'Unds'"    [token]
+                  | "LblnotBool'Unds'"    [token]
+                  | "Lbl'UndsEqlsEqls'K'Unds'" [token]
+    rule PredicateToBooleanExpression(\not {_} (P)) => LblnotBool'Unds'{} (PredicateToBooleanExpression(P))
+    rule PredicateToBooleanExpression(\and {_} (E1, E2)) => Lbl'Unds'andBool'Unds'{} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
+    rule PredicateToBooleanExpression(\or {_} (E1, E2)) => Lbl'Unds'orBool'Unds'{} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
+    rule PredicateToBooleanExpression(\equals {S, _} (E1, E2)) => Lbl'UndsEqlsEqls'K'Unds'{} (inj{S, SortK{}}(E1), inj{S, SortK{}}(E2))
+    rule PredicateToBooleanExpression(\top {_} ()) => \dv{SortBool{}} ("true")
 ```
 
 ```k
@@ -223,7 +268,7 @@ Forall:
     rule setKCellPs((P, Ps), KCell) => setKCell(P, KCell), setKCellPs(Ps, KCell)
     rule setKCellPs(.Patterns, _) => .Patterns
     
-    syntax Name ::= "Lbl'-LT-'k'-GT-'" [token]
+    syntax KVar ::= "Lbl'-LT-'k'-GT-'" [token]
 ```
 
 ```k
@@ -244,6 +289,8 @@ To execute a configuration, we:
 
 ```k
     syntax KItem ::= exec(Pattern)
+    
+    rule <k> exec(\and{_}(Pgm, \top{_}())) => exec(Pgm) ... </k>
     rule <k> exec(Config)
           => write-to-file(unparsePattern(Config), #open(WD +String "/" +String Int2String(!I) +String ".input", "w"))
           ~> kore-exec(path:                             WD +String "/" +String Int2String(!I)                       )
@@ -251,6 +298,7 @@ To execute a configuration, we:
              ...
          </k>
          <workingDir> WD </workingDir>
+      [owise]
 
     syntax KItem ::= "write-to-file" "(" contents: String "," fd: IOInt ")"
     rule <k> write-to-file(Str, Fd) => #write(Fd, Str) ~> close(Fd) ... </k>

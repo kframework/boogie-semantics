@@ -123,7 +123,6 @@ module BOOGIE-RUNTIME
     context (_:MapValue [ HOLE ]):Expr
 
     rule <k> (Map:MapValue [ Key ]):Expr => select(Key, Map) ...  </k> requires isKResult(Key)
-
     rule <k> select(Key, update(Key, Val, Map)) => Val ... </k>
     rule <k> select(S, update(Key, _, Map)) =>  select(S, Map) ... </k> requires Key =/=K S
     rule <k> select(S, map(Id)) => lookupMap(Id, S) ... </k>
@@ -186,20 +185,15 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 ### 4.4 Logical quantifiers
 
 ```k
-   syntax Expr ::= "(" "forallbinder"       ValueExpr "::" Expr ")"  [klabel(forallbinder)      , symbol]
-                 | "(" "forallbinderheated" ValueExpr "::" Expr ")"  [klabel(forallbinderheated), symbol, strict(2)]
-                 | "(" "forallbindercooled" ValueExpr "::" Expr ")"  [klabel(forallbindercooled), symbol, strict(2)]
-   syntax Bool ::= smtforall(Int, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
+    syntax Expr ::= "(" "forallbinder"       ValueExpr "::" Expr ")"  [klabel(forallbinder)      , symbol]
+                  | "(" "forallbinderheated" ValueExpr "::" Expr ")"  [klabel(forallbinderheated), symbol, strict(2)]
+                  | "(" "forallbindercooled" ValueExpr "::" Expr ")"  [klabel(forallbindercooled), symbol, strict(2)]
+    syntax Bool ::= smtforall(Int, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
 
-    rule <k> (#forall X : int :: Expr)
-          => (forallbinder ?I:Int :: (lambda X : int :: Expr)[?I:Int])
-             ...
-         </k>
-
-    rule <k> (forallbindercooled V :: B)
-          => smtforall(V, B)
-             ...
-         </k>
+    rule <k> (#forall X : int :: Expr) => (forallbinder ?I:Int :: (lambda X : int :: Expr)[?I:Int]) ... </k>
+// Note: There is an additional rule implemented at the meta level to for heating from forallbinder to forallbinderheated
+// and for cooling from forallbinderheated to forallbindercooled. 
+    rule <k> (forallbindercooled V :: B) => smtforall(V, B) ... </k>
 ```
 
 7 Mutable Variables, states, and execution traces
@@ -704,6 +698,14 @@ belongs where we define each data type.
          ?_:ValueExpr // TODO: Do we need something more structured?
          #fi #fi #fi
       [macro]
+```
+
+
+XXX
+---
+
+```k
+    syntax Bool ::= ite(Bool, Bool, Bool) [function, functional, smthook((ite #1 #2 #3)), no-evaluators, symbol, klabel(ite)]
 ```
 
 
