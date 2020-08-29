@@ -130,7 +130,7 @@ We perform a depth first search over branches:
     rule <k> \or { SortGeneratedTopCell { } }(P1, P2) => P1 ~> P2 ... </k>
 ```
 
-For each constrained configuration, we triage according to the content of the `<k>` cell:
+## For each constrained configuration, we triage according to the content of the `<k>` cell:
 
 ```k
     syntax KVar ::= "Lbl'-LT-'generatedTop'-GT-'" [token]
@@ -161,7 +161,7 @@ For each constrained configuration, we triage according to the content of the `<
          </out>
 ```
 
-Succeeded:
+## Succeeded:
 
 ```k
     rule <k> triage(dotk{}(.Patterns), Pgm) => .K ... </k>
@@ -172,7 +172,7 @@ Succeeded:
          </out>
 ```
 
-Forall:
+## Forall:
 
 ```k
     syntax KVar ::= "Lblforallbinder"       [token]
@@ -201,7 +201,6 @@ Forall:
          </k>
 
     syntax KVar ::= "Lblite" [token]
-    // TODO: Why do we need alpha renaming?
     rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V1,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
           ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V2,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
           => triage( kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V2,inj{SortBool{},SortExpr{}}(Lblite{}(PredicateToBooleanExpression(PathConditions1), E1[V1/V2], Lblite{}(PredicateToBooleanExpression(PathConditions2), E2, E2/*!!: Need Bottom here */) )))), dotk{}(.Patterns))
@@ -210,22 +209,6 @@ Forall:
              ...
          </k>
 
-//    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V1,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
-//          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V2,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
-//          => "matched"
-//             ...
-//         </k>
-//     [owise]
-
-
-//    mlPredToBoolRules = [ (KApply('#Top', [])  , KToken('true', 'Bool'))
-//                        , (KApply('#Bottom', []) , KToken('false', 'Bool'))
-//                        , (KApply('#And'    , [KVariable('#V1'), KVariable('#V2')]) , KApply('_andBool_' , [KVariable('#V1'), KVariable('#V2')]))
-//                        , (KApply('#Or'     , [KVariable('#V1'), KVariable('#V2')]) , KApply('_orBool_'  , [KVariable('#V1'), KVariable('#V2')]))
-//                        , (KApply('#Not'    , [KVariable('#V1')])                   , KApply('notBool_'  , [KVariable('#V1')]))
-//                        , (KApply('#Equals' , [KVariable('#V1'), KVariable('#V2')]) , KApply('_==K_'     , [KVariable('#V1'), KVariable('#V2')]))
-//                        ]
-//
     syntax Pattern ::= PredicateToBooleanExpression(Pattern) [function]
     syntax KVar ::= "Lbl'Unds'andBool'Unds'"   [token]
                   | "Lbl'Unds'orBool'Unds'"    [token]
