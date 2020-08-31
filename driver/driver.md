@@ -118,7 +118,13 @@ We convert this to a constrained confiuration:
       => Config, P, Ps [anywhere]
 
     rule <k> Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Pgm => \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}()) ... </k>
-    rule <k> _ ~> (Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Pgm => \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}())) ... </k>
+    rule <k> T:KItem
+          ~> Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Pgm
+          => ( T
+            ~> \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}())
+             )
+            ...
+         </k>
 ```
 
 Search
@@ -180,6 +186,7 @@ We perform a depth first search over branches:
                   | "Lblforallbindercooled" [token]
                   | "SortExpr"              [token]
                   | "SortBool"              [token]
+                  | "SortInt"               [token]
     syntax KItem ::= forallFreezer(kcellRest: Pattern, config: Pattern)
     rule <k> triage(kseq{ } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinder { } ( V, E )), Rest) , Pgm) => .K
           ~> exec(setKCell(Pgm, kseq{ } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated { } ( V, E )), dotk{}(.Patterns))))
@@ -199,26 +206,65 @@ We perform a depth first search over branches:
           => (Next:KItem ~> Now:KItem)
              ...
          </k>
+         
+    syntax KVar ::= freshVariable(Int) [function]
+    rule freshVariable(I) => String2KVar("VDriver" +String Int2String(!I))
 
     syntax KVar ::= "Lblite" [token]
-    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V1,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
-          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V2,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
-          => triage( kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V2,inj{SortBool{},SortExpr{}}(Lblite{}(PredicateToBooleanExpression(PathConditions1), E1[V1/V2], Lblite{}(PredicateToBooleanExpression(PathConditions2), E2, E2/*!!: Need Bottom here */) )))), dotk{}(.Patterns))
-                   , \and {GTC} (C, \top {GTC}())
+    // Be careful about chosing fresh variables from a domain that does not intersect with either K's, or kore-execs domains of choice.
+    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V1 : Sort ) ,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
+          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V2 : Sort ) ,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
+          => triage( kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( freshVariable(!I) : Sort )
+                   , inj{SortBool{},SortExpr{}} (
+                        Lblite{}(PredicateToBooleanExpression(PathConditions2[V2/freshVariable(!I)]), PredicateToBooleanExpression(E2[V2/freshVariable(!I)])
+                      , Lblite{}(PredicateToBooleanExpression(PathConditions1[V1/freshVariable(!I)]), PredicateToBooleanExpression(E1[V1/freshVariable(!I)])
+                      , \dv{SortBool{}} ("true") /*: this branch should be unsatisfiable */) )
+                      )
+                     )), dotk{}(.Patterns))
+                   , \and {GTC} (C, \or {GTC} (PathConditions1[V1/freshVariable(!I)], PathConditions2[V2/freshVariable(!I)]))
+                   )
+             ...
+         </k>
+      requires V1 =/=K V2
+
+    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
+          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
+          => triage( kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V : Sort )
+                   , inj{SortBool{},SortExpr{}} (
+                        Lblite{}(PredicateToBooleanExpression(PathConditions2), PredicateToBooleanExpression(E2)
+                      , Lblite{}(PredicateToBooleanExpression(PathConditions1), PredicateToBooleanExpression(E1)
+                      , \dv{SortBool{}} ("true") /*: this branch should be unsatisfiable */) )
+                      )
+                     )), dotk{}(.Patterns))
+                   , \and {GTC} (C, \or {GTC} (PathConditions1, PathConditions2))
                    )
              ...
          </k>
 
+
     syntax Pattern ::= PredicateToBooleanExpression(Pattern) [function]
-    syntax KVar ::= "Lbl'Unds'andBool'Unds'"   [token]
-                  | "Lbl'Unds'orBool'Unds'"    [token]
-                  | "LblnotBool'Unds'"    [token]
-                  | "Lbl'UndsEqlsEqls'K'Unds'" [token]
-    rule PredicateToBooleanExpression(\not {_} (P)) => LblnotBool'Unds'{} (PredicateToBooleanExpression(P))
-    rule PredicateToBooleanExpression(\and {_} (E1, E2)) => Lbl'Unds'andBool'Unds'{} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
-    rule PredicateToBooleanExpression(\or {_} (E1, E2)) => Lbl'Unds'orBool'Unds'{} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
-    rule PredicateToBooleanExpression(\equals {S, _} (E1, E2)) => Lbl'UndsEqlsEqls'K'Unds'{} (inj{S, SortK{}}(E1), inj{S, SortK{}}(E2))
+    syntax KVar ::= "Lbland"        [token]
+                  | "Lblor"         [token]
+                  | "Lblnot"    [token]
+                  | "LbleqInt"      [token]
+                  | "LbleqBool"     [token]
+                  
+                  | "Lbl'UndsEqlsEqls'Int'Unds'" [token]
+                  | "Lbl'UndsEqlsEqls'Bool'Unds'" [token]
+                  
+    rule PredicateToBooleanExpression(\not {_} (P)) => Lblnot{} (PredicateToBooleanExpression(P))
+    rule PredicateToBooleanExpression(\and {_} (E1, E2)) => Lbland{} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
+    rule PredicateToBooleanExpression(\or {_} (E1, E2)) => Lblor{} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
+    
+    rule PredicateToBooleanExpression(\equals {SortBool {}, _} (E1, \dv{SortBool{}} ("true"))) => PredicateToBooleanExpression((E1)) 
+    rule PredicateToBooleanExpression(\equals {SortBool {}, S} (E1, \dv{SortBool{}} ("false"))) => PredicateToBooleanExpression(\not{S}(E1)) 
+    rule PredicateToBooleanExpression(\equals {SortBool {}, _} (E1, E2)) => LbleqBool{} (E1, E2) [owise]
+    rule PredicateToBooleanExpression(\equals {SortInt {}, _} (E1, E2)) => LbleqInt{} (E1, E2)
+    rule PredicateToBooleanExpression(Lbl'UndsEqlsEqls'Int'Unds' {} (E1, E2)) => LbleqInt{} (E1, E2)
+    rule PredicateToBooleanExpression(Lbl'UndsEqlsEqls'Bool'Unds' {} (E1, E2)) => LbleqBool{} (E1, E2) [owise]
+    rule PredicateToBooleanExpression(S {} (Es)) => S {} (Es) [owise]
     rule PredicateToBooleanExpression(\top {_} ()) => \dv{SortBool{}} ("true")
+    rule PredicateToBooleanExpression(\dv{_} (_) #as DV) => DV
 ```
 
 ```k

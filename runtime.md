@@ -126,9 +126,11 @@ module BOOGIE-RUNTIME
     rule <k> select(Key, update(Key, Val, Map)) => Val ... </k>
     rule <k> select(S, update(Key, _, Map)) =>  select(S, Map) ... </k> requires Key =/=K S
     rule <k> select(S, map(Id)) => lookupMap(Id, S) ... </k>
+    rule <k> select((S1,S2), map(Id)) => lookupMap(Id, S1,S2) ... </k>
 
     // Uninterpreted function
-    syntax Int ::= lookupMap(mapId: Int, key: ExprList) [function, functional, smtlib(lookupMap), no-evaluators]
+    syntax Int ::= lookupMap(mapId: Int, key: Int)             [function, functional, smtlib(lookupMap1), no-evaluators]
+    syntax Int ::= lookupMap(mapId: Int, key1: Int, key2: Int) [function, functional, smtlib(lookupMap2), no-evaluators]
 ```
 
 #### Update
@@ -692,7 +694,7 @@ belongs where we define each data type.
 ```k
     syntax ValueExpr ::= inhabitants(Type, Int)
     rule inhabitants(T, FreshInt)
-      => #if T ==K int    #then ?_:Int               #else
+      => #if T ==K int    #then ?_:Int /* int(FreshInt) */       #else
          #if T ==K bool   #then ?_:Bool              #else
          #if isMapType(T) #then map(FreshInt)        #else
          ?_:ValueExpr // TODO: Do we need something more structured?
@@ -705,7 +707,14 @@ XXX
 ---
 
 ```k
-    syntax Bool ::= ite(Bool, Bool, Bool) [function, functional, smthook((ite #1 #2 #3)), no-evaluators, symbol, klabel(ite)]
+//    syntax Int ::= int(Int)             [function, functional, smtlib(freshInt), no-evaluators, klabel(freshInt), symbol]
+
+    syntax Bool ::= ite(Bool, Bool, Bool) [function, functional, smt-hook((ite #1 #2 #3)), no-evaluators, symbol, klabel(ite)]
+    syntax Bool ::= not(Bool)             [function, functional, smt-hook((not #1))      , no-evaluators, symbol, klabel(not)]
+    syntax Bool ::= and(Bool, Bool)       [function, functional, smt-hook((and #1 #2))   , no-evaluators, symbol, klabel(and)]
+    syntax Bool ::= or(Bool, Bool)        [function, functional, smt-hook((or #1 #2))    , no-evaluators, symbol, klabel(or)]
+    syntax Bool ::= eqInt(Int, Int)       [function, functional, smt-hook((= #1 #2))     , no-evaluators, symbol, klabel(eqInt)]
+    syntax Bool ::= eqBool(Bool, Bool)    [function, functional, smt-hook((= #1 #2))     , no-evaluators, symbol, klabel(eqBool)]
 ```
 
 
