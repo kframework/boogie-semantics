@@ -73,6 +73,13 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax TypeList ::= IdsTypeListToTypeList(IdsTypeList) [function]
+    rule IdsTypeListToTypeList(.IdsTypeList) => .TypeList
+    rule IdsTypeListToTypeList((X, Xs) : T, Rest) => T, IdsTypeListToTypeList(Xs : T, Rest)
+    rule IdsTypeListToTypeList(.IdList : T, Rest) => IdsTypeListToTypeList(Rest)
+```
+
+```k
     syntax IdList ::= IdsTypeWhereListToIdList(IdsTypeWhereList) [function]
     rule IdsTypeWhereListToIdList(.IdsTypeWhereList) => .IdList
     rule IdsTypeWhereListToIdList(Xs : T            , Rest) => Xs, IdsTypeWhereListToIdList(Rest)

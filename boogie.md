@@ -90,8 +90,8 @@ must be unique, multiple entries aren't created for each type.
 Functions are constant maps:
 
 ```k
-    rule <k> function Attrs F (X:Id : TX:Type, .IdsTypeList) : TR ;
-          => const Attrs .Nothing (F, .IdList) : ([TX]TR):Type ;
+    rule <k> function Attrs F (IdsTypeList) : TR ;
+          => const Attrs .Nothing (F, .IdList) : ([IdsTypeListToTypeList(IdsTypeList)]TR):Type ;
              ...
          </k>
     rule <k> (F:Id (Args:ExprList) => F[Args]):Expr ... </k>
