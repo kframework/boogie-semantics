@@ -43,6 +43,12 @@ module BOOGIE
 2 Types
 -------
 
+TODO: Type synonyms are ignored
+
+```k
+    rule <k> type Attrs T:Id = _T2 ; => type Attrs T:Id ;  ... </k>
+```
+
 TODO: We do not check if a type has been declared before being used yet.
 
 ```k
