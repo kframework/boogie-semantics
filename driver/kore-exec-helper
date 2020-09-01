@@ -13,5 +13,6 @@ kore_output=$basename.kore
 kore-exec --module BOOGIE "$definition/boogie-kompiled/definition.kore" \
           --pattern "$pattern_file" \
           --search ./driver/search-pattern.kore --searchType FINAL \
-          --output "$kore_output" --solver-transcript "$transcript"
+          --output "$kore_output" --solver-transcript "$transcript" \
+          "$@"
 ./.build/defn/driver/driver-kompiled/parser_PGM "$kore_output"
