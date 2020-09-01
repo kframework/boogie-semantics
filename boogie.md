@@ -123,7 +123,11 @@ distinct.
 -------
 
 ```k
-    rule <k> axiom Attrs Expr ; => assume Attrs Expr ; ... </k>
+    rule <k> axiom Attrs Expr ; ~> Ds:DeclList
+          => Ds ~> axiom Attrs Expr ;
+             ...
+         </k>
+    rule <k> axiom Attrs Expr ; => assume Attrs Expr ; ... </k> [owise]
 ```
 
 9.0 Implementation Body
