@@ -208,21 +208,12 @@ We perform a depth first search over branches:
          </k>
          
     syntax KVar ::= freshVariable(Int) [function]
-    rule freshVariable(I) => String2KVar("VDriver" +String Int2String(!I))
+    rule freshVariable(I) => String2KVar("VDriver" +String Int2String(I))
 
-    syntax KVar ::= "Lblite" [token]
+    syntax KVar ::= "Lblimplies" [token]
     // Be careful about chosing fresh variables from a domain that does not intersect with either K's, or kore-execs domains of choice.
-    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V1 : Sort ) ,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
-          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V2 : Sort ) ,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
-          => triage( kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( freshVariable(!I) : Sort )
-                   , inj{SortBool{},SortExpr{}} (
-                        Lblite{}(PredicateToBooleanExpression(PathConditions2[V2/freshVariable(!I)]), PredicateToBooleanExpression(E2[V2/freshVariable(!I)])
-                      , Lblite{}(PredicateToBooleanExpression(PathConditions1[V1/freshVariable(!I)]), PredicateToBooleanExpression(E1[V1/freshVariable(!I)])
-                      , \dv{SortBool{}} ("true") /*: this branch should be unsatisfiable */) )
-                      )
-                     )), dotk{}(.Patterns))
-                   , \and {GTC} (C, \or {GTC} (PathConditions1[V1/freshVariable(!I)], PathConditions2[V2/freshVariable(!I)]))
-                   )
+    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( (V1 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E1 => E1[freshVariable(!I)/V1]))),dotk{}(.Patterns)),C1 => C1[freshVariable(!I)/V1:KVar])
+          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( (V2 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E2 => E2[freshVariable(!I)/V2]))),dotk{}(.Patterns)),C2 => C2[freshVariable(!I)/V2:KVar])
              ...
          </k>
       requires V1 =/=K V2
@@ -230,11 +221,10 @@ We perform a depth first search over branches:
     rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
           ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
           => triage( kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V : Sort )
-                   , inj{SortBool{},SortExpr{}} (
-                        Lblite{}(PredicateToBooleanExpression(PathConditions2), PredicateToBooleanExpression(E2)
-                      , Lblite{}(PredicateToBooleanExpression(PathConditions1), PredicateToBooleanExpression(E1)
-                      , \dv{SortBool{}} ("true") /*: this branch should be unsatisfiable */) )
-                      )
+                   , inj{SortBool{},SortExpr{}} ( Lbland{} (
+                        Lblimplies{}(PredicateToBooleanExpression(PathConditions2), PredicateToBooleanExpression(E2))
+                      , Lblimplies{}(PredicateToBooleanExpression(PathConditions1), PredicateToBooleanExpression(E1))
+                     ))
                      )), dotk{}(.Patterns))
                    , \and {GTC} (C, \or {GTC} (PathConditions1, PathConditions2))
                    )

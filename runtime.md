@@ -191,7 +191,7 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
                   | "(" "forallbinderheated" ValueExpr "::" Expr ")"  [klabel(forallbinderheated), symbol, strict(2)]
                   | "(" "forallbindercooled" ValueExpr "::" Expr ")"  [klabel(forallbindercooled), symbol, strict(2)]
     syntax Bool ::= smtforall(Int, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
-
+    
     rule <k> (#forall X : int :: Expr) => (forallbinder ?I:Int :: (lambda X : int :: Expr)[?I:Int]) ... </k>
 // Note: There is an additional rule implemented at the meta level to for heating from forallbinder to forallbinderheated
 // and for cooling from forallbinderheated to forallbindercooled. 
@@ -245,7 +245,9 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 ```k
     context assume _ HOLE ;
     rule <k> assume _ true ; => .K      ... </k>
-    rule <k> assume _ false; => #Bottom ... </k>
+//    rule <k> assume _ false; => #Bottom ... </k>
+    rule <k> assume _ false; ~> K => .K </k>
+         <locals> _ => .Map </locals>
 ```
 
 9.3 Assignments
@@ -702,14 +704,11 @@ belongs where we define each data type.
       [macro]
 ```
 
-
 XXX
 ---
 
 ```k
-//    syntax Int ::= int(Int)             [function, functional, smtlib(freshInt), no-evaluators, klabel(freshInt), symbol]
-
-    syntax Bool ::= ite(Bool, Bool, Bool) [function, functional, smt-hook((ite #1 #2 #3)), no-evaluators, symbol, klabel(ite)]
+    syntax Bool ::= implies(Bool, Bool)   [function, functional, smt-hook((=> #1 #2))    , no-evaluators, symbol, klabel(implies)]
     syntax Bool ::= not(Bool)             [function, functional, smt-hook((not #1))      , no-evaluators, symbol, klabel(not)]
     syntax Bool ::= and(Bool, Bool)       [function, functional, smt-hook((and #1 #2))   , no-evaluators, symbol, klabel(and)]
     syntax Bool ::= or(Bool, Bool)        [function, functional, smt-hook((or #1 #2))    , no-evaluators, symbol, klabel(or)]
