@@ -83,6 +83,7 @@ TODO: Signature should allow "returns" syntax
                   | "(" Expr ")" [bracket]
                   | old(Expr)
                   | "(" "forall" IdsTypeList "::" Expr ")"
+                  | "(" "forall" IdsTypeList "::" TriggerList Expr ")" [avoid]
                   | "(" "#forall" Id ":" Type "::" Expr ")" [klabel(forall), symbol] // TODO: This shouldn't be public
                   | LambdaExpr
                   | "if" Expr "then" Expr "else" Expr // TODO: deal with ambiguities for nested ITEs
@@ -111,6 +112,8 @@ TODO: Signature should allow "returns" syntax
     syntax UnOp  ::= "!"
                    | "-"
 
+    syntax Trigger ::= "{" ExprList "}"
+    syntax TriggerList ::= List{Trigger, ""} [klabel(TriggerList), symbol]
     // TODO: We do not overload IdList and ExprList because of https://github.com/kframework/kore/issues/1817
     syntax ExprList ::= List{Expr, ","} [klabel(ExprList), symbol]
     syntax IdList   ::= List{Id, ","}   [klabel(IdList)]
@@ -220,9 +223,12 @@ want to detect cutpoints ourselves.
     syntax Stmt ::= "cutpoint" ";"
 ```
 
-We treat `forall`s with multiple bindings as multiple foralls with single bindings.
+We treat `forall`s with multiple bindings as multiple foralls with single bindings, and ignore triggers for now.
 
 ```k
+    rule ( forall IdsTypeList :: _:Trigger Expr ) => ( forall IdsTypeList :: Expr ) [macro]
+
+    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) ) [macro-rec]
     rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) ) [macro-rec]
     rule ( forall .IdList : T, IdsTypeList :: Expr ) => ( forall IdsTypeList :: Expr ) [macro-rec]
     rule ( forall             .IdsTypeList :: Expr ) => Expr [macro-rec]
