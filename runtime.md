@@ -191,8 +191,8 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
                   | "(" "forallbinderheated" ValueExpr "::" Expr ")"  [klabel(forallbinderheated), symbol, strict(2)]
                   | "(" "forallbindercooled" ValueExpr "::" Expr ")"  [klabel(forallbindercooled), symbol, strict(2)]
     syntax Bool ::= smtforall(Int, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
-    
-    rule <k> (#forall X : int :: Expr) => (forallbinder ?I:Int :: (lambda X : int :: Expr)[?I:Int]) ... </k>
+
+    rule <k> (#forall X : T :: Expr) => (forallbinder ?I:Int :: (lambda X : T :: Expr)[?I:Int]) ... </k>
 // Note: There is an additional rule implemented at the meta level to for heating from forallbinder to forallbinderheated
 // and for cooling from forallbinderheated to forallbindercooled. 
     rule <k> (forallbindercooled V :: B) => smtforall(V, B) ... </k>
@@ -699,7 +699,7 @@ belongs where we define each data type.
       => #if T ==K int    #then ?_:Int /* int(FreshInt) */       #else
          #if T ==K bool   #then ?_:Bool              #else
          #if isMapType(T) #then map(FreshInt)        #else
-         ?_:ValueExpr // TODO: Do we need something more structured?
+         ?_:Int // TODO: We just need an uninterpreted sort, but quantifier only supports Ints
          #fi #fi #fi
       [macro]
 ```

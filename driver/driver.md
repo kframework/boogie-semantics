@@ -201,6 +201,8 @@ We perform a depth first search over branches:
           => exec(setKCell(Pgm, kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbindercooled{}(V,inj{SortBool{},SortExpr{}}(E))),Rest)))
              ...
          </k> 
+
+    // TODO: We should also update the fresh counter here
     rule <k> (triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(_,inj{SortBool{},SortExpr{}}(_))), dotk{}(.Patterns)), _) #as Now)
           ~> (\and { SortGeneratedTopCell { } } ( _, _ ) #as Next)
           => (Next:KItem ~> Now:KItem)
@@ -212,6 +214,7 @@ We perform a depth first search over branches:
 
     syntax KVar ::= "Lblimplies" [token]
     // Be careful about chosing fresh variables from a domain that does not intersect with either K's, or kore-execs domains of choice.
+    // TODO: We should also update the fresh counter here
     rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( (V1 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E1 => E1[freshVariable(!I)/V1]))),dotk{}(.Patterns)),C1 => C1[freshVariable(!I)/V1:KVar])
           ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( (V2 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E2 => E2[freshVariable(!I)/V2]))),dotk{}(.Patterns)),C2 => C2[freshVariable(!I)/V2:KVar])
              ...
@@ -230,7 +233,6 @@ We perform a depth first search over branches:
                    )
              ...
          </k>
-
 
     syntax Pattern ::= PredicateToBooleanExpression(Pattern) [function]
     syntax KVar ::= "Lbland"        [token]
