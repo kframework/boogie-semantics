@@ -87,7 +87,7 @@ TODO: Signature should allow "returns" syntax
                   | LambdaExpr
                   | "if" Expr "then" Expr "else" Expr // TODO: deal with ambiguities for nested ITEs
                   > Expr MapOp
-                  > UnOp Expr
+                  > UnOp Expr | Expr ":" Type
                   > Expr MulOp   Expr [left]
                   > Expr AddOp   Expr [left]
                   > Expr RelOp   Expr [left]

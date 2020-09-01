@@ -94,6 +94,12 @@ module BOOGIE-RUNTIME
     rule <k> if false then _     else False => False ... </k>
 ```
 
+Coersions are ignored for now:
+
+```k
+    rule <k> E:Expr : _:Type => E ... </k>
+```
+
 ### Variable lookup
 
 ```k
