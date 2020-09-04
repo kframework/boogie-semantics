@@ -705,9 +705,6 @@ belongs where we define each data type.
       [macro]
 ```
 
-XXX
----
-
 ```k
     syntax Bool ::= implies(Bool, Bool)   [function, functional, smt-hook((=> #1 #2))    , no-evaluators, symbol, klabel(implies)]
     syntax Bool ::= not(Bool)             [function, functional, smt-hook((not #1))      , no-evaluators, symbol, klabel(not)]
@@ -716,7 +713,6 @@ XXX
     syntax Bool ::= eqInt(Int, Int)       [function, functional, smt-hook((= #1 #2))     , no-evaluators, symbol, klabel(eqInt)]
     syntax Bool ::= eqBool(Bool, Bool)    [function, functional, smt-hook((= #1 #2))     , no-evaluators, symbol, klabel(eqBool)]
 ```
-
 
 ```k
 endmodule

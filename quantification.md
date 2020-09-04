@@ -1,69 +1,20 @@
-<!-- Generic ML -->
-\newcommand{\extension}      {\mathrm{extension}}
-\newcommand{\inhabitants}[1] {\llbracket #1 \rrbracket}
-\newcommand{\limplies}  {\longrightarrow}
-\newcommand{\satisfies}  {\models}
+We'd like a semantics for `forall` that works as follows:
 
-<!-- ML CTL* -->
-\newcommand{\rewrites}[1]  {\in \E\X}
-\newcommand{\A}            {\mathtt{A}}
-\newcommand{\F}            {\mathtt{F}}
-\newcommand{\E}            {\mathtt{E}}
-\newcommand{\X}            {\mathtt{X}}
+1.  `(forall-true)`: If the expression reduces to $\true$ on *all* paths, the `forall` reduces to $\true$:
 
-<!-- Boogie -->
-\newcommand{\true}           {\mathrm{true }}
-\newcommand{\false}          {\mathrm{false }}
-\newcommand{T}               {\mathrm{Int}}
-\newcommand{\Expr}           {\mathrm{Expr}}
-\newcommand{\Bool}           {\mathrm{Bool}}
-\newcommand{\bforall}[2]     {\mathtt{forall } #1 \mathtt{ : int . } #2}
+    in K:
 
-<!-- Context -->
-\renewcommand{\C}  {\mathrm{C}}
-\newcommand{\K}    {\mathrm{K}}
-\renewcommand{\k}  {\mathrm{k}}
+    ```
+    rule (forall X : T :: E) => true requires "E reaches true on all paths for all evaluations of `X` in `inhabitants(T)`"
+    ```
 
-<!-- Boogie related ML -->
-\newcommand{\rforall}                  {\mathrm{\#forall }}
-\newcommand{\PredicatePatternToBool}   {\mathrm{PredicatePatternToBool}}
+2.  `(forall-false)`: If the expression reduces to $\false$ on *any* path, the `forall` reduces to $\false$: 
 
-Notations:
+    in K:
 
-*   $\PredicatePatternToBool(\phi) \equiv (\phi \land \true) \lor (\lnot(\phi) \land \false)$
-*   Binding: $\bforall{x}{e} \equiv \rforall [ x : T ] e$
-
----
-
-*   $\C$ denotes a configuration context
-*   $\K$ denotes a context who's top symbol is $\k$
-
-Symbols:
-
-1.  $\Expr$ a sort constant
-2.  $\Bool$ a sort constant
-3.  $\true$, $\false$ inhabitants of the Bool sort
-
-1.  $\bforall \_ \_$ Boogie's forall expression
-2.  $\rforall$ the retraction symbol
-
-1.  $\k$ is the `<k>` cell.
-
-Axioms:
-
-1.  $\inhabitants{Int} \subset \inhabitants{\Expr}$
-2.  $\inhabitants{Bool} \subset \inhabitants{\Expr}$
-3.  $\inhabitants{Bool} = \true \lor \false$
-
-5.  `(forall-true)`: If the expression reduces to $\true$ on *all* paths, the `forall` reduces to $\true$:
-
-    | $\C[\K[\bforall{x}{e}]] \reachesE \C[\K[\true]]$
-    |   if $\forall x : T . \C[\k(e)] \reachesA \C[\k(\true)]$
-
-6.  `(forall-false)`: If the expression reduces to $\false$ on *any* path, the `forall` reduces to $\false$: 
-
-    | $\C[\K[\bforall{x}{e}]] \reachesE \C[\K[\false]]$
-    |   if  $\exists x : T . \C[\k(e)] \reachesE \C[\k(\false)]]$
+    ```
+    rule (forall X : T :: E) => false requires "E reaches false on any path for any one evaluation of `X` in `inhabitants(T)`"
+    ```
 
 Note that `(forall-true)` and `(forall-false)` are not mutually exclusive.
 Since Reachability Logic claims hold vacuously on infinite traces, they may both hold. 
@@ -79,13 +30,16 @@ Our implementation takes advantage of the following properties of Boogie:
 TODO: Prove that with these assumptions, the semantics above matches the semantics below.
 
 Since K does not support this kind of reasoning within a semantics, we approximate it for Boogie using a meta definition.
-In this file, we interleave to K definitions: one, a meta-definition (code-blocks tagged with `metak`),
-the other at the object level (code-blocks tagged with `object`).
+In this file, we interleave two K definitions:
+
+one, a meta-definition (code-blocks tagged with `metak`),
 
 ```objectk
 module BOOGIE-QUANTIFIERS-OBJECT
     imports BOOGIE-RUNTIME
 ```
+
+the other at the object level (code-blocks tagged with `object`):
 
 ```metak
 module BOOGIE-QUANTIFIERS-META
