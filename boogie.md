@@ -2,10 +2,11 @@ Boogie Semantics
 ================
 
 ```k
-requires "syntax.md"
-requires "procedures.md"
-requires "runtime.md"
 requires "helpers.md"
+requires "procedures.md"
+requires "quantification.md"
+requires "runtime.md"
+requires "syntax.md"
 
 module BOOGIE-FRESH-COUNTER
     imports INT-SYNTAX
@@ -17,6 +18,7 @@ module BOOGIE
     imports BOOGIE-FRESH-COUNTER
     imports BOOGIE-PROCEDURES
     imports BOOGIE-RUNTIME
+    imports BOOGIE-QUANTIFIERS-OBJECT
     imports BOOGIE-HELPERS
     imports INT
     imports MAP

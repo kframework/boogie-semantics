@@ -111,7 +111,7 @@ TODO: Signature should allow "returns" syntax
                    | "%" [unused] // semantics defined via axioms
     syntax UnOp  ::= "!"
                    | "-"
-
+                   
     syntax Trigger ::= "{" ExprList "}"
     syntax TriggerList ::= List{Trigger, ""} [klabel(TriggerList), symbol]
     // TODO: We do not overload IdList and ExprList because of https://github.com/kframework/kore/issues/1817

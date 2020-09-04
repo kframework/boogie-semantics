@@ -21,10 +21,10 @@ from kninja import *
 proj = KProject(extdir = extdir)
 
 def build(alias):
-    selector = 'k | ' + alias
+    selector = 'k | objectk | ' + alias
     return proj.definition( alias         = alias
                           , main          = 'boogie.md'
-                          , other         = ['syntax.md', 'nothing.md', 'procedures.md', 'helpers.md', 'runtime.md']
+                          , other         = ['syntax.md', 'nothing.md', 'procedures.md', 'helpers.md', 'runtime.md', 'quantification.md']
                           , backend       = 'haskell'
                           , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --emit-json --md-selector "%s" --gen-bison-parser' % selector
                           )
@@ -37,8 +37,9 @@ operational  = build('operational')
  
 driver = proj.definition( alias         = 'driver'
                         , main          = 'driver/driver.md'
+                        , other         = ['quantification.md']
                         , backend       = 'llvm'
-                        , flags         = '-ccopt -g -ccopt -O0 --gen-bison-parser --syntax-module KORE'
+                        , flags         = '--md-selector "k | metak" -ccopt -g -ccopt -O0 --gen-bison-parser --syntax-module KORE'
                         )
 
 def kboogie_runner(definition, expected_extension):

@@ -131,12 +131,21 @@ Coersions are ignored for now:
     rule <k> (Map:MapValue [ Key ]):Expr => select(Key, Map) ...  </k> requires isKResult(Key)
     rule <k> select(Key, update(Key, Val, Map)) => Val ... </k>
     rule <k> select(S, update(Key, _, Map)) =>  select(S, Map) ... </k> requires Key =/=K S
-    rule <k> select(S, map(Id)) => lookupMap(Id, S) ... </k>
-    rule <k> select((S1,S2), map(Id)) => lookupMap(Id, S1,S2) ... </k>
+
+    rule <k> select(S, map(Id))       => lookupMapI(Id, S) ... </k>
+    rule <k> select(S, map(Id))       => lookupMapB(Id, S) ... </k>
+    rule <k> select((S1,S2), map(Id)) => lookupMapII(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2), map(Id)) => lookupMapIB(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2), map(Id)) => lookupMapBI(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2), map(Id)) => lookupMapBB(Id, S1,S2) ... </k>
 
     // Uninterpreted function
-    syntax Int ::= lookupMap(mapId: Int, key: Int)             [function, functional, smtlib(lookupMap1), no-evaluators]
-    syntax Int ::= lookupMap(mapId: Int, key1: Int, key2: Int) [function, functional, smtlib(lookupMap2), no-evaluators]
+    syntax Int ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
+    syntax Int ::= lookupMapB (mapId: Int, key: Bool)              [function, functional, smtlib(lookupMapB),  no-evaluators]
+    syntax Int ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
+    syntax Int ::= lookupMapIB(mapId: Int, key1: Int, key2: Bool)  [function, functional, smtlib(lookupMapIB), no-evaluators]
+    syntax Int ::= lookupMapBI(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapBI), no-evaluators]
+    syntax Int ::= lookupMapBB(mapId: Int, key1: Bool, key2: Bool) [function, functional, smtlib(lookupMapBB), no-evaluators]
 ```
 
 #### Update
@@ -188,20 +197,6 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
     syntax KItem ::= restoreGlobals(Map)
     rule <k> E:ValueExpr ~> (restoreGlobals(Globals) => .K) ... </k>
          <globals> _ => Globals </globals>
-```
-
-### 4.4 Logical quantifiers
-
-```k
-    syntax Expr ::= "(" "forallbinder"       ValueExpr "::" Expr ")"  [klabel(forallbinder)      , symbol]
-                  | "(" "forallbinderheated" ValueExpr "::" Expr ")"  [klabel(forallbinderheated), symbol, strict(2)]
-                  | "(" "forallbindercooled" ValueExpr "::" Expr ")"  [klabel(forallbindercooled), symbol, strict(2)]
-    syntax Bool ::= smtforall(Int, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
-
-    rule <k> (#forall X : T :: Expr) => (forallbinder ?I:Int :: (lambda X : T :: Expr)[?I:Int]) ... </k>
-// Note: There is an additional rule implemented at the meta level to for heating from forallbinder to forallbinderheated
-// and for cooling from forallbinderheated to forallbindercooled. 
-    rule <k> (forallbindercooled V :: B) => smtforall(V, B) ... </k>
 ```
 
 7 Mutable Variables, states, and execution traces
