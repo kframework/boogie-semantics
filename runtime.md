@@ -204,8 +204,7 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 
 ```k
   rule <k> var .AttributeList X:Id : T ;:Decl => .K ... </k>
-       <globals> (.Map => X:Id |-> value(inhabitants(T, FreshInt), T, true)) Rho </globals>
-         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
+       <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
      requires notBool( X in_keys(Rho) )
 ```
 
@@ -299,11 +298,10 @@ type.
     syntax KItem ::= freshen(IdList)
     rule <k> freshen(.IdList) => .K ... </k>
     rule <k> freshen(X:Id, Xs:IdList)
-          => X, .LhsList := inhabitants(type(lookupVariable(X)), FreshInt), .ExprList ;
+          => X, .LhsList := inhabitants(type(lookupVariable(X))), .ExprList ;
           ~> freshen(Xs)
              ...
          </k>
-         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
 ```
 
 9.5 Label Statements and jumps
@@ -695,11 +693,11 @@ TODO: Is there some more modular way we could implement this? This really
 belongs where we define each data type.
 
 ```k
-    syntax ValueExpr ::= inhabitants(Type, Int)
-    rule inhabitants(T, FreshInt)
-      => #if T ==K int    #then ?_:Int /* int(FreshInt) */       #else
-         #if T ==K bool   #then ?_:Bool              #else
-         #if isMapType(T) #then map(FreshInt)        #else
+    syntax ValueExpr ::= inhabitants(Type)
+    rule inhabitants(T)
+      => #if T ==K int    #then ?_:Int /* int(FreshInt) */ #else
+         #if T ==K bool   #then ?_:Bool                    #else
+         #if isMapType(T) #then map(?_:Int)                #else
          ?_:Int // TODO: We just need an uninterpreted sort, but quantifier only supports Ints
          #fi #fi #fi
       [macro]

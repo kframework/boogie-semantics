@@ -84,8 +84,7 @@ must be unique, multiple entries aren't created for each type.
 ```k
     rule <k> const _:AttributeList .Nothing X, .IdList : T ; => .K ... </k>
          <typeName> T </typeName>
-         <globals> (.Map => X:Id |-> value(inhabitants(T, FreshInt), T, true)) Rho </globals>
-         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
+         <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
        requires notBool( X in_keys(Rho) )
 ```
 
@@ -185,16 +184,14 @@ However, in the operational semantics we only execute the main procedure:
          => Vs
             ...
         </k>
-        <locals> (.Map => X:Id |-> value(inhabitants(T, Loc), T, Where)) Rho </locals>
-        <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
+        <locals> (.Map => X:Id |-> value(inhabitants(T), T, Where)) Rho </locals>
      requires notBool( X in_keys(Rho) )
      
    rule <k> var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
          => Vs
             ...
         </k>
-        <locals> X |-> (_ => value(inhabitants(T, Loc), T, Where)) ... </locals>
-        <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
+        <locals> X |-> (_ => value(inhabitants(T), T, Where)) ... </locals>
 ```
 
 ```k
