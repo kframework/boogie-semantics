@@ -121,7 +121,7 @@ Coersions are ignored for now:
 
 ```k
     syntax ValueExpr ::= MapValue
-    syntax MapValue ::= map(Int)
+    syntax MapValue ::= map(Int, Type)
                       | update(key: ExprList, value: ValueExpr, mapx: MapValue)
     syntax Expr      ::= select(ExprList, MapValue)
 
@@ -130,22 +130,24 @@ Coersions are ignored for now:
 
     rule <k> (Map:MapValue [ Key ]):Expr => select(Key, Map) ...  </k> requires isKResult(Key)
     rule <k> select(Key, update(Key, Val, Map)) => Val ... </k>
-    rule <k> select(S, update(Key, _, Map)) =>  select(S, Map) ... </k> requires Key =/=K S
+    rule <k> select(S, update(Key, _, Map)) => select(S, Map) ... </k> requires Key =/=K S
 
-    rule <k> select(S, map(Id))       => lookupMapI(Id, S) ... </k>
-    rule <k> select(S, map(Id))       => lookupMapB(Id, S) ... </k>
-    rule <k> select((S1,S2), map(Id)) => lookupMapII(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2), map(Id)) => lookupMapIB(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2), map(Id)) => lookupMapBI(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2), map(Id)) => lookupMapBB(Id, S1,S2) ... </k>
+    rule <k> select(.ExprList, map(Id, T)) => assume .AttributeList lookupMap(Id)          == inhabitants(T) ; ~> lookupMap(Id)          ... </k>
+    rule <k> select(S, map(Id, T))         => assume .AttributeList lookupMapI(Id, S)      == inhabitants(T) ; ~> lookupMapI(Id, S)      ... </k>
+    rule <k> select(S, map(Id, T))         => assume .AttributeList lookupMapB(Id, S)      == inhabitants(T) ; ~> lookupMapB(Id, S)      ... </k>
+    rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapII(Id, S1,S2) == inhabitants(T) ; ~> lookupMapII(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapIB(Id, S1,S2) == inhabitants(T) ; ~> lookupMapIB(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapBI(Id, S1,S2) == inhabitants(T) ; ~> lookupMapBI(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapBB(Id, S1,S2) == inhabitants(T) ; ~> lookupMapBB(Id, S1,S2) ... </k>
 
     // Uninterpreted function
-    syntax Int ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
-    syntax Int ::= lookupMapB (mapId: Int, key: Bool)              [function, functional, smtlib(lookupMapB),  no-evaluators]
-    syntax Int ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
-    syntax Int ::= lookupMapIB(mapId: Int, key1: Int, key2: Bool)  [function, functional, smtlib(lookupMapIB), no-evaluators]
-    syntax Int ::= lookupMapBI(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapBI), no-evaluators]
-    syntax Int ::= lookupMapBB(mapId: Int, key1: Bool, key2: Bool) [function, functional, smtlib(lookupMapBB), no-evaluators]
+    syntax ValueExpr ::= lookupMap  (mapId: Int)                         [function, functional, smtlib(lookupMap),   no-evaluators]
+    syntax ValueExpr ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
+    syntax ValueExpr ::= lookupMapB (mapId: Int, key: Bool)              [function, functional, smtlib(lookupMapB),  no-evaluators]
+    syntax ValueExpr ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
+    syntax ValueExpr ::= lookupMapIB(mapId: Int, key1: Int, key2: Bool)  [function, functional, smtlib(lookupMapIB), no-evaluators]
+    syntax ValueExpr ::= lookupMapBI(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapBI), no-evaluators]
+    syntax ValueExpr ::= lookupMapBB(mapId: Int, key1: Bool, key2: Bool) [function, functional, smtlib(lookupMapBB), no-evaluators]
 ```
 
 #### Update
@@ -697,10 +699,14 @@ belongs where we define each data type.
     rule inhabitants(T)
       => #if T ==K int    #then ?_:Int /* int(FreshInt) */ #else
          #if T ==K bool   #then ?_:Bool                    #else
-         #if isMapType(T) #then map(?_:Int)                #else
+         #if isMap(T) #then map(?_:Int, T)             #else
          ?_:Int // TODO: We just need an uninterpreted sort, but quantifier only supports Ints
          #fi #fi #fi
       [macro]
+
+   syntax Bool ::= isMap(Type) [function, functional]
+   rule isMap([_]_) => true
+   rule isMap(_) => false [owise]
 ```
 
 ```k
