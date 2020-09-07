@@ -55,7 +55,7 @@ module KORE-UNPARSE
     rule unparsePatterns(P, Ps) => unparsePattern(P) +String "," +String unparsePatterns(Ps) requires notBool Ps ==K .Patterns
     rule unparsePatterns(P, .Patterns) => unparsePattern(P)
     rule unparsePatterns(.Patterns) => ""
-
+    
     syntax String ::= unparseSorts(Sorts) [function, functional]
     rule unparseSorts(S, Ss) => unparseSort(S) +String "," +String unparseSorts(Ss) requires notBool Ss ==K .Sorts
     rule unparseSorts(S, .Sorts) => unparseSort(S)
@@ -159,6 +159,7 @@ We use these tokens in the definition.
                   | "LbleqInt"                    [token]
                   | "LbleqBool"                   [token]
                   | "Lbl'UndsEqlsEqls'Int'Unds'"  [token]
+                  | "Lbl'UndsEqlsEqls'K'Unds'"    [token]
                   | "Lbl'UndsEqlsEqls'Bool'Unds'" [token]
                   | "Lbl'-LT-'k'-GT-'"            [token]
 ```

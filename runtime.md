@@ -41,9 +41,10 @@ module BOOGIE-RUNTIME
 ```k
     syntax KResult ::= ValueExpr
     syntax Expr ::= ValueExpr
+    syntax ValueExpr ::= FreshValue
     rule isKResult(E, Es:ExprList) => isKResult(E) andBool isKResult(Es)
     rule isKResult(.ExprList) => true
-    syntax ValueExpr ::= Bool | Int | String
+    syntax FreshValue ::= Bool | Int | String
 
     rule <k> X:Id => value(lookupVariable(X)) ... </k>
 
@@ -121,7 +122,9 @@ Coersions are ignored for now:
 
 ```k
     syntax ValueExpr ::= MapValue
-    syntax MapValue ::= map(Int, Type)
+    syntax FreshMapValue ::= map(Int, Type)
+    syntax FreshValue ::= FreshMapValue
+    syntax MapValue ::= FreshMapValue
                       | update(key: ExprList, value: ValueExpr, mapx: MapValue)
     syntax Expr      ::= select(ExprList, MapValue)
 
@@ -139,15 +142,19 @@ Coersions are ignored for now:
     rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapIB(Id, S1,S2) == inhabitants(T) ; ~> lookupMapIB(Id, S1,S2) ... </k>
     rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapBI(Id, S1,S2) == inhabitants(T) ; ~> lookupMapBI(Id, S1,S2) ... </k>
     rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapBB(Id, S1,S2) == inhabitants(T) ; ~> lookupMapBB(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2,S3), map(Id, T)) => assume .AttributeList lookupMapBII(Id, S1,S2,S3) == inhabitants(T) ; ~> lookupMapBII(Id, S1,S2,S3) ... </k>
+    
+    rule <k> select((map(Id1, _),map(Id2, _)), map(Id, T)) => assume .AttributeList lookupMapII(Id, Id1,Id2) == inhabitants(T) ; ~> lookupMapII(Id, Id1,Id2) ... </k>
 
     // Uninterpreted function
-    syntax ValueExpr ::= lookupMap  (mapId: Int)                         [function, functional, smtlib(lookupMap),   no-evaluators]
-    syntax ValueExpr ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
-    syntax ValueExpr ::= lookupMapB (mapId: Int, key: Bool)              [function, functional, smtlib(lookupMapB),  no-evaluators]
-    syntax ValueExpr ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
-    syntax ValueExpr ::= lookupMapIB(mapId: Int, key1: Int, key2: Bool)  [function, functional, smtlib(lookupMapIB), no-evaluators]
-    syntax ValueExpr ::= lookupMapBI(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapBI), no-evaluators]
-    syntax ValueExpr ::= lookupMapBB(mapId: Int, key1: Bool, key2: Bool) [function, functional, smtlib(lookupMapBB), no-evaluators]
+    syntax FreshValue ::= lookupMap  (mapId: Int)                         [function, functional, smtlib(lookupMap),   no-evaluators]
+    syntax FreshValue ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
+    syntax FreshValue ::= lookupMapB (mapId: Int, key: Bool)              [function, functional, smtlib(lookupMapB),  no-evaluators]
+    syntax FreshValue ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
+    syntax FreshValue ::= lookupMapIB(mapId: Int, key1: Int, key2: Bool)  [function, functional, smtlib(lookupMapIB), no-evaluators]
+    syntax FreshValue ::= lookupMapBI(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapBI), no-evaluators]
+    syntax FreshValue ::= lookupMapBB(mapId: Int, key1: Bool, key2: Bool) [function, functional, smtlib(lookupMapBB), no-evaluators]
+    syntax FreshValue ::= lookupMapBII(mapId: Int, Bool, Int, Int) [function, functional, smtlib(lookupMapBB), no-evaluators]
 ```
 
 #### Update
@@ -247,9 +254,9 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 ```k
     context assume _ HOLE ;
     rule <k> assume _ true ; => .K      ... </k>
-//    rule <k> assume _ false; => #Bottom ... </k>
-    rule <k> assume _ false; ~> K => .K </k>
-         <locals> _ => .Map </locals>
+    rule <k> assume _ false; => #Bottom ... </k>
+//    rule <k> assume _ false; ~> K => .K </k>
+//         <locals> _ => .Map </locals>
 ```
 
 9.3 Assignments
@@ -697,9 +704,9 @@ belongs where we define each data type.
 ```k
     syntax ValueExpr ::= inhabitants(Type)
     rule inhabitants(T)
-      => #if T ==K int    #then ?_:Int /* int(FreshInt) */ #else
-         #if T ==K bool   #then ?_:Bool                    #else
-         #if isMap(T) #then map(?_:Int, T)             #else
+      => #if T ==K int    #then ?_:Int      #else
+         #if T ==K bool   #then ?_:Bool     #else
+         #if isMap(T) #then map(?_:Int, T)  #else
          ?_:Int // TODO: We just need an uninterpreted sort, but quantifier only supports Ints
          #fi #fi #fi
       [macro]

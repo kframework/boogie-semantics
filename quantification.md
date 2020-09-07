@@ -50,7 +50,12 @@ When Boogie's forall is encountered, we convert it to a binder. We use `lambda` 
 
 ```objectk
     syntax Expr ::= "(" "forallbinder" ValueExpr "::" Expr ")"  [klabel(forallbinder)      , symbol]
-    rule <k> (#forall X : T :: Expr) => (forallbinder ?I:Int :: (lambda X : T :: Expr)[?I:Int]) ... </k>
+    rule <k> (#forall X : bool :: Expr) => (forallbinder ?B:Bool:: (lambda X : bool :: Expr)[?B:Bool]) ... </k>
+    rule <k> (#forall X : T :: Expr) => (forallbinder ?I:Int :: (lambda X : T :: Expr)[?I:Int]) ... </k> requires T =/=K bool andBool notBool(isMap(T))
+    rule <k> (#forall X : [TArgs]Tr :: Expr)
+          => (forallbinder ?I:Int :: (lambda X : [TArgs]Tr :: Expr)[map(?I, Tr)])
+             ...
+         </k>
 ```
 
 We then use a meta rule to heat the binder.
@@ -62,8 +67,8 @@ i.e. a `forall` encountered along one program path must be evaulated separately 
 ```
 
 ```metak
-    rule <k> triage(kseq{ } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinder { } ( V, E )), Rest) , Pgm) => .K
-          ~> exec(setKCell(Pgm, kseq{ } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated { } ( V, E )), dotk{}(.Patterns))))
+    rule <k> triage(kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinder  { .Sorts } ( V, E )), Rest) , Pgm) => .K
+          ~> exec(setKCell(Pgm, kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated  { .Sorts } ( V, E )), dotk { .Sorts }(.Patterns))))
           ~> forallFreezer(Rest, Pgm)
              ...
          </k>
@@ -74,14 +79,14 @@ The evaluation of the quantified expression results in a disjunction of configur
 The results and path-conditions from these branches are combined into an object-level boolean function using object-level logical connectives.
 
 ```metak
-    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E1))),dotk{}(.Patterns)),\and{GTC}(C,PathConditions1))
-          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E2))),dotk{}(.Patterns)),\and{GTC}(_,PathConditions2))
-          => triage( kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( V : Sort )
-                   , inj{SortBool{},SortExpr{}} ( Lbland{} (
-                        Lblimplies{}(PredicateToBooleanExpression(PathConditions2), PredicateToBooleanExpression(E2))
-                      , Lblimplies{}(PredicateToBooleanExpression(PathConditions1), PredicateToBooleanExpression(E1))
+    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E1))),dotk { .Sorts }(.Patterns)),\and{GTC}(C,PathConditions1))
+          ~> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E2))),dotk { .Sorts }(.Patterns)),\and{GTC}(_,PathConditions2))
+          => triage( kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( V : Sort )
+                   , inj{SortBool{},SortExpr{}} ( Lbland { .Sorts } (
+                        Lblimplies { .Sorts }(PredicateToBooleanExpression(PathConditions2), PredicateToBooleanExpression(E2))
+                      , Lblimplies { .Sorts }(PredicateToBooleanExpression(PathConditions1), PredicateToBooleanExpression(E1))
                      ))
-                     )), dotk{}(.Patterns))
+                     )), dotk { .Sorts }(.Patterns))
                    , \and {GTC} (C, \or {GTC} (PathConditions1, PathConditions2))
                    )
              ...
@@ -91,8 +96,8 @@ The results and path-conditions from these branches are combined into an object-
 We may sometimes need to alpha-rename the bound variable to enable this.
 
 ```metak
-    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( (V1 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E1 => E1[freshVariable(!I)/V1]))),dotk{}(.Patterns)),C1 => C1[freshVariable(!I)/V1:KVar])
-          ~> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(inj { Sort, SortValueExpr } ( (V2 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E2 => E2[freshVariable(!I)/V2]))),dotk{}(.Patterns)),C2 => C2[freshVariable(!I)/V2:KVar])
+    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( (V1 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E1 => E1[freshVariable(!I)/V1]))),dotk { .Sorts }(.Patterns)),C1 => C1[freshVariable(!I)/V1:KVar])
+          ~> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( (V2 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E2 => E2[freshVariable(!I)/V2]))),dotk { .Sorts }(.Patterns)),C2 => C2[freshVariable(!I)/V2:KVar])
              ...
          </k>
       requires V1 =/=K V2
@@ -101,7 +106,7 @@ We may sometimes need to alpha-rename the bound variable to enable this.
 We bring each branch to the front to allow them to be triaged. (See [driver/driver.md] for other cases of triaging.)
 
 ```metak
-    rule <k> (triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(_,inj{SortBool{},SortExpr{}}(_))), dotk{}(.Patterns)), _) #as Now)
+    rule <k> (triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(_,inj{SortBool{},SortExpr{}}(_))), dotk { .Sorts }(.Patterns)), _) #as Now)
           ~> (\and { SortGeneratedTopCell { } } ( _, _ ) #as Next)
           => (Next:KItem ~> Now:KItem)
              ...
@@ -117,9 +122,9 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
 
 ```metak
     syntax KItem ::= forallFreezer(kcellRest: Pattern, config: Pattern)
-    rule <k> triage(kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated{}(V,inj{SortBool{},SortExpr{}}(E))), dotk{}(.Patterns)), _)
+    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(V,inj{SortBool{},SortExpr{}}(E))), dotk { .Sorts }(.Patterns)), _)
           ~> forallFreezer(Rest, Pgm)
-          => exec(setKCell(Pgm, kseq{}(inj{SortExpr{},SortKItem{}}(Lblforallbindercooled{}(V,inj{SortBool{},SortExpr{}}(E))),Rest)))
+          => exec(setKCell(Pgm, kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbindercooled { .Sorts }(V,inj{SortBool{},SortExpr{}}(E))),Rest)))
              ...
          </k> 
 ```
@@ -127,8 +132,10 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
 Finally, we reduce the binder to the logical `forall` construct:
 
 ```objectk
-    syntax Bool ::= smtforall(Int, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
-    rule <k> (forallbindercooled V :: B) => smtforall(V, B) ... </k>
+    syntax Bool ::= smtforallInt(Int, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
+    syntax Bool ::= smtforallBool(Bool, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
+    rule <k> (forallbindercooled V :: B) => smtforallInt(V, B) ... </k>
+    rule <k> (forallbindercooled V :: B) => smtforallBool(V, B) ... </k>
 ```
 
 ```objectk
