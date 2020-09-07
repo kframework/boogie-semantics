@@ -142,7 +142,8 @@ In the case of the verification semantics, we verify all procedures:
 
 ```verification
     rule <k> #start
-          => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
+          => #pause
+          ~> makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
           ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
           ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)] ;
           ~> #collectLabel(StartLabel, .StmtList) ~> StmtList
@@ -162,6 +163,13 @@ In the case of the verification semantics, we verify all procedures:
             <body> { VarDeclList StartLabel: StmtList } </body>
          </impl>
 ```
+
+This is used to reduce RAM usage by taking only one branch at a time (see driver.md)
+
+```k
+    syntax KItem ::= "#pause" [symbol, klabel(pause)]
+```
+
 
 However, in the operational semantics we only execute the main procedure:
 

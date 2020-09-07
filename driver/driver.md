@@ -302,6 +302,8 @@ For each constrained configuration, we triage according to the content of the `<
     rule <k> triage(_, Pgm)  ~> init => exec(Pgm) ... </k>
 ```
 
+### Failure
+
 ```metak
     rule <k> triage(kseq{ } ( Lbl'Hash'failure { } ( \dv { SortString { } } ( Message ) ), _) , Pgm) => .K ... </k>
          <out> ... .List
@@ -312,7 +314,7 @@ For each constrained configuration, we triage according to the content of the `<
          </out>
 ```
 
-## Succeeded:
+### Succeeded:
 
 ```metak
     rule <k> triage(dotk{}(.Patterns), Pgm) => .K ... </k>
@@ -321,6 +323,16 @@ For each constrained configuration, we triage according to the content of the `<
                ListItem(unparsePattern(Pgm))
                ListItem("\n")
          </out>
+```
+
+#### Pause
+
+```metak
+    syntax KVar ::= "Lblpause" [token]
+    rule <k> triage(kseq{ } ( Lblpause { } ( .Patterns ), Rest) , Pgm)
+          => exec(setKCell(Pgm, Rest))
+             ...
+         </k>
 ```
 
 ## `forall`
