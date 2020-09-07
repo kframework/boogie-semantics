@@ -254,9 +254,9 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 ```k
     context assume _ HOLE ;
     rule <k> assume _ true ; => .K      ... </k>
-    rule <k> assume _ false; => #Bottom ... </k>
-//    rule <k> assume _ false; ~> K => .K </k>
-//         <locals> _ => .Map </locals>
+//    rule <k> assume _ false; => #Bottom ... </k>
+    rule <k> assume _ false; ~> K => .K </k>
+         <locals> _ => .Map </locals>
 ```
 
 9.3 Assignments
