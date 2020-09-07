@@ -8,7 +8,7 @@ module KORE
 
     syntax KVar ::= r"[A-Za-z'-][A-Za-z'0-9-]*" [token]
     syntax Sort ::= KVar "{" "}"
-    syntax Symbol ::= KVar "{" "}"
+    syntax Symbol ::= KVar "{" Sorts "}"
     syntax Pattern ::= "\\dv" "{" Sort "}" "(" String ")"                           [klabel(\dv)]
                      | KVar ":" Sort                                                [klabel(variable)]
                      | Symbol "(" Patterns ")"                                      [klabel(application)]
@@ -20,6 +20,7 @@ module KORE
                      | "\\top" "{" Sort "}" "(" ")"                                 [klabel(\top)]
 
     syntax Patterns ::= List{Pattern, ","} [klabel(Patterns)]
+    syntax Sorts ::= List{Sort, ","}       [klabel(Sorts)]
 endmodule
 ```
 
@@ -48,12 +49,17 @@ module KORE-UNPARSE
     rule unparseSort(KVar {}) => NameToString(KVar) +String "{}"
 
     syntax String ::= unparseSymbol(Symbol) [function, functional]
-    rule unparseSymbol(KVar {}) => NameToString(KVar) +String "{}"
+    rule unparseSymbol(KVar {Sorts}) => NameToString(KVar) +String "{" +String unparseSorts(Sorts) +String "}"
 
     syntax String ::= unparsePatterns(Patterns) [function, functional]
     rule unparsePatterns(P, Ps) => unparsePattern(P) +String "," +String unparsePatterns(Ps) requires notBool Ps ==K .Patterns
     rule unparsePatterns(P, .Patterns) => unparsePattern(P)
     rule unparsePatterns(.Patterns) => ""
+
+    syntax String ::= unparseSorts(Sorts) [function, functional]
+    rule unparseSorts(S, Ss) => unparseSort(S) +String "," +String unparseSorts(Ss) requires notBool Ss ==K .Sorts
+    rule unparseSorts(S, .Sorts) => unparseSort(S)
+    rule unparseSorts(.Sorts) => ""
 endmodule
 ```
 
@@ -160,25 +166,25 @@ We use these tokens in the definition.
 ```metak
     syntax Pattern ::= PredicateToBooleanExpression(Pattern) [function]
                   
-    rule PredicateToBooleanExpression(\not {_} (P)) => Lblnot{} (PredicateToBooleanExpression(P))
-    rule PredicateToBooleanExpression(\and {_} (E1, E2)) => Lbland{} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
-    rule PredicateToBooleanExpression(\or {_} (E1, E2)) => Lblor{} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
+    rule PredicateToBooleanExpression(\not {_} (P)) => Lblnot{.Sorts} (PredicateToBooleanExpression(P))
+    rule PredicateToBooleanExpression(\and {_} (E1, E2)) => Lbland{.Sorts} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
+    rule PredicateToBooleanExpression(\or {_} (E1, E2)) => Lblor{.Sorts} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
     
-    rule PredicateToBooleanExpression(\equals {SortBool {}, _} (E1, \dv{SortBool{}} ("true"))) => PredicateToBooleanExpression((E1)) 
-    rule PredicateToBooleanExpression(\equals {SortBool {}, S} (E1, \dv{SortBool{}} ("false"))) => PredicateToBooleanExpression(\not{S}(E1)) 
-    rule PredicateToBooleanExpression(\equals {SortBool {}, _} (E1, E2)) => LbleqBool{} (E1, E2) [owise]
-    rule PredicateToBooleanExpression(\equals {SortInt {}, _} (E1, E2)) => LbleqInt{} (E1, E2)
-    rule PredicateToBooleanExpression(Lbl'UndsEqlsEqls'Int'Unds' {} (E1, E2)) => LbleqInt{} (E1, E2)
-    rule PredicateToBooleanExpression(Lbl'UndsEqlsEqls'Bool'Unds' {} (E1, E2)) => LbleqBool{} (E1, E2) [owise]
-    rule PredicateToBooleanExpression(S {} (Es)) => S {} (Es) [owise]
+    rule PredicateToBooleanExpression(\equals {S1, _} (E1, E2))
+      => Lbl'UndsEqlsEqls'K'Unds'{.Sorts} ( kseq{.Sorts}(inj{S1, SortKItem{} }(E1), dotk{.Sorts}(.Patterns))
+                                          , kseq{.Sorts}(inj{S1, SortKItem{} }(E2), dotk{.Sorts}(.Patterns))
+                                          )
+    rule PredicateToBooleanExpression(Lbl'UndsEqlsEqls'Int'Unds' {.Sorts} (E1, E2)) => LbleqInt{.Sorts} (E1, E2)
+    rule PredicateToBooleanExpression(Lbl'UndsEqlsEqls'Bool'Unds' {.Sorts} (E1, E2)) => LbleqBool{.Sorts} (E1, E2) [owise]
+    rule PredicateToBooleanExpression(S {Ss} (Es)) => S {Ss} (Es) [owise]
     rule PredicateToBooleanExpression(\top {_} ()) => \dv{SortBool{}} ("true")
     rule PredicateToBooleanExpression(\dv{_} (_) #as DV) => DV
 ```
 
 ```metak
     syntax Patterns ::= getKCell(Pattern) [function]
-    rule getKCell(Lbl'-LT-'k'-GT-' { } ( Arg, .Patterns ) ) => Arg, .Patterns
-    rule getKCell(S { } ( Args ) ) => getKCellPs(Args) requires S =/=K Lbl'-LT-'k'-GT-'
+    rule getKCell(Lbl'-LT-'k'-GT-' { .Sorts } ( Arg, .Patterns ) ) => Arg, .Patterns
+    rule getKCell(S { _ } ( Args ) ) => getKCellPs(Args) requires S =/=K Lbl'-LT-'k'-GT-'
     rule getKCell(inj{ _, _ } (P) ) => getKCell(P)
     rule getKCell(\not{ _ } (P) ) => getKCell(P)
     rule getKCell(\dv{ _ } (_) ) => .Patterns
@@ -191,8 +197,8 @@ We use these tokens in the definition.
 
 ```metak
     syntax Pattern ::= setKCell(config: Pattern, kcell: Pattern) [function]
-    rule setKCell(Lbl'-LT-'k'-GT-' { } ( _, .Patterns ), KCell ) => Lbl'-LT-'k'-GT-' { } ( KCell, .Patterns ) 
-    rule setKCell(S { } ( Args )                       , KCell ) => S { } ( setKCellPs(Args, KCell) ) requires S =/=K Lbl'-LT-'k'-GT-'
+    rule setKCell(Lbl'-LT-'k'-GT-' { .Sorts } ( _, .Patterns ), KCell ) => Lbl'-LT-'k'-GT-' { .Sorts } ( KCell, .Patterns ) 
+    rule setKCell(S { Sorts } ( Args )                 , KCell ) => S { Sorts } ( setKCellPs(Args, KCell) ) requires S =/=K Lbl'-LT-'k'-GT-'
     rule setKCell(\and { S } ( P1, P2 )                , KCell ) => \and { S } ( setKCell(P1, KCell), setKCell(P2, KCell))
     rule setKCell(\equals { S1, S2 } ( P1, P2 )        , KCell ) => \equals { S1, S2 } ( setKCell(P1, KCell), setKCell(P2, KCell))
     rule setKCell(inj{ S1, S2 } (P)                    , KCell ) => inj { S1, S2 } ( setKCell(P, KCell) )
@@ -251,26 +257,26 @@ whereas, `kore-exec` accepts initial configurations for the form:
 First, we bring the configuration to the front of the conjunction:
 
 ```metak
-    rule \and { S }(P, \and { S } (Lbl'-LT-'generatedTop'-GT-' { } (_) #as Config, Ps)) => \and { S }(Config, \and { S } (P, Ps)) [anywhere]
-    rule \and { S }(P, (Lbl'-LT-'generatedTop'-GT-' { } (_) #as Config)) => \and { S }(Config, P)                                 [anywhere]
+    rule \and { S }(P, \and { S } (Lbl'-LT-'generatedTop'-GT-' { .Sorts } (_) #as Config, Ps)) => \and { S }(Config, \and { S } (P, Ps)) [anywhere]
+    rule \and { S }(P, (Lbl'-LT-'generatedTop'-GT-' { .Sorts } (_) #as Config)) => \and { S }(Config, P)                                 [anywhere]
 ```
 
 Next, we convert the substitution like predicate `Result == Configuration` into a constrained term:
 
 ```metak
     rule \equals { SortK { } , SortKItem { } } ( VarResult : SortK { }
-                                               , kseq { } ( inj { SortGeneratedTopCell { } , SortKItem { } }(Result)
-                                                          , dotk { } ( .Patterns )
+                                               , kseq { .Sorts } ( inj { SortGeneratedTopCell { } , SortKItem { } }(Result)
+                                                          , dotk { .Sorts } ( .Patterns )
                                                           )
                                                )
       => Result
     rule \equals { _ , _ } ( VarResult : SortGeneratedTopCell { } , Result ) => Result [anywhere]
-    rule (P, (Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Config), Ps)
+    rule (P, (Lbl'-LT-'generatedTop'-GT-' { .Sorts } ( _ ) #as Config), Ps)
       => Config, P, Ps [anywhere]
 
-    rule <k> Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Pgm => \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}()) ... </k>
+    rule <k> Lbl'-LT-'generatedTop'-GT-' { .Sorts } ( _ ) #as Pgm => \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}()) ... </k>
     rule <k> T:KItem
-          ~> Lbl'-LT-'generatedTop'-GT-' { } ( _ ) #as Pgm
+          ~> Lbl'-LT-'generatedTop'-GT-' { .Sorts } ( _ ) #as Pgm
           => ( T
             ~> \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}())
              )
@@ -292,7 +298,7 @@ We perform a depth first search over branches:
 For each constrained configuration, we triage according to the content of the `<k>` cell:
 
 ```metak
-    rule <k> \and { SortGeneratedTopCell { } }(Lbl'-LT-'generatedTop'-GT-' { } (_) #as Config, _Constraints) #as ConstrainedConfiguration
+    rule <k> \and { SortGeneratedTopCell { } }(Lbl'-LT-'generatedTop'-GT-' { .Sorts } (_) #as Config, _Constraints) #as ConstrainedConfiguration
           => triage(getKCell(Config), ConstrainedConfiguration)
              ...
          </k>
@@ -305,7 +311,7 @@ For each constrained configuration, we triage according to the content of the `<
 ### Failure
 
 ```metak
-    rule <k> triage(kseq{ } ( Lbl'Hash'failure { } ( \dv { SortString { } } ( Message ) ), _) , Pgm) => .K ... </k>
+    rule <k> triage(kseq{ .Sorts } ( Lbl'Hash'failure { .Sorts } ( \dv { SortString { } } ( Message ) ), _) , Pgm) => .K ... </k>
          <out> ... .List
             => ListItem("==== failure\n")
                ListItem(Message)             ListItem("\n")
@@ -317,7 +323,7 @@ For each constrained configuration, we triage according to the content of the `<
 ### Succeeded:
 
 ```metak
-    rule <k> triage(dotk{}(.Patterns), Pgm) => .K ... </k>
+    rule <k> triage(dotk {.Sorts} (.Patterns), Pgm) => .K ... </k>
          <out> ... .List
             => ListItem("==== success\n")
                ListItem(unparsePattern(Pgm))
@@ -329,7 +335,7 @@ For each constrained configuration, we triage according to the content of the `<
 
 ```metak
     syntax KVar ::= "Lblpause" [token]
-    rule <k> triage(kseq{ } ( Lblpause { } ( .Patterns ), Rest) , Pgm)
+    rule <k> triage(kseq{ .Sorts } ( Lblpause { .Sorts } ( .Patterns ), Rest) , Pgm)
           => exec(setKCell(Pgm, Rest))
              ...
          </k>
