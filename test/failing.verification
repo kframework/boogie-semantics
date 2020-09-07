@@ -13,10 +13,10 @@ test/dafny/sum/sum-to-n-minimal.bpl
 test/verification/test2/TypeEncodingM.bpl                    # -typeEncoding:m command line option, can be ignored
 
 # forall/exists/functions
-test/verification/test2/Axioms.bpl
-test/verification/test2/FormulaTerm2.bpl
+test/verification/test2/Axioms.bpl                           # Function bodies
+test/verification/test2/FormulaTerm2.bpl                     # Non-int functions
 test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
-test/verification/test2/Quantifiers.bpl
+test/verification/test2/Quantifiers.bpl                      # Triggers
 test/verification/test2/Structured.bpl
 test/verification/test2/Ensures.bpl                          # forall used in ensures clause; Becomes an assume at call site
 
