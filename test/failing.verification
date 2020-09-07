@@ -24,7 +24,6 @@ test/verification/test2/AssumeEnsures.bpl
 test/verification/test2/FreeCall.bpl
 
 # lambda: These look like maps with extensionality
-test/verification/test2/Lambda.bpl                           # Also, forall
 test/verification/test2/LambdaOldExpressions.bpl
 test/verification/test2/LambdaLifting.bpl
 test/verification/test2/LambdaExt.bpl                        # Also, polymorphism
