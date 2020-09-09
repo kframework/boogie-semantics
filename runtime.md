@@ -712,8 +712,15 @@ belongs where we define each data type.
       [macro]
 
    syntax Bool ::= isMap(Type) [function, functional]
-   rule isMap([_]_) => true
-   rule isMap(_) => false [owise]
+   rule isMap([_]_)   => true
+   rule isMap(_:Id)   => false
+   rule isMap(int)    => false
+   rule isMap(bool)   => false
+
+   rule isMap([_]_)   => true  [simplification]
+   rule isMap(_:Id)   => false [simplification]
+   rule isMap(int)    => false [simplification]
+   rule isMap(bool)   => false [simplification]
 ```
 
 ```k
