@@ -147,14 +147,14 @@ Coersions are ignored for now:
     rule <k> select((map(Id1, _),map(Id2, _)), map(Id, T)) => assume .AttributeList lookupMapII(Id, Id1,Id2) == inhabitants(T) ; ~> lookupMapII(Id, Id1,Id2) ... </k>
 
     // Uninterpreted function
-    syntax FreshValue ::= lookupMap  (mapId: Int)                         [function, functional, smtlib(lookupMap),   no-evaluators]
-    syntax FreshValue ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
-    syntax FreshValue ::= lookupMapB (mapId: Int, key: Bool)              [function, functional, smtlib(lookupMapB),  no-evaluators]
-    syntax FreshValue ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
-    syntax FreshValue ::= lookupMapIB(mapId: Int, key1: Int, key2: Bool)  [function, functional, smtlib(lookupMapIB), no-evaluators]
-    syntax FreshValue ::= lookupMapBI(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapBI), no-evaluators]
-    syntax FreshValue ::= lookupMapBB(mapId: Int, key1: Bool, key2: Bool) [function, functional, smtlib(lookupMapBB), no-evaluators]
-    syntax FreshValue ::= lookupMapBII(mapId: Int, Bool, Int, Int) [function, functional, smtlib(lookupMapBB), no-evaluators]
+    syntax Int ::= lookupMap  (mapId: Int)                         [function, functional, smtlib(lookupMap),   no-evaluators]
+    syntax Int ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
+    syntax Int ::= lookupMapB (mapId: Int, key: Bool)              [function, functional, smtlib(lookupMapB),  no-evaluators]
+    syntax Int ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
+    syntax Int ::= lookupMapIB(mapId: Int, key1: Int, key2: Bool)  [function, functional, smtlib(lookupMapIB), no-evaluators]
+    syntax Int ::= lookupMapBI(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapBI), no-evaluators]
+    syntax Int ::= lookupMapBB(mapId: Int, key1: Bool, key2: Bool) [function, functional, smtlib(lookupMapBB), no-evaluators]
+    syntax Int ::= lookupMapBII(mapId: Int, Bool, Int, Int) [function, functional, smtlib(lookupMapBB), no-evaluators]
 ```
 
 #### Update
