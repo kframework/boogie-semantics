@@ -6,6 +6,10 @@ test/verification/test2/Arrays.bpl                           # Uses too much RAM
 # Unimplemented
 # -------------
 
+# dafny -> boogie programs 
+test/dafny/hello/hello.bpl
+test/dafny/sum/sum-to-n.bpl
+
 # Minor bugs/features
 test/verification/test2/TypeEncodingM.bpl                    # -typeEncoding:m command line option, can be ignored
 
