@@ -8,6 +8,7 @@ test/verification/test2/Arrays.bpl                           # Uses too much RAM
 
 # dafny -> boogie programs 
 test/dafny/hello/hello.bpl
+test/dafny/hello/hello-minimal.bpl
 test/dafny/sum/sum-to-n.bpl
 
 # Minor bugs/features

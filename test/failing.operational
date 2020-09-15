@@ -10,4 +10,5 @@ test/operational/control-flow/while-nondet.bpl
 
 # dafny -> boogie programs 
 test/dafny/hello/hello.bpl
+test/dafny/hello/hello-minimal.bpl
 test/dafny/sum/sum-to-n.bpl
