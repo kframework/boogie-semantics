@@ -32,7 +32,7 @@ module BOOGIE-RUNTIME
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
                     <implStack> .List </implStack>
-                    <currentImpl> -1 </currentImpl>
+                    <currentImpl multiplicity="?"> -1 </currentImpl>
                     <freshVars> .K </freshVars>
                   </runtime>
 ```
@@ -290,7 +290,7 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
          <mods> Modifies </mods>
       requires notBool X in_keys(Env)
        andBool         X in Modifies
-       
+
     rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
          <runtime> 
            <locals> Env </locals>
@@ -299,6 +299,13 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
            <labels> _ </labels>
            <cutpoints> _ </cutpoints>
            <freshVars> _ </freshVars>
+```
+
+```operational
+           <implStack> _ </implStack>
+```
+
+```k
          </runtime>
       requires notBool X in_keys(Env)
 ```
