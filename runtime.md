@@ -19,6 +19,7 @@ module BOOGIE-RUNTIME
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
                     <currentImpl multiplicity="?"> -1 </currentImpl>
+                    <freshVars> .K </freshVars>
                   </runtime>
 ```
 
@@ -32,6 +33,7 @@ module BOOGIE-RUNTIME
                     <cutpoints> .List </cutpoints>
                     <implStack> .List </implStack>
                     <currentImpl> -1 </currentImpl>
+                    <freshVars> .K </freshVars>
                   </runtime>
 ```
 
@@ -105,6 +107,7 @@ Coersions are ignored for now:
 
 ```k
     syntax Value ::= value(value: ValueExpr, type: Type, where: Expr)
+                   | "#undefined"
 
     syntax Value ::= lookupVariable(Id) [function]
     rule [[ lookupVariable(X:Id) => V ]]
@@ -132,19 +135,19 @@ Coersions are ignored for now:
     context (_:MapValue [ HOLE ]):Expr
 
     rule <k> (Map:MapValue [ Key ]):Expr => select(Key, Map) ...  </k> requires isKResult(Key)
-    rule <k> select(Key, update(Key, Val, Map)) => Val ... </k>
-    rule <k> select(S, update(Key, _, Map)) => select(S, Map) ... </k> requires Key =/=K S
+    rule <k> select(S, update(Key, Val, Map)) => Val ...            </k> requires Key  ==K S
+    rule <k> select(S, update(Key, _, Map))   => select(S, Map) ... </k> requires Key =/=K S
 
-    rule <k> select(.ExprList, map(Id, T)) => assume .AttributeList lookupMap(Id)          == inhabitants(T) ; ~> lookupMap(Id)          ... </k>
-    rule <k> select(S, map(Id, T))         => assume .AttributeList lookupMapI(Id, S)      == inhabitants(T) ; ~> lookupMapI(Id, S)      ... </k>
-    rule <k> select(S, map(Id, T))         => assume .AttributeList lookupMapB(Id, S)      == inhabitants(T) ; ~> lookupMapB(Id, S)      ... </k>
-    rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapII(Id, S1,S2) == inhabitants(T) ; ~> lookupMapII(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapIB(Id, S1,S2) == inhabitants(T) ; ~> lookupMapIB(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapBI(Id, S1,S2) == inhabitants(T) ; ~> lookupMapBI(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2), map(Id, T))   => assume .AttributeList lookupMapBB(Id, S1,S2) == inhabitants(T) ; ~> lookupMapBB(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2,S3), map(Id, T)) => assume .AttributeList lookupMapBII(Id, S1,S2,S3) == inhabitants(T) ; ~> lookupMapBII(Id, S1,S2,S3) ... </k>
-    
-    rule <k> select((map(Id1, _),map(Id2, _)), map(Id, T)) => assume .AttributeList lookupMapII(Id, Id1,Id2) == inhabitants(T) ; ~> lookupMapII(Id, Id1,Id2) ... </k>
+    rule <k> select(.ExprList,  map(Id, [ArgT]RetT)) => lookupMap(Id)          ... </k>
+    rule <k> select(S,          map(Id, [ArgT]RetT)) => lookupMapI(Id, S)      ... </k>
+    rule <k> select(S,          map(Id, [ArgT]RetT)) => lookupMapB(Id, S)      ... </k>
+    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapII(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapIB(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapBI(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapBB(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2,S3), map(Id, [ArgT]RetT)) => lookupMapBII(Id, S1,S2,S3) ... </k>
+
+    rule <k> select((map(Id1, _),map(Id2, _)), map(Id, [ArgT]RetT)) => assume .AttributeList lookupMapII(Id, Id1,Id2) == inhabitants(RetT) ; ~> lookupMapII(Id, Id1,Id2) ... </k>
 
     // Uninterpreted function
     syntax Int ::= lookupMap  (mapId: Int)                         [function, functional, smtlib(lookupMap),   no-evaluators]
@@ -212,8 +215,11 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 -------------------------------------------------
 
 ```k
-  rule <k> var .AttributeList X:Id : T ;:Decl => .K ... </k>
-       <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
+  rule <k> var .AttributeList X:Id : T:Type ;:Decl
+        => X := inhabitants(T), .ExprList ;
+           ...
+       </k>
+       <globals> (.Map => X:Id |-> value("undefined", T, true)) Rho </globals>
      requires notBool( X in_keys(Rho) )
 ```
 
@@ -264,7 +270,6 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 
 ```k
     context _:LhsList := HOLE ;
-
     rule <k> .LhsList := .ExprList ; => .K ... </k>
     rule <k> (X, Xs:LhsList) := (V:ValueExpr, Vs:ExprList) ;
           => X := V, .ExprList ;
@@ -285,6 +290,17 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
          <mods> Modifies </mods>
       requires notBool X in_keys(Env)
        andBool         X in Modifies
+       
+    rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
+         <runtime> 
+           <locals> Env </locals>
+           <globals> X |-> value(... value: _ => V) ... </globals>
+           <olds> _ </olds>
+           <labels> _ </labels>
+           <cutpoints> _ </cutpoints>
+           <freshVars> _ </freshVars>
+         </runtime>
+      requires notBool X in_keys(Env)
 ```
 
 9.4 Havoc
@@ -702,34 +718,11 @@ TODO: Is there some more modular way we could implement this? This really
 belongs where we define each data type.
 
 ```k
-    syntax ValueExpr ::= inhabitants(Type)
-    rule inhabitants(T)
-      => #if T ==K int    #then ?_:Int      #else
-         #if T ==K bool   #then ?_:Bool     #else
-         #if isMap(T) #then map(?_:Int, T)  #else
-         ?_:Int // TODO: We just need an uninterpreted sort, but quantifier only supports Ints
-         #fi #fi #fi
-      [macro]
-
-   syntax Bool ::= isMap(Type) [function, functional]
-   rule isMap([_]_)   => true
-   rule isMap(_:Id)   => false
-   rule isMap(int)    => false
-   rule isMap(bool)   => false
-
-   rule isMap([_]_)   => true  [simplification]
-   rule isMap(_:Id)   => false [simplification]
-   rule isMap(int)    => false [simplification]
-   rule isMap(bool)   => false [simplification]
-```
-
-```k
-    syntax Bool ::= implies(Bool, Bool)   [function, functional, smt-hook((=> #1 #2))    , no-evaluators, symbol, klabel(implies)]
-    syntax Bool ::= not(Bool)             [function, functional, smt-hook((not #1))      , no-evaluators, symbol, klabel(not)]
-    syntax Bool ::= and(Bool, Bool)       [function, functional, smt-hook((and #1 #2))   , no-evaluators, symbol, klabel(and)]
-    syntax Bool ::= or(Bool, Bool)        [function, functional, smt-hook((or #1 #2))    , no-evaluators, symbol, klabel(or)]
-    syntax Bool ::= eqInt(Int, Int)       [function, functional, smt-hook((= #1 #2))     , no-evaluators, symbol, klabel(eqInt)]
-    syntax Bool ::= eqBool(Bool, Bool)    [function, functional, smt-hook((= #1 #2))     , no-evaluators, symbol, klabel(eqBool)]
+    syntax Expr ::= inhabitants(Type)
+    rule <k> inhabitants(int)  => ?V:Int            ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
+    rule <k> inhabitants(bool) => ?V:Bool           ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
+    rule <k> inhabitants([A]R) => map(?V:Int, [A]R) ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
+    rule <k> inhabitants(_)    => ?V:Int            ... </k> <freshVars> K:K => (K ~> ?V) </freshVars> [owise]
 ```
 
 ```k

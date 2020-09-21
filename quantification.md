@@ -51,7 +51,8 @@ When Boogie's forall is encountered, we convert it to a binder. We use `lambda` 
 ```objectk
     syntax Expr ::= "(" "forallbinder" ValueExpr "::" Expr ")"  [klabel(forallbinder)      , symbol]
     rule <k> (#forall X : bool :: Expr) => (forallbinder ?B:Bool:: (lambda X : bool :: Expr)[?B:Bool]) ... </k>
-    rule <k> (#forall X : T :: Expr) => (forallbinder ?I:Int :: (lambda X : T :: Expr)[?I:Int]) ... </k> requires T =/=K bool andBool notBool(isMap(T))
+    rule <k> (#forall X : T :: Expr) => (forallbinder ?I:Int :: (lambda X : T :: Expr)[?I:Int]) ... </k>
+      requires T =/=K bool andBool notBool(isMap(T))
     rule <k> (#forall X : [TArgs]Tr :: Expr)
           => (forallbinder ?I:Int :: (lambda X : [TArgs]Tr :: Expr)[map(?I, Tr)])
              ...
@@ -72,23 +73,46 @@ i.e. a `forall` encountered along one program path must be evaulated separately 
           ~> forallFreezer(Rest, Pgm)
              ...
          </k>
+         <freshVars> .K => getFreshVars(Pgm) ... </freshVars>
 ```
 
 The evaluation of the quantified expression results in a disjunction of configurations, constrained by their path conditions.
 
+```metak
+    syntax KItem ::= forallResult(Pattern, Pattern)
+    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { QSort, SortValueExpr{} } ( V : QSort ) ,inj{SortBool{},SortExpr{}}(E))),dotk { .Sorts }(.Patterns)),\and{_}(C,PathConditions))
+          => forallResult( V : QSort
+                         , \or { SortGeneratedTopCell {}}
+                               ( \not {SortGeneratedTopCell{}}( makePathConditions(PathConditions, FreshVarsOrig, getFreshVars(C)) )
+                               , \equals{SortBool{}, SortGeneratedTopCell{}} (E, \dv {SortBool{}}("true"))
+                               )
+                         )
+             ...
+         </k>
+         <freshVars> FreshVarsOrig ...</freshVars>
+```
+
+```metak
+    syntax Pattern ::= makePathConditions(Pattern, origVars: Patterns, newVars: Patterns) [function] 
+    rule makePathConditions(PC, dotk {.Sorts}(.Patterns), _) => PC
+    rule makePathConditions( PC
+                           , kseq {.Sorts}(inj{Sort, _}(V1), P1s)
+                           , kseq {.Sorts}(inj{Sort, _}(V2), P2s)
+                           )
+      => makePathConditions(\and{SortGeneratedTopCell{}}(\equals { Sort, SortGeneratedTopCell{} } (V1, V2), PC), P1s, P2s)
+      requires V1 =/=K V2
+    rule makePathConditions( PC
+                           , kseq {.Sorts}(inj{Sort, _}(V), P1s)
+                           , kseq {.Sorts}(inj{Sort, _}(V), P2s)
+                           )
+      => makePathConditions(PC, P1s, P2s)
+```
+
 The results and path-conditions from these branches are combined into an object-level boolean function using object-level logical connectives.
 
 ```metak
-    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E1))),dotk { .Sorts }(.Patterns)),\and{GTC}(C,PathConditions1))
-          ~> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( V : Sort ) ,inj{SortBool{},SortExpr{}}(E2))),dotk { .Sorts }(.Patterns)),\and{GTC}(_,PathConditions2))
-          => triage( kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( V : Sort )
-                   , inj{SortBool{},SortExpr{}} ( Lbland { .Sorts } (
-                        Lblimplies { .Sorts }(PredicateToBooleanExpression(PathConditions2), PredicateToBooleanExpression(E2))
-                      , Lblimplies { .Sorts }(PredicateToBooleanExpression(PathConditions1), PredicateToBooleanExpression(E1))
-                     ))
-                     )), dotk { .Sorts }(.Patterns))
-                   , \and {GTC} (C, \or {GTC} (PathConditions1, PathConditions2))
-                   )
+    rule <k> forallResult(V : QSort, E1) ~> forallResult(V : QSort, E2)
+          => forallResult(V : QSort, \and {SortGeneratedTopCell{}} (E1, E2))
              ...
          </k>
 ```
@@ -96,21 +120,18 @@ The results and path-conditions from these branches are combined into an object-
 We may sometimes need to alpha-rename the bound variable to enable this.
 
 ```metak
-    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( (V1 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E1 => E1[freshVariable(!I)/V1]))),dotk { .Sorts }(.Patterns)),C1 => C1[freshVariable(!I)/V1:KVar])
-          ~> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { Sort, SortValueExpr } ( (V2 => freshVariable(!I)) : Sort ), inj{SortBool{},SortExpr{}}(E2 => E2[freshVariable(!I)/V2]))),dotk { .Sorts }(.Patterns)),C2 => C2[freshVariable(!I)/V2:KVar])
+    rule <k> (forallResult(V1 : QSort, E1) => forallResult(V1 : QSort, E1)[freshVariable(!I)/V1:KVar])
+          ~> (forallResult(V2 : QSort, E2) => forallResult(V2 : QSort, E2)[freshVariable(!I)/V2:KVar])
              ...
          </k>
       requires V1 =/=K V2
 ```
 
-We bring each branch to the front to allow them to be triaged. (See [driver/driver.md] for other cases of triaging.)
+We bring each branch to the front to allow them to be triaged.
 
 ```metak
-    rule <k> (triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(_,inj{SortBool{},SortExpr{}}(_))), dotk { .Sorts }(.Patterns)), _) #as Now)
-          ~> (\and { SortGeneratedTopCell { } } ( _, _ ) #as Next)
-          => (Next:KItem ~> Now:KItem)
-             ...
-         </k>
+    rule <k> (forallResult(_, _) #as Curr) ~> (\and { SortGeneratedTopCell{}} (_, _) #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
+    rule <k> (forallResult(_, _) #as Curr) ~> (exec(_)                               #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
 ```
 
 Finally, when all branch branches are fully reduced, we cool the result back into the original context,
@@ -122,20 +143,17 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
 
 ```metak
     syntax KItem ::= forallFreezer(kcellRest: Pattern, config: Pattern)
-    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(V,inj{SortBool{},SortExpr{}}(E))), dotk { .Sorts }(.Patterns)), _)
+    rule <k> forallResult(V : QSort, E)
           ~> forallFreezer(Rest, Pgm)
-          => exec(setKCell(Pgm, kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbindercooled { .Sorts }(V,inj{SortBool{},SortExpr{}}(E))),Rest)))
+          => exec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
+                                                 , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
+                 )                               )
+          ~> exec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
+                                                 , \not {SortGeneratedTopCell{}} (\not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))))
+                 )                               )
              ...
-         </k> 
-```
-
-Finally, we reduce the binder to the logical `forall` construct:
-
-```objectk
-    syntax Bool ::= smtforallInt(Int, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
-    syntax Bool ::= smtforallBool(Bool, Bool) [function, functional, no-evaluators, smt-hook((forall ((#1 Int)) #2))]
-    rule <k> (forallbindercooled V :: B) => smtforallInt(V, B) ... </k>
-    rule <k> (forallbindercooled V :: B) => smtforallBool(V, B) ... </k>
+         </k>
+         <freshVars> _:Patterns => .K ... </freshVars>
 ```
 
 ```objectk

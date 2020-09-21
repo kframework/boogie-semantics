@@ -82,10 +82,10 @@ must be unique, multiple entries aren't created for each type.
 ```
 
 ```k
-    rule <k> const _:AttributeList .Nothing X, .IdList : T ; => .K ... </k>
+    rule <k> const _:AttributeList .Nothing X, .IdList : T ; => X := inhabitants(T), .ExprList ; ... </k>
          <typeName> T </typeName>
-         <globals> (.Map => X:Id |-> value(inhabitants(T), T, true)) Rho </globals>
-       requires notBool( X in_keys(Rho) )
+         <globals> (.Map => X:Id |-> value("undefined", T, true)) Rho </globals>
+       requires notBool(X in_keys(Rho))
 ```
 
 Functions are constant maps:
@@ -96,7 +96,6 @@ Functions are constant maps:
              ...
          </k>
     rule <k> (F:Id (Args:ExprList) => F[Args]):Expr ... </k>
-
 ```
 
 ### `unique`
@@ -192,14 +191,14 @@ However, in the operational semantics we only execute the main procedure:
          => Vs
             ...
         </k>
-        <locals> (.Map => X:Id |-> value(inhabitants(T), T, Where)) Rho </locals>
+        <locals> (.Map => X:Id |-> value("undefined", T, Where)) Rho </locals>
      requires notBool( X in_keys(Rho) )
-     
+
    rule <k> var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
          => Vs
             ...
         </k>
-        <locals> X |-> (_ => value(inhabitants(T), T, Where)) ... </locals>
+        <locals> X |-> (_ => value("undefined", T, Where)) ... </locals>
 ```
 
 ```k

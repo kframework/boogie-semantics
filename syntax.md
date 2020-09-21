@@ -17,15 +17,15 @@ module BOOGIE-COMMON-SYNTAX
 
 ```k
     syntax Program ::= DeclList
-    syntax DeclList   ::= List{Decl, ""} [klabel(DeclList), symbol]
-    syntax Decl    ::= VarDecl
-                     | ConstantDecl
-                     | FunctionDecl
-                     | AxiomDecl
-                     | ProcedureDecl
-                     | ImplementationDecl
-                     | TypeDecl
-                     | TypeSynonym
+    syntax DeclList ::= List{Decl, ""} [klabel(DeclList), symbol]
+    syntax Decl ::= VarDecl
+                  | ConstantDecl
+                  | FunctionDecl
+                  | AxiomDecl
+                  | ProcedureDecl
+                  | ImplementationDecl
+                  | TypeDecl
+                  | TypeSynonym
 ```
 
 2 Types

@@ -12,12 +12,15 @@ module KORE
     syntax Pattern ::= "\\dv" "{" Sort "}" "(" String ")"                           [klabel(\dv)]
                      | KVar ":" Sort                                                [klabel(variable)]
                      | Symbol "(" Patterns ")"                                      [klabel(application)]
-                     | "\\not" "{" Sort "}" "(" Pattern ")"                          [klabel(\not)]
+                     | "\\not" "{" Sort "}" "(" Pattern ")"                         [klabel(\not)]
                      | "inj" "{" Sort "," Sort "}" "(" Pattern ")"                  [klabel(inj)]
                      | "\\equals" "{" Sort "," Sort "}" "(" Pattern "," Pattern ")" [klabel(\equals)]
                      | "\\and" "{" Sort "}" "(" Pattern "," Pattern ")"             [klabel(\and)]
                      | "\\or" "{" Sort "}" "(" Pattern "," Pattern ")"              [klabel(\or)]
                      | "\\top" "{" Sort "}" "(" ")"                                 [klabel(\top)]
+                     | "\\bottom" "{" Sort "}" "(" ")"                              [klabel(\bottom)]
+                     | "\\forall" "{" Sort "}" "(" Pattern "," Pattern ")"          [klabel(\forall)]
+                     | "\\exists" "{" Sort "}" "(" Pattern "," Pattern ")"          [klabel(\exists)]
 
     syntax Patterns ::= List{Pattern, ","} [klabel(Patterns)]
     syntax Sorts ::= List{Sort, ","}       [klabel(Sorts)]
@@ -34,14 +37,16 @@ module KORE-UNPARSE
     rule unparsePattern(KVar : Sort)                  => NameToString(KVar) +String ":" +String unparseSort(Sort)
     rule unparsePattern(\dv { S } (Value))            => "\\dv{" +String unparseSort(S)  +String "} (\"" +String Value +String "\")"
     rule unparsePattern(\top { S } ())                => "\\top{" +String unparseSort(S)  +String "} ()"
+    rule unparsePattern(\bottom { S } ())                => "\\bottom{" +String unparseSort(S)  +String "} ()"
     rule unparsePattern(inj { S1 , S2 } (P1))         => "inj{" +String unparseSort(S1) +String "," +String unparseSort(S2)  +String "} (" +String unparsePattern(P1) +String ")"
     rule unparsePattern(\not { S1 } (P1))         => "\\not{" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String ")"
     rule unparsePattern(S(Args:Patterns))             => unparseSymbol(S) +String "(" +String unparsePatterns(Args) +String ")"
-
     rule unparsePattern(\and { S1 } (P1, P2))
       => "\\and{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
     rule unparsePattern(\or { S1 } (P1, P2))
       => "\\or{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
+    rule unparsePattern(\forall  { S1 } (P1, P2)) => "\\forall {" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
+    rule unparsePattern(\exists  { S1 } (P1, P2)) => "\\exists {" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
 
     syntax String ::= NameToString(KVar) [function, functional, hook(STRING.token2string)]
 
@@ -55,7 +60,7 @@ module KORE-UNPARSE
     rule unparsePatterns(P, Ps) => unparsePattern(P) +String "," +String unparsePatterns(Ps) requires notBool Ps ==K .Patterns
     rule unparsePatterns(P, .Patterns) => unparsePattern(P)
     rule unparsePatterns(.Patterns) => ""
-    
+
     syntax String ::= unparseSorts(Sorts) [function, functional]
     rule unparseSorts(S, Ss) => unparseSort(S) +String "," +String unparseSorts(Ss) requires notBool Ss ==K .Sorts
     rule unparseSorts(S, .Sorts) => unparseSort(S)
@@ -81,6 +86,7 @@ module DRIVER-HELPERS
 ```metak
     syntax KItem ::= "init"
     configuration <k> $PGM:Pattern ~> init </k>
+                  <freshVars> .K </freshVars>
                   <out stream="stdout"> .List </out>
                   <definition> $Definition:String </definition>
                   <workingDir> $WorkingDir:String </workingDir>
@@ -139,6 +145,7 @@ We use these tokens in the definition.
 ```metak
     syntax KVar ::= "SortK"                       [token]
                   | "SortKItem"                   [token]
+                  | "SortValueExpr"               [token]
                   | "VarResult"                   [token]
                   | "kseq"                        [token]
                   | "dotk"                        [token]
@@ -165,24 +172,6 @@ We use these tokens in the definition.
 ```
 
 ```metak
-    syntax Pattern ::= PredicateToBooleanExpression(Pattern) [function]
-                  
-    rule PredicateToBooleanExpression(\not {_} (P)) => Lblnot{.Sorts} (PredicateToBooleanExpression(P))
-    rule PredicateToBooleanExpression(\and {_} (E1, E2)) => Lbland{.Sorts} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
-    rule PredicateToBooleanExpression(\or {_} (E1, E2)) => Lblor{.Sorts} (PredicateToBooleanExpression(E1), PredicateToBooleanExpression(E2))
-    
-    rule PredicateToBooleanExpression(\equals {S1, _} (E1, E2))
-      => Lbl'UndsEqlsEqls'K'Unds'{.Sorts} ( kseq{.Sorts}(inj{S1, SortKItem{} }(E1), dotk{.Sorts}(.Patterns))
-                                          , kseq{.Sorts}(inj{S1, SortKItem{} }(E2), dotk{.Sorts}(.Patterns))
-                                          )
-    rule PredicateToBooleanExpression(Lbl'UndsEqlsEqls'Int'Unds' {.Sorts} (E1, E2)) => LbleqInt{.Sorts} (E1, E2)
-    rule PredicateToBooleanExpression(Lbl'UndsEqlsEqls'Bool'Unds' {.Sorts} (E1, E2)) => LbleqBool{.Sorts} (E1, E2) [owise]
-    rule PredicateToBooleanExpression(S {Ss} (Es)) => S {Ss} (Es) [owise]
-    rule PredicateToBooleanExpression(\top {_} ()) => \dv{SortBool{}} ("true")
-    rule PredicateToBooleanExpression(\dv{_} (_) #as DV) => DV
-```
-
-```metak
     syntax Patterns ::= getKCell(Pattern) [function]
     rule getKCell(Lbl'-LT-'k'-GT-' { .Sorts } ( Arg, .Patterns ) ) => Arg, .Patterns
     rule getKCell(S { _ } ( Args ) ) => getKCellPs(Args) requires S =/=K Lbl'-LT-'k'-GT-'
@@ -194,14 +183,34 @@ We use these tokens in the definition.
     syntax Patterns ::= getKCellPs(Patterns) [function, functional]
     rule getKCellPs(P, Ps) => getKCell(P) +Patterns getKCellPs(Ps)
     rule getKCellPs(.Patterns) => .Patterns
+
+    syntax KVar ::= "Lbl'-LT-'freshVars'-GT-'" [token]
+    syntax Patterns ::= getFreshVars(Pattern) [function]
+    rule getFreshVars(Lbl'-LT-'freshVars'-GT-' { .Sorts } ( Arg, .Patterns ) ) => Arg, .Patterns
+    rule getFreshVars(S { _ } ( Args ) ) => getFreshVarsPs(Args) requires S =/=K Lbl'-LT-'freshVars'-GT-'
+    rule getFreshVars(inj{ _, _ } (P) ) => getFreshVars(P)
+    rule getFreshVars(\not{ _ } (P) ) => getFreshVars(P)
+    rule getFreshVars(\and{ _ } (P1, P2) ) => getFreshVars(P1) +Patterns getFreshVars(P2)
+    rule getFreshVars(\equals{ _ , _} (_, _) ) => .Patterns
+    rule getFreshVars(\forall{ _ } (_, _) ) => .Patterns
+    rule getFreshVars(\exists{ _ } (_, _) ) => .Patterns
+    rule getFreshVars(\dv{ _ } (_) ) => .Patterns
+    rule getFreshVars(\top{ _ } () ) => .Patterns
+    rule getFreshVars(_ : _) => .Patterns
+
+    syntax Patterns ::= getFreshVarsPs(Patterns) [function, functional]
+    rule getFreshVarsPs(P, Ps) => getFreshVars(P) +Patterns getFreshVarsPs(Ps)
+    rule getFreshVarsPs(.Patterns) => .Patterns
 ```
 
 ```metak
     syntax Pattern ::= setKCell(config: Pattern, kcell: Pattern) [function]
-    rule setKCell(Lbl'-LT-'k'-GT-' { .Sorts } ( _, .Patterns ), KCell ) => Lbl'-LT-'k'-GT-' { .Sorts } ( KCell, .Patterns ) 
+    rule setKCell(Lbl'-LT-'k'-GT-' { .Sorts } ( _, .Patterns ), KCell ) => Lbl'-LT-'k'-GT-' { .Sorts } ( KCell, .Patterns )
     rule setKCell(S { Sorts } ( Args )                 , KCell ) => S { Sorts } ( setKCellPs(Args, KCell) ) requires S =/=K Lbl'-LT-'k'-GT-'
     rule setKCell(\and { S } ( P1, P2 )                , KCell ) => \and { S } ( setKCell(P1, KCell), setKCell(P2, KCell))
     rule setKCell(\equals { S1, S2 } ( P1, P2 )        , KCell ) => \equals { S1, S2 } ( setKCell(P1, KCell), setKCell(P2, KCell))
+    rule setKCell(\forall { S1 } ( P1, P2     )        , KCell ) => \forall { S1 } ( P1, setKCell(P2, KCell))
+    rule setKCell(\exists { S1 } ( P1, P2     )        , KCell ) => \exists { S1 } ( P1, setKCell(P2, KCell))
     rule setKCell(inj{ S1, S2 } (P)                    , KCell ) => inj { S1, S2 } ( setKCell(P, KCell) )
     rule setKCell(\not{ S1 } (P)                       , KCell ) => \not{ S1 } ( setKCell(P, KCell) )
     rule setKCell(\top{ S1 } ()                        ,_KCell ) => \top{ S1 } ( )
@@ -222,8 +231,8 @@ We use fresh variables from a domain distinct from both the Haskell backend's na
 
 ```metak
     syntax Patterns ::= Patterns "+Patterns" Patterns [function, functional, left]
-    rule (P1, P1s) +Patterns P2s => P1, (P1s +Patterns P2s) 
-    rule .Patterns +Patterns P2s =>                    P2s 
+    rule (P1, P1s) +Patterns P2s => P1, (P1s +Patterns P2s)
+    rule .Patterns +Patterns P2s =>                    P2s
 ```
 
 ```metak
@@ -303,6 +312,7 @@ For each constrained configuration, we triage according to the content of the `<
           => triage(getKCell(Config), ConstrainedConfiguration)
              ...
          </k>
+    rule <k> \bottom{_}() => .K ... </k> // TODO: This is broken when the only result from a forall is `\bottom`
 ```
 
 ```metak
