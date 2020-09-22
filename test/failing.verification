@@ -1,5 +1,3 @@
-test/verification/test2/Arrays.bpl                           # Uses too much RAM; passes when split into multiple smaller tests
-
 # Unimplemented
 # -------------
 
