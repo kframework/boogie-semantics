@@ -2,10 +2,11 @@ Boogie Semantics
 ================
 
 ```k
-requires "syntax.md"
-requires "procedures.md"
-requires "runtime.md"
 requires "helpers.md"
+requires "procedures.md"
+requires "quantification.md"
+requires "runtime.md"
+requires "syntax.md"
 
 module BOOGIE-FRESH-COUNTER
     imports INT-SYNTAX
@@ -17,6 +18,7 @@ module BOOGIE
     imports BOOGIE-FRESH-COUNTER
     imports BOOGIE-PROCEDURES
     imports BOOGIE-RUNTIME
+    imports BOOGIE-QUANTIFIERS-OBJECT
     imports BOOGIE-HELPERS
     imports INT
     imports MAP
@@ -42,6 +44,12 @@ module BOOGIE
 
 2 Types
 -------
+
+TODO: Type synonyms are ignored
+
+```k
+    rule <k> type Attrs T:Id = _T2 ; => type Attrs T:Id ;  ... </k>
+```
 
 TODO: We do not check if a type has been declared before being used yet.
 
@@ -74,22 +82,20 @@ must be unique, multiple entries aren't created for each type.
 ```
 
 ```k
-    rule <k> const _:AttributeList .Nothing X, .IdList : T ; => .K ... </k>
+    rule <k> const _:AttributeList .Nothing X, .IdList : T ; => X := inhabitants(T), .ExprList ; ... </k>
          <typeName> T </typeName>
-         <globals> (.Map => X:Id |-> value(inhabitants(T, FreshInt), T, true)) Rho </globals>
-         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
-       requires notBool( X in_keys(Rho) )
+         <globals> (.Map => X:Id |-> value("undefined", T, true)) Rho </globals>
+       requires notBool(X in_keys(Rho))
 ```
 
 Functions are constant maps:
 
 ```k
-    rule <k> function Attrs F (X:Id : TX:Type, .IdsTypeList) : TR ;
-          => const Attrs .Nothing (F, .IdList) : ([TX]TR):Type ;
+    rule <k> function Attrs F (IdsTypeList) : TR ;
+          => const Attrs .Nothing (F, .IdList) : ([IdsTypeListToTypeList(IdsTypeList)]TR):Type ;
              ...
          </k>
     rule <k> (F:Id (Args:ExprList) => F[Args]):Expr ... </k>
-
 ```
 
 ### `unique`
@@ -117,7 +123,11 @@ distinct.
 -------
 
 ```k
-    rule <k> axiom Attrs Expr ; => assume Attrs Expr ; ... </k>
+    rule <k> axiom Attrs Expr ; ~> Ds:DeclList
+          => Ds ~> axiom Attrs Expr ;
+             ...
+         </k>
+    rule <k> axiom Attrs Expr ; => assume Attrs Expr ; ... </k> [owise]
 ```
 
 9.0 Implementation Body
@@ -131,7 +141,8 @@ In the case of the verification semantics, we verify all procedures:
 
 ```verification
     rule <k> #start
-          => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
+          => #pause
+          ~> makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
           ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
           ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)] ;
           ~> #collectLabel(StartLabel, .StmtList) ~> StmtList
@@ -152,12 +163,20 @@ In the case of the verification semantics, we verify all procedures:
          </impl>
 ```
 
+This is used to reduce RAM usage by taking only one branch at a time (see driver.md)
+
+```k
+    syntax KItem ::= "#pause" [symbol, klabel(pause)]
+```
+
+
 However, in the operational semantics we only execute the main procedure:
 
 ```operational
     syntax Id ::= "main" [token]
     syntax KItem ::= "#dropReturnValue"
     rule <k> #start => #call main(.ExprList) ~> #dropReturnValue ... </k>
+         (.CurrentImplCell => <currentImpl> -1 </currentImpl>)
     rule <k> (_:ExprList ~> #dropReturnValue) => .K ... </k>
 ```
 
@@ -173,16 +192,14 @@ However, in the operational semantics we only execute the main procedure:
          => Vs
             ...
         </k>
-        <locals> (.Map => X:Id |-> value(inhabitants(T, Loc), T, Where)) Rho </locals>
-        <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
+        <locals> (.Map => X:Id |-> value("undefined", T, Where)) Rho </locals>
      requires notBool( X in_keys(Rho) )
-     
+
    rule <k> var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
          => Vs
             ...
         </k>
-        <locals> X |-> (_ => value(inhabitants(T, Loc), T, Where)) ... </locals>
-        <freshCounter> Loc  => Loc  +Int 1 </freshCounter>
+        <locals> X |-> (_ => value("undefined", T, Where)) ... </locals>
 ```
 
 ```k

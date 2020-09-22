@@ -21,12 +21,12 @@ from kninja import *
 proj = KProject(extdir = extdir)
 
 def build(alias):
-    selector = 'k | ' + alias
+    selector = 'k | objectk | ' + alias
     return proj.definition( alias         = alias
                           , main          = 'boogie.md'
-                          , other         = ['syntax.md', 'nothing.md', 'procedures.md', 'helpers.md', 'runtime.md']
+                          , other         = ['syntax.md', 'nothing.md', 'procedures.md', 'helpers.md', 'runtime.md', 'quantification.md']
                           , backend       = 'haskell'
-                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --emit-json --md-selector "%s"' % selector
+                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --emit-json --md-selector "%s" --gen-bison-parser' % selector
                           )
 
 verification = build('verification')
@@ -34,20 +34,28 @@ operational  = build('operational')
 
 # Tests
 # =====
+ 
+driver = proj.definition( alias         = 'driver'
+                        , main          = 'driver/driver.md'
+                        , other         = ['quantification.md']
+                        , backend       = 'llvm'
+                        , flags         = '--md-selector "k | metak" -ccopt -g -ccopt -O0 --gen-bison-parser --syntax-module KORE'
+                        )
 
 def kboogie_runner(definition, expected_extension):
     def runner(input):
         kboogie_rule = proj.rule( 'kboogie'
                                 , description = 'kboogie $definition: $in'
-                                , command = 'bin/kboogie --definition "$definition" $in > $out 2>&1 || (cat $out; false)'
+                                , command = './driver/driver "$definition_dir" "$in" > "$out" 2>&1 || (cat $out; false)'
                                 , ext = definition._alias
                                 )
-        implicit_deps = [ definition.target , proj.source('bin/kboogie') ]
+        implicit_deps = [definition.target, driver.target , proj.source('bin/kboogie'), *glob('driver/*')]
         kboogie_rule = kboogie_rule.implicit(implicit_deps)
+        kboogie_rule = kboogie_rule.variable('definition_dir', definition._directory)
         kboogie_rule = kboogie_rule.variable('definition', definition._alias)
         kboogie_out = proj.source(input).then(kboogie_rule)
 
-        kboogie_diff_rule = proj.rule( 'diff-kboo'
+        kboogie_diff_rule = proj.rule( 'diff-kboogie'
                                      , description = 'diff-kboogie: $in'
                                      , command = 'bin/diff-kboogie $in $expected'
                                      , ext = 'diff'

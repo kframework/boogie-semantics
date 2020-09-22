@@ -19,6 +19,7 @@ module BOOGIE-RUNTIME
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
                     <currentImpl multiplicity="?"> -1 </currentImpl>
+                    <freshVars> .K </freshVars>
                   </runtime>
 ```
 
@@ -31,7 +32,8 @@ module BOOGIE-RUNTIME
                     <labels> .Map </labels>
                     <cutpoints> .List </cutpoints>
                     <implStack> .List </implStack>
-                    <currentImpl> -1 </currentImpl>
+                    <currentImpl multiplicity="?"> -1 </currentImpl>
+                    <freshVars> .K </freshVars>
                   </runtime>
 ```
 
@@ -41,9 +43,10 @@ module BOOGIE-RUNTIME
 ```k
     syntax KResult ::= ValueExpr
     syntax Expr ::= ValueExpr
+    syntax ValueExpr ::= FreshValue
     rule isKResult(E, Es:ExprList) => isKResult(E) andBool isKResult(Es)
     rule isKResult(.ExprList) => true
-    syntax ValueExpr ::= Bool | Int | String
+    syntax FreshValue ::= Bool | Int | String
 
     rule <k> X:Id => value(lookupVariable(X)) ... </k>
 
@@ -94,10 +97,17 @@ module BOOGIE-RUNTIME
     rule <k> if false then _     else False => False ... </k>
 ```
 
+Coersions are ignored for now:
+
+```k
+    rule <k> E:Expr : _:Type => E ... </k>
+```
+
 ### Variable lookup
 
 ```k
     syntax Value ::= value(value: ValueExpr, type: Type, where: Expr)
+                   | "#undefined"
 
     syntax Value ::= lookupVariable(Id) [function]
     rule [[ lookupVariable(X:Id) => V ]]
@@ -115,7 +125,9 @@ module BOOGIE-RUNTIME
 
 ```k
     syntax ValueExpr ::= MapValue
-    syntax MapValue ::= map(Int)
+    syntax FreshMapValue ::= map(Int, Type)
+    syntax FreshValue ::= FreshMapValue
+    syntax MapValue ::= FreshMapValue
                       | update(key: ExprList, value: ValueExpr, mapx: MapValue)
     syntax Expr      ::= select(ExprList, MapValue)
 
@@ -123,13 +135,29 @@ module BOOGIE-RUNTIME
     context (_:MapValue [ HOLE ]):Expr
 
     rule <k> (Map:MapValue [ Key ]):Expr => select(Key, Map) ...  </k> requires isKResult(Key)
+    rule <k> select(S, update(Key, Val, Map)) => Val ...            </k> requires Key  ==K S
+    rule <k> select(S, update(Key, _, Map))   => select(S, Map) ... </k> requires Key =/=K S
 
-    rule <k> select(Key, update(Key, Val, Map)) => Val ... </k>
-    rule <k> select(S, update(Key, _, Map)) =>  select(S, Map) ... </k> requires Key =/=K S
-    rule <k> select(S, map(Id)) => lookupMap(Id, S) ... </k>
+    rule <k> select(.ExprList,  map(Id, [ArgT]RetT)) => lookupMap(Id)          ... </k>
+    rule <k> select(S,          map(Id, [ArgT]RetT)) => lookupMapI(Id, S)      ... </k>
+    rule <k> select(S,          map(Id, [ArgT]RetT)) => lookupMapB(Id, S)      ... </k>
+    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapII(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapIB(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapBI(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapBB(Id, S1,S2) ... </k>
+    rule <k> select((S1,S2,S3), map(Id, [ArgT]RetT)) => lookupMapBII(Id, S1,S2,S3) ... </k>
+
+    rule <k> select((map(Id1, _),map(Id2, _)), map(Id, [ArgT]RetT)) => assume .AttributeList lookupMapII(Id, Id1,Id2) == inhabitants(RetT) ; ~> lookupMapII(Id, Id1,Id2) ... </k>
 
     // Uninterpreted function
-    syntax Int ::= lookupMap(mapId: Int, key: ExprList) [function, functional, smtlib(lookupMap), no-evaluators]
+    syntax Int ::= lookupMap  (mapId: Int)                         [function, functional, smtlib(lookupMap),   no-evaluators]
+    syntax Int ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
+    syntax Int ::= lookupMapB (mapId: Int, key: Bool)              [function, functional, smtlib(lookupMapB),  no-evaluators]
+    syntax Int ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
+    syntax Int ::= lookupMapIB(mapId: Int, key1: Int, key2: Bool)  [function, functional, smtlib(lookupMapIB), no-evaluators]
+    syntax Int ::= lookupMapBI(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapBI), no-evaluators]
+    syntax Int ::= lookupMapBB(mapId: Int, key1: Bool, key2: Bool) [function, functional, smtlib(lookupMapBB), no-evaluators]
+    syntax Int ::= lookupMapBII(mapId: Int, Bool, Int, Int) [function, functional, smtlib(lookupMapBB), no-evaluators]
 ```
 
 #### Update
@@ -171,40 +199,27 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
          <locals> _ => Locals </locals>
 ```
 
-
 ### 4.3 Old expressions
 
 ```k
-    rule <k> old(E) => E ~> #endOld(Globals) ... </k>
+    rule <k> old(E) => E ~> restoreGlobals(Globals) ... </k>
          <globals> Globals => Olds </globals>
          <olds> Olds </olds>
 
-    syntax KItem ::= "#endOld" "(" Map ")"
-    rule <k> E:ValueExpr ~> (#endOld(Globals) => .K) ... </k>
+    syntax KItem ::= restoreGlobals(Map)
+    rule <k> E:ValueExpr ~> (restoreGlobals(Globals) => .K) ... </k>
          <globals> _ => Globals </globals>
-```
-
-### 4.4 Logical quantifiers
-
-TODO: HACK: WARNING: This is only sound when used in the context of a post condition.
-It is unsound when used in an assume statement.
-We alpha-rename the quantified variable with a fresh one.
-
-```k
-    rule <k> (#forall X : T :: Expr)
-          => (lambda X : T :: Expr)[ inhabitants(T, FreshInt) ]
-             ...
-         </k>
-         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
 ```
 
 7 Mutable Variables, states, and execution traces
 -------------------------------------------------
 
 ```k
-  rule <k> var .AttributeList X:Id : T ;:Decl => .K ... </k>
-       <globals> (.Map => X:Id |-> value(inhabitants(T, FreshInt), T, true)) Rho </globals>
-         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
+  rule <k> var .AttributeList X:Id : T:Type ;:Decl
+        => X := inhabitants(T), .ExprList ;
+           ...
+       </k>
+       <globals> (.Map => X:Id |-> value("undefined", T, true)) Rho </globals>
      requires notBool( X in_keys(Rho) )
 ```
 
@@ -244,7 +259,8 @@ We alpha-rename the quantified variable with a fresh one.
 
 ```k
     context assume _ HOLE ;
-    rule <k> assume _ true ;      => .K ... </k>
+    rule <k> assume _ true ; => .K      ... </k>
+//    rule <k> assume _ false; => #Bottom ... </k>
     rule <k> assume _ false; ~> K => .K </k>
          <locals> _ => .Map </locals>
 ```
@@ -254,7 +270,6 @@ We alpha-rename the quantified variable with a fresh one.
 
 ```k
     context _:LhsList := HOLE ;
-
     rule <k> .LhsList := .ExprList ; => .K ... </k>
     rule <k> (X, Xs:LhsList) := (V:ValueExpr, Vs:ExprList) ;
           => X := V, .ExprList ;
@@ -275,6 +290,24 @@ We alpha-rename the quantified variable with a fresh one.
          <mods> Modifies </mods>
       requires notBool X in_keys(Env)
        andBool         X in Modifies
+
+    rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
+         <runtime> 
+           <locals> Env </locals>
+           <globals> X |-> value(... value: _ => V) ... </globals>
+           <olds> _ </olds>
+           <labels> _ </labels>
+           <cutpoints> _ </cutpoints>
+           <freshVars> _ </freshVars>
+```
+
+```operational
+           <implStack> _ </implStack>
+```
+
+```k
+         </runtime>
+      requires notBool X in_keys(Env)
 ```
 
 9.4 Havoc
@@ -297,11 +330,10 @@ type.
     syntax KItem ::= freshen(IdList)
     rule <k> freshen(.IdList) => .K ... </k>
     rule <k> freshen(X:Id, Xs:IdList)
-          => X, .LhsList := inhabitants(type(lookupVariable(X)), FreshInt), .ExprList ;
+          => X, .LhsList := inhabitants(type(lookupVariable(X))), .ExprList ;
           ~> freshen(Xs)
              ...
          </k>
-         <freshCounter> FreshInt => FreshInt +Int 1 </freshCounter>
 ```
 
 9.5 Label Statements and jumps
@@ -620,6 +652,7 @@ In the verification, we simply throw away the return values: all assertion have 
 ```
 
 ```verification
+    context call X:IdList := ProcedureName:Id(HOLE) ;
     rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
           => assert { :code "BP5002" } { :source "???", 0 }
                (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
@@ -634,6 +667,7 @@ In the verification, we simply throw away the return values: all assertion have 
          <rets> Rets </rets>
          <pres> Requires </pres>
          <posts> Ensures </posts>
+      requires isKResult(ArgVals)
 ```
 
 ```operational
@@ -671,7 +705,7 @@ In the verification, we simply throw away the return values: all assertion have 
             <irets> IRets </irets>
             <body> { VarList StartLabel: StmtList } </body>
          </impl>
-         requires isKResult(ArgVals)
+      requires isKResult(ArgVals)
 ```
 
 Inhabitants
@@ -691,16 +725,12 @@ TODO: Is there some more modular way we could implement this? This really
 belongs where we define each data type.
 
 ```k
-    syntax ValueExpr ::= inhabitants(Type, Int)
-    rule inhabitants(T, FreshInt)
-      => #if T ==K int    #then ?_:Int               #else
-         #if T ==K bool   #then ?_:Bool              #else
-         #if isMapType(T) #then map(FreshInt)        #else
-         ?_:ValueExpr // TODO: Do we need something more structured?
-         #fi #fi #fi
-      [macro]
+    syntax Expr ::= inhabitants(Type)
+    rule <k> inhabitants(int)  => ?V:Int            ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
+    rule <k> inhabitants(bool) => ?V:Bool           ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
+    rule <k> inhabitants([A]R) => map(?V:Int, [A]R) ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
+    rule <k> inhabitants(_)    => ?V:Int            ... </k> <freshVars> K:K => (K ~> ?V) </freshVars> [owise]
 ```
-
 
 ```k
 endmodule
