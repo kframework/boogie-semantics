@@ -71,6 +71,7 @@ TODO: Signature should allow "returns" syntax
     syntax FunctionDecl ::= "function" AttributeList Id FSig ";"
                           | "function" AttributeList Id FSig "{" Expr "}"
     syntax FSig ::= "(" IdsTypeList ")" ":" Type
+                  | "(" TypeList ")" ":" Type
 ```
 
 4 Expressions

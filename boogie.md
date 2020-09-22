@@ -95,6 +95,15 @@ Functions are constant maps:
           => const Attrs .Nothing (F, .IdList) : ([IdsTypeListToTypeList(IdsTypeList)]TR):Type ;
              ...
          </k>
+    rule <k> function Attrs F (TypeList) : TR ;
+          => const Attrs .Nothing (F, .IdList) : ([TypeList]TR):Type ;
+             ...
+         </k>
+```
+
+Function application is map lookup:
+
+```k
     rule <k> (F:Id (Args:ExprList) => F[Args]):Expr ... </k>
 ```
 
