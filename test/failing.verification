@@ -18,7 +18,6 @@ test/verification/test2/FormulaTerm2.bpl                     # Non-int functions
 test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
 test/verification/test2/Quantifiers.bpl                      # Triggers
 test/verification/test2/Structured.bpl
-test/verification/test2/Ensures.bpl                          # forall used in ensures clause; Becomes an assume at call site
 
 # free
 test/verification/test2/AssumeEnsures.bpl
