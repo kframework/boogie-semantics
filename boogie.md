@@ -176,6 +176,7 @@ However, in the operational semantics we only execute the main procedure:
     syntax Id ::= "main" [token]
     syntax KItem ::= "#dropReturnValue"
     rule <k> #start => #call main(.ExprList) ~> #dropReturnValue ... </k>
+         (.CurrentImplCell => <currentImpl> -1 </currentImpl>)
     rule <k> (_:ExprList ~> #dropReturnValue) => .K ... </k>
 ```
 
