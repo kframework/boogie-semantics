@@ -70,7 +70,7 @@ TODO: Signature should allow "returns" syntax
 ```k
     syntax FunctionDecl ::= "function" AttributeList Id FSig ";"
                           | "function" AttributeList Id FSig "{" Expr "}"
-    syntax FSig ::= "(" IdsTypeList ")" ":" Type
+    syntax FSig ::= "(" IdsTypeList ")" ":" Type [avoid]
                   | "(" TypeList ")" ":" Type
 ```
 
