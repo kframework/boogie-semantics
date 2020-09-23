@@ -50,13 +50,7 @@ When Boogie's forall is encountered, we convert it to a binder. We use `lambda` 
 
 ```objectk
     syntax Expr ::= "(" "forallbinder" ValueExpr "::" Expr ")"  [klabel(forallbinder)      , symbol]
-    rule <k> (#forall X : bool :: Expr) => (forallbinder ?B:Bool:: (lambda X : bool :: Expr)[?B:Bool]) ... </k>
-    rule <k> (#forall X : T :: Expr) => (forallbinder ?I:Int :: (lambda X : T :: Expr)[?I:Int]) ... </k>
-      requires T =/=K bool andBool notBool(isMap(T))
-    rule <k> (#forall X : [TArgs]Tr :: Expr)
-          => (forallbinder ?I:Int :: (lambda X : [TArgs]Tr :: Expr)[map(?I, Tr)])
-             ...
-         </k>
+    rule <k> (#forall X : T :: Expr) => (forallbinder ?I:Int :: (lambda X : T :: Expr)[intToT(T, ?I:Int)]) ... </k>
 ```
 
 We then use a meta rule to heat the binder.
