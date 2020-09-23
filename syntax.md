@@ -84,6 +84,7 @@ TODO: Signature should allow "returns" syntax
                   | "(" Expr ")" [bracket]
                   | old(Expr)
                   | "(" "forall" IdsTypeList "::" Expr ")"
+                  | "(" "exists" IdsTypeList "::" Expr ")"
                   | "(" "forall" IdsTypeList "::" TriggerList Expr ")" [avoid]
                   | "(" "#forall" Id ":" Type "::" Expr ")" [klabel(forall), symbol] // TODO: This shouldn't be public
                   | LambdaExpr
@@ -112,7 +113,7 @@ TODO: Signature should allow "returns" syntax
                    | "%" [unused] // semantics defined via axioms
     syntax UnOp  ::= "!"
                    | "-"
-                   
+
     syntax Trigger ::= "{" ExprList "}"
     syntax TriggerList ::= List{Trigger, ""} [klabel(TriggerList), symbol]
     // TODO: We do not overload IdList and ExprList because of https://github.com/kframework/kore/issues/1817
@@ -235,6 +236,11 @@ We treat `forall`s with multiple bindings as multiple foralls with single bindin
     rule ( forall             .IdsTypeList :: Expr ) => Expr [macro-rec]
 ```
 
+Exists are desugared for forall. We cannot implement simply use K's `!` variables, because of quantifier alternation.
+
+```k
+    rule ( exists IdsTypeList :: Trigger Expr ) => ! ( forall IdsTypeList :: Trigger ! Expr ) [macro]
+````
 ```k
 endmodule
 ```
