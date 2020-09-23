@@ -36,6 +36,12 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax DeclList ::= DeclList "++DeclList" DeclList [function, functional, left, avoid]
+    rule (S1 S1s) ++DeclList S2s => S1 (S1s ++DeclList S2s)
+    rule .DeclList ++DeclList S2s => S2s
+```
+
+```k
     syntax ExprList ::= ExprList "++ExprList" ExprList [function, functional, left, avoid]
     rule (X1, X1s) ++ExprList X2s => X1, (X1s ++ExprList X2s)
     rule .ExprList ++ExprList X2s => X2s

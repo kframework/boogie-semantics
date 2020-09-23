@@ -36,7 +36,7 @@ module BOOGIE
     imports MAP
 
     configuration <boogie>
-                    <k> $PGM:Program ~> #start </k>
+                    <k> #initTypes ~> $PGM:Program ~> .DeclList ~> #start </k>
                     <types/>
                     <runtime/>
                     <procs/>
@@ -52,17 +52,58 @@ module BOOGIE
 2 Types
 -------
 
-TODO: Type synonyms are ignored
-
 ```k
-    rule <k> type Attrs T:Id = _T2 ; => type Attrs T:Id ;  ... </k>
+    syntax KItem ::= "#initTypes"
+    rule <k> #initTypes => #declareTypes ... </k>
+         <types> .Bag
+              => <type> <typeName> int  </typeName> ... </type>
+                 <type> <typeName> bool </typeName> ... </type>
+                 ...
+         </types>
 ```
 
-TODO: We do not check if a type has been declared before being used yet.
+```k
+    syntax KItem ::= "#declareTypes"
+    rule <k> #declareTypes ~> TyD:TypeDecl Ds:DeclList
+          => TyD ~> #declareTypes ~> Ds
+             ...
+         </k>
+    rule <k> #declareTypes ~> D Ds:DeclList ~> NonTyDs:DeclList
+          => #declareTypes ~> Ds            ~> NonTyDs ++DeclList D
+             ...
+         </k>
+      requires notBool isTypeDecl(D)
+    rule <k> #declareTypes ~> .DeclList => .K ... </k>
+```
 
 ```k
-    rule <k> type _Attrs _T:Id ; => .K ... </k>
+    rule <k> type _Attrs T:Id = T2 ; => .K ... </k>
+         <types> .Bag
+              => <type>
+                   <typeName> T </typeName>
+                   <synonym> T2 </synonym>
+                   ...
+                 </type>
+                 ...
+         </types>
 ```
+
+```k
+    rule <k> type _Attrs T:Id ; ... </k>
+         <types> .Bag
+              => <type>
+                   <typeName> T </typeName>
+                   ...
+                 </type>
+                 ...
+         </types>
+
+    rule <k> type _Attrs T:Id ; => .K ... </k>
+         <typeName> T </typeName>
+```
+
+3 Constants and functions
+-------------------------
 
 When we first encounter a type , we create an entry in the list of types.
 Since `<type>` has `multiplicity="Map"` and the key for maps (i.e. the `<typeName>`)
@@ -70,14 +111,6 @@ must be unique, multiple entries aren't created for each type.
 
 3 Constants and functions
 -------------------------
-
-```k
-    rule <k> (const _:AttributeList _:OptionalUnique _:IdList : T:Type ;) ... </k>
-         <types> .Bag
-              => <type> <typeName> T </typeName> ... </type>
-                 ...
-         </types>
-```
 
 ```k
     rule <k> const Attrs OptionalUnique X, Xs : T ;
@@ -90,7 +123,6 @@ must be unique, multiple entries aren't created for each type.
 
 ```k
     rule <k> const _:AttributeList .Nothing X, .IdList : T ; => X := inhabitants(T), .ExprList ; ... </k>
-         <typeName> T </typeName>
          <globals> (.Map => X:Id |-> value("undefined", T, true)) Rho </globals>
        requires notBool(X in_keys(Rho))
 ```

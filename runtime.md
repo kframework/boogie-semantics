@@ -703,30 +703,36 @@ In the verification, we simply throw away the return values: all assertion have 
 Inhabitants
 -----------
 
-`inhabitants(T)` represents the inhabitants of a type.
+`inhabitants(T)` represents the inhabitants of a type. Semantically, this is
+similar to matching logic's `[[ Sort ]]` (also pronounced "inhabitants").
 
-Semantically, this is similar to matching logic's `[[ Sort ]]` (also pronounced
-"inhabitants").
-
-The Haskell backend does not allow `[anywhere]` rules (or equations) to use
-existential variables. This *cannot* be a function. Functions must return a
-single value, whereas here we return the set of all possible values of a type.
-Hence, we use a macro.
-
-TODO: Is there some more modular way we could implement this? This really
-belongs where we define each data type.
+Note: The Haskell backend alpha-renames variables in some situations. The
+`<freshVars>` cell is used to keep track of the original names while evaluating
+quantifiers.
 
 ```k
     syntax Expr ::= inhabitants(Type)
-    rule <k> inhabitants(T)  => intToT(T, ?V:Int) ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
+ // ------------------------------------------------------
+    rule <k> inhabitants(T)  => intToT(T, ?V:Int) ... </k>
+         <freshVars> K:K => (K ~> ?V) </freshVars>
 
-    syntax Expr ::= intToT(Type, Int)          [function, functional]
-    rule intToT(int, I)    => I                  [simplification]
-    rule intToT(bool, I)   => intToBool(I)       [simplification]
-    rule intToT([A]R, I)   => map(I, [A]R)       [simplification]
-    rule intToT(_:Id, I)   => I                  [simplification] // TODO: Type synonyms
+    syntax Expr ::= intToT(Type, Int)
+ // -------------------------------------------------
+    rule <k> intToT(int,  I) => I            ... </k>
+    rule <k> intToT(bool, I) => intToBool(I) ... </k>
+    rule <k> intToT([A]R, I) => map(I, [A]R) ... </k>
+    rule <k> intToT(T, I)    => I            ... </k>
+         <type>
+           <typeName> T:Id </typeName>
+           <uniques> _ </uniques>
+        // No SynonymCell
+         </type>
+    rule <k> intToT(T, I) => intToT(S, I) ... </k>
+         <typeName> T </typeName>
+         <synonym> S </synonym>
 
-    syntax Int ::= TToInt(ValueExpr)                    [function]
+    syntax Int ::= TToInt(ValueExpr) [function]
+ // --------------------------------------------------------------------
     rule TToInt(B:Bool)    => #if B #then 0 #else 1 #fi [simplification]
     rule TToInt(I:Int)     => I                         [simplification]
     rule TToInt(map(I, _)) => I                         [simplification]
