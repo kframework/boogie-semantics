@@ -138,26 +138,17 @@ Coersions are ignored for now:
     rule <k> select(S, update(Key, Val, Map)) => Val ...            </k> requires Key  ==K S
     rule <k> select(S, update(Key, _, Map))   => select(S, Map) ... </k> requires Key =/=K S
 
-    rule <k> select(.ExprList,  map(Id, [ArgT]RetT)) => lookupMap(Id)          ... </k>
-    rule <k> select(S,          map(Id, [ArgT]RetT)) => lookupMapI(Id, S)      ... </k>
-    rule <k> select(S,          map(Id, [ArgT]RetT)) => lookupMapB(Id, S)      ... </k>
-    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapII(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapIB(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapBI(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => lookupMapBB(Id, S1,S2) ... </k>
-    rule <k> select((S1,S2,S3), map(Id, [ArgT]RetT)) => lookupMapBII(Id, S1,S2,S3) ... </k>
-
-    rule <k> select((map(Id1, _),map(Id2, _)), map(Id, [ArgT]RetT)) => assume .AttributeList lookupMapII(Id, Id1,Id2) == inhabitants(RetT) ; ~> lookupMapII(Id, Id1,Id2) ... </k>
+    rule <k> select(.ExprList,  map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap(Id))                                       ... </k>
+    rule <k> select(S,          map(Id, [ArgT]RetT)) => intToT(RetT, lookupMapI(Id, TToInt(S)))                           ... </k>
+    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => intToT(RetT, lookupMapII(Id, TToInt(S1),TToInt(S2)))              ... </k>
+    rule <k> select((S1,S2,S3), map(Id, [ArgT]RetT)) => intToT(RetT, lookupMapIII(Id, TToInt(S1),TToInt(S2),TToInt(S3)))  ... </k>
 
     // Uninterpreted function
     syntax Int ::= lookupMap  (mapId: Int)                         [function, functional, smtlib(lookupMap),   no-evaluators]
     syntax Int ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
-    syntax Int ::= lookupMapB (mapId: Int, key: Bool)              [function, functional, smtlib(lookupMapB),  no-evaluators]
     syntax Int ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
-    syntax Int ::= lookupMapIB(mapId: Int, key1: Int, key2: Bool)  [function, functional, smtlib(lookupMapIB), no-evaluators]
-    syntax Int ::= lookupMapBI(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapBI), no-evaluators]
-    syntax Int ::= lookupMapBB(mapId: Int, key1: Bool, key2: Bool) [function, functional, smtlib(lookupMapBB), no-evaluators]
-    syntax Int ::= lookupMapBII(mapId: Int, Bool, Int, Int) [function, functional, smtlib(lookupMapBB), no-evaluators]
+    syntax Int ::= lookupMapII(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapII), no-evaluators]
+    syntax Int ::= lookupMapIII(mapId: Int, Int, Int, Int)         [function, functional, smtlib(lookupMapIII), no-evaluators]
 ```
 
 #### Update
@@ -292,7 +283,7 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
        andBool         X in Modifies
 
     rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
-         <runtime> 
+         <runtime>
            <locals> Env </locals>
            <globals> X |-> value(... value: _ => V) ... </globals>
            <olds> _ </olds>
@@ -726,10 +717,20 @@ belongs where we define each data type.
 
 ```k
     syntax Expr ::= inhabitants(Type)
-    rule <k> inhabitants(int)  => ?V:Int            ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
-    rule <k> inhabitants(bool) => ?V:Bool           ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
-    rule <k> inhabitants([A]R) => map(?V:Int, [A]R) ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
-    rule <k> inhabitants(_)    => ?V:Int            ... </k> <freshVars> K:K => (K ~> ?V) </freshVars> [owise]
+    rule <k> inhabitants(T)  => intToT(T, ?V:Int) ... </k> <freshVars> K:K => (K ~> ?V) </freshVars>
+
+    syntax Expr ::= intToT(Type, Int)          [function, functional]
+    rule intToT(int, I)    => I                  [simplification]
+    rule intToT(bool, I)   => intToBool(I)       [simplification]
+    rule intToT([A]R, I)   => map(I, [A]R)       [simplification]
+    rule intToT(_:Id, I)   => I                  [simplification] // TODO: Type synonyms
+
+    syntax Int ::= TToInt(ValueExpr)                    [function]
+    rule TToInt(B:Bool)    => #if B #then 0 #else 1 #fi [simplification]
+    rule TToInt(I:Int)     => I                         [simplification]
+    rule TToInt(map(I, _)) => I                         [simplification]
+
+    syntax Bool ::= intToBool(Int)               [function, functional, smtlib(intToBool), no-evaluators]
 ```
 
 ```k
