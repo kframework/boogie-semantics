@@ -13,9 +13,21 @@ module BOOGIE-FRESH-COUNTER
     configuration <freshCounter> 0 </freshCounter>
 endmodule
 
+module BOOGIE-TYPES
+    imports BOOGIE-RULE-SYNTAX
+    configuration <types>
+                    <type multiplicity="*" type="Map">
+                        <typeName> #token("TypeName", "Id"):Type </typeName>
+                        <synonym multiplicity="?">  #token("TypeName", "Id"):Type </synonym>
+                        <uniques> .IdList </uniques>
+                    </type>
+                  </types>
+endmodule
+
 module BOOGIE
     imports BOOGIE-RULE-SYNTAX
     imports BOOGIE-FRESH-COUNTER
+    imports BOOGIE-TYPES
     imports BOOGIE-PROCEDURES
     imports BOOGIE-RUNTIME
     imports BOOGIE-QUANTIFIERS-OBJECT
@@ -25,13 +37,8 @@ module BOOGIE
 
     configuration <boogie>
                     <k> $PGM:Program ~> #start </k>
+                    <types/>
                     <runtime/>
-                    <types>
-                      <type multiplicity="*" type="Map">
-                          <typeName> #token("TypeName", "Id"):Type </typeName>
-                          <uniques> .IdList </uniques>
-                      </type>
-                    </types>
                     <procs/>
                     <freshCounter/>
                   </boogie>
@@ -61,6 +68,9 @@ When we first encounter a type , we create an entry in the list of types.
 Since `<type>` has `multiplicity="Map"` and the key for maps (i.e. the `<typeName>`)
 must be unique, multiple entries aren't created for each type.
 
+3 Constants and functions
+-------------------------
+
 ```k
     rule <k> (const _:AttributeList _:OptionalUnique _:IdList : T:Type ;) ... </k>
          <types> .Bag
@@ -68,9 +78,6 @@ must be unique, multiple entries aren't created for each type.
                  ...
          </types>
 ```
-
-3 Constants and functions
--------------------------
 
 ```k
     rule <k> const Attrs OptionalUnique X, Xs : T ;
