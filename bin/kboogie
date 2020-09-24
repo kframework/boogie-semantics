@@ -11,52 +11,20 @@ import re
 import subprocess
 import tempfile
 
-def repo(*path):
-    return os.path.join(os.path.dirname(os.path.dirname(__file__)), *path)
-
-import json
-import re
-
-# Import PyK
-# ==========
-
-from shutil import which
-
-# submodule's krun to PATH as fallback
-os.environ['PATH'] = os.environ['PATH']  + ':' + repo('ext/k/k-distribution/target/release/k/bin/')
-
-_krun = which('krun')
-if not _krun: raise RuntimeError('Could not find "krun" in PATH')
-_release_dir = os.path.dirname(os.path.dirname(_krun))
-def release_dir(*args): return os.path.join(_release_dir, *args)
-sys.path.append(release_dir('lib/kframework'))
-
-import pyk
-
 # High-level helpers
 # ==================
 
 infer_only = False
 should_infer = True
-post_processes = True
-print_summary = True
 input_path = None
-defn_name = 'verification'
-k_args = []
 
 def parse_args(args):
-    global infer_only , should_infer , post_processes , print_summary , input_path , defn_name, k_args
+    global infer_only , should_infer , input_path 
     while not(input_path):
         arg = args.pop(0)
         if   arg == '--infer-only': infer_only = True
         elif arg == '--no-infer'  : should_infer = False
-        elif arg == '--full'      : print_summary = False
-        elif arg == '--definition': defn_name = args.pop(0)
         else                      : input_path = arg
-    k_args = args
-
-def definition_dir(*args):
-    return repo('.build/defn/', defn_name, *args)
 
 def preprocess(input_lines, filename):
     """ Annotate `assert` statements with line numbers"""
@@ -80,89 +48,12 @@ def infer(input):
     inferred = re.sub(r'Boogie program verifier finished.*', '', inferred)
     return inferred
 
-def krun(input, k_args):
-    krun_input = tempfile.NamedTemporaryFile(delete = False)
-    krun_input.write(input.encode())
-    krun_input.close()
-    krun_output = subprocess.run( [ 'krun'
-                                  , '--directory', definition_dir()
-                                  , '--search-final'
-                                  , '--output', 'json'
-                                  , krun_input.name, *k_args
-                                  ]
-                                , stdout = subprocess.PIPE
-                                , check = True
-                                ).stdout
-    os.remove(krun_input.name)
-    return krun_output
-
-def make_search_summary(krun_output):
-    term = json.loads(krun_output)['term']
-    failures = []
-    stucks = []
-    exit_code = 0
-
-    for k_cell in find_subterms_by_label('<k>', term):
-        kseq = k_cell['args'][0]
-        assert(kseq['node'] == 'KSequence')
-        if kseq['arity'] == 0: continue # success
-        head = kseq['items'][0]
-        if head['node'] == 'KApply' and head['label'] == '#failure':
-            message = head['args'][0]
-            assert(message['node'] == 'KToken')
-            assert(message['sort'] == 'String')
-            message_string = message['token'][1:-1]
-            failures += [message_string]
-            # boogie does not return a different exit code
-            continue
-        stucks += [pyk.prettyPrintKast(kseq, symbolTable)]
-        exit_code = 127
-    return sorted(failures), stucks, exit_code 
-
-def print_search_summary(failures, stucks):
-    if failures:
-        print('==== Failures\n')
-        print("\n\n".join(failures))
-        print()
-    if stucks:
-        print('==== Stuck terms\n')
-        print("\n\n".join(stucks))
-        print()
-    print('KBoogie program verifier finished with %d failed assertion, %d stuck.' % (len(failures), len(stucks)) )
-
-# `pyk` helpers
-# =============
-
-def find_subterms_by_label(label, term):
-    if term['node'] == 'KApply':
-        if term['label'] == label: return [term]
-        ret = []
-        for subterm in term['args']:
-            ret += find_subterms_by_label(label, subterm)
-        return ret
-    return []
-
 # Main
 # ====
 
 sys.argv.pop(0)
 parse_args(sys.argv)
-
-compiled = pyk.readKastTerm(definition_dir('boogie-kompiled', 'compiled.json'))
-symbolTable = pyk.buildSymbolTable(compiled)
-
 output = open(input_path).readlines()
 output = preprocess(output, os.path.basename(input_path))
-if (should_infer): output = infer(output)
-if (infer_only): print(output); sys.exit(0)
+print(infer(output))
 
-output = krun(output, k_args)
-
-if print_summary:
-    failures, stucks, exit_code = make_search_summary(output)
-    print_search_summary(failures, stucks)
-else:
-    exit_code = 0
-    print(pyk.prettyPrintKast(json.loads(output)['term'], symbolTable))
-
-sys.exit(exit_code)
