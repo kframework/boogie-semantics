@@ -340,7 +340,6 @@ type.
           => (#collectLabel(L, S1s ++StmtList S2 .StmtList) ~> S2s)
              ...
          </k>
-      requires S2 =/=K cutpoint;
     rule <k> (#collectLabel(L1, S1s)       ~> L2: S2s:StmtList)
           => (#collectLabel(L2, .StmtList) ~> S2s:StmtList)
              ...
@@ -364,59 +363,39 @@ Non-deterministically transition to all labels
 
 ### Extension: Cutpoints
 
-We use `boogie` to infer invaraints and cutpoints.
-Boogie marks labels that are cutpoints with the comment `// cut point`.
-We preprocess this comment into a `Stmt` "`cutpoint;`" that we handle.
 
 See [note below](#where-cutpoint-interactions) about the interaction between `where` clauses and loops.
 
-Boogie does not place the `cutpoint` mark, the inferred invariants and the loop
-invariant assertsions in the "right" order. The following code rearranges them
-into an order that makes more sense for us. In particular, we must `assert` all
-invariants (inferred or annotated) before the cutpoint, replace local variables
-and global variables with fresh symbolic values and finally `assume` the
-invariants.
-
-We also need to be able to distinguish between different cutpoints.
-Ideally, \K would mark this with source line information but it does not.
-So we mark them with fresh integers in this preprocessing pass.
+We use `boogie` to infer invaraints and cutpoints.
+These inferred cutpoints are output as assertions following a label.
 
 ```k
     syntax Id ::= "inferred" [token]
-    rule <k> #collectLabel(_L, _S1s)
-          ~> ( ( cutpoint;
-                 assume { :inferred .AttrArgList } Inferred;
-                 assert _:AttributeList Invariant ;
-                 S2s:StmtList
-               )
-            => ( assert { :code "Inferred" } { :source "???", 0 } Inferred; // This should never fail
-                 assert { :code "BP5004" } { :source "???", 0 } Invariant;
-                 cutpoint(!_:Int) ;
-                 assume { :inferred .AttrArgList } Inferred;
-                 assume .AttributeList Invariant;
-                 S2s:StmtList
-             ) )
+    rule <k> #collectLabel(_L, _S1s) ~>
+           ( ( assert { :inferred .AttrArgList } Inferred ;
+               assert _:AttributeList Invariant ;
+               S2s:StmtList
+             )
+          => ( assert { :code "Inferred" } { :source "???", 0 } Inferred; // This should never fail
+               assert { :code "BP5004" } { :source "???", 0 } Invariant;
+               cutpoint(!_:Int) ;
+               assume .AttributeList Inferred;
+               assume .AttributeList Invariant;
+               S2s:StmtList
+           ) )
              ...
-         </k>
-```
+         </k> [priority(48)]
 
-If a while loop doesn't have an invariant specified, then there is no
-`assert` statement following the `assume` after the `cutpoint`. This rule
-add one there so that the previous rule may fire.
-
-```k
-    rule <k> #collectLabel(_L, _S1s)
-          ~> cutpoint;
-             assume { :inferred .AttrArgList } Inferred;
+    rule <k> #collectLabel(_L, _S1s) ~>
+             assert { :inferred .AttrArgList } Inferred;
              ( (S2 S2s:StmtList)
             => ( assert .AttributeList true ;
                  S2 S2s:StmtList
                )
              )
-
              ...
          </k>
-      requires assert _:AttributeList _ ; :/=K  S2
+      requires assert _:AttributeList _ ; :/=K  S2 [priority(48)]
 ```
 
 When we reach a particular cutpoint the first time, we treat it as an abstraction point
