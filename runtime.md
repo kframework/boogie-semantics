@@ -139,17 +139,18 @@ Coersions are ignored for now:
     rule <k> select(S, update(Key, Val, Map)) => Val ...            </k> requires Key  ==K S
     rule <k> select(S, update(Key, _, Map))   => select(S, Map) ... </k> requires Key =/=K S
 
-    rule <k> select(.ExprList,  map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap(Id))                                       ... </k>
-    rule <k> select(S,          map(Id, [ArgT]RetT)) => intToT(RetT, lookupMapI(Id, TToInt(S)))                           ... </k>
-    rule <k> select((S1,S2),    map(Id, [ArgT]RetT)) => intToT(RetT, lookupMapII(Id, TToInt(S1),TToInt(S2)))              ... </k>
-    rule <k> select((S1,S2,S3), map(Id, [ArgT]RetT)) => intToT(RetT, lookupMapIII(Id, TToInt(S1),TToInt(S2),TToInt(S3)))  ... </k>
+    rule <k> select(.ExprList,     map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap0(Id))                                              ... </k>
+    rule <k> select(S,             map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap1(Id, TToInt(S)))                                   ... </k>
+    rule <k> select((S1,S2),       map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap2(Id, TToInt(S1),TToInt(S2)))                       ... </k>
+    rule <k> select((S1,S2,S3),    map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap3(Id, TToInt(S1),TToInt(S2),TToInt(S3)))            ... </k>
+    rule <k> select((S1,S2,S3,S4), map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap4(Id, TToInt(S1),TToInt(S2),TToInt(S3),TToInt(S4))) ... </k>
 
     // Uninterpreted function
-    syntax Int ::= lookupMap  (mapId: Int)                         [function, functional, smtlib(lookupMap),   no-evaluators]
-    syntax Int ::= lookupMapI (mapId: Int, key: Int)               [function, functional, smtlib(lookupMapI),  no-evaluators]
-    syntax Int ::= lookupMapII(mapId: Int, key1: Int, key2: Int)   [function, functional, smtlib(lookupMapII), no-evaluators]
-    syntax Int ::= lookupMapII(mapId: Int, key1: Bool, key2: Int)  [function, functional, smtlib(lookupMapII), no-evaluators]
-    syntax Int ::= lookupMapIII(mapId: Int, Int, Int, Int)         [function, functional, smtlib(lookupMapIII), no-evaluators]
+    syntax Int ::= lookupMap0(mapId: Int)                            [function, functional, smtlib(lookupMap0), no-evaluators]
+    syntax Int ::= lookupMap1(mapId: Int, keys: Int)                 [function, functional, smtlib(lookupMap1), no-evaluators]
+    syntax Int ::= lookupMap2(mapId: Int, keys: Int, Int)            [function, functional, smtlib(lookupMap2), no-evaluators]
+    syntax Int ::= lookupMap3(mapId: Int, keys: Int, Int, Int)       [function, functional, smtlib(lookupMap3), no-evaluators]
+    syntax Int ::= lookupMap4(mapId: Int, keys: Int, Int, Int, Int)  [function, functional, smtlib(lookupMap4), no-evaluators]
 ```
 
 #### Update
