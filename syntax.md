@@ -247,7 +247,7 @@ module BOOGIE-PROGRAM-SYNTAX
 Allow `#`s in `Id`s:
 
 ```k
-    syntax Id ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_][A-Za-z0-9\\_#]*" [prec(1), token]
+    syntax Id ::= r"(?<![A-Za-z0-9\\_])[A-Za-z\\_]['A-Za-z0-9\\_#]*" [prec(1), token]
 ```
 
 ```k
