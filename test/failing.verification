@@ -1,17 +1,7 @@
 # Unimplemented
 # -------------
 
-# dafny -> boogie programs 
-test/dafny/hello/hello.bpl
-test/dafny/hello/hello-minimal.bpl
-test/dafny/sum/sum-to-n.bpl
-test/dafny/sum/sum-to-n-minimal.bpl
-
-# Minor bugs/features
-test/verification/test2/TypeEncodingM.bpl                    # -typeEncoding:m command line option, can be ignored
-
 # forall/exists/functions
-test/verification/test2/FormulaTerm2.bpl                     # Non-int functions
 test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
 test/verification/test2/Quantifiers.bpl                      # Triggers
 test/verification/test2/Structured.bpl
@@ -20,16 +10,13 @@ test/verification/test2/Structured.bpl
 test/verification/test2/AssumeEnsures.bpl
 test/verification/test2/FreeCall.bpl
 
-# lambda: These look like maps with extensionality
-test/verification/test2/Lambda.bpl                           # Also, forall
-test/verification/test2/LambdaOldExpressions.bpl
-test/verification/test2/LambdaLifting.bpl
-test/verification/test2/LambdaExt.bpl                        # Also, polymorphism
-test/verification/test2/LambdaPoly.bpl                       # Also, polymorphism
+test/verification/test2/LambdaOldExpressions.bpl             # Syntax for qunatifiers does not allow attributes
 
-# Unimplemented (polymorphism)
-test/verification/test2/BoundedTypeParameterQuantifier.bpl   # Also, forall
+# polymorphism
+test/verification/test2/BoundedTypeParameterQuantifier.bpl
 test/verification/test2/UpdateExpr.bpl
+test/verification/test2/LambdaExt.bpl                        # Also, existentiality
+test/verification/test2/LambdaPoly.bpl
 
 test/verification/test2/strings-no-where.bpl                 # string, forall, free...
 
@@ -55,6 +42,12 @@ test/verification/test2/sk_hack.bpl                          # sk_hack?
 
 # Unchecked
 # ---------
+
+# dafny -> boogie programs
+test/dafny/hello/hello.bpl
+test/dafny/hello/hello-minimal.bpl
+test/dafny/sum/sum-to-n.bpl
+test/dafny/sum/sum-to-n-minimal.bpl
 
 test/rv2013/declarative/NQueens.bpl
 test/rv2013/declarative/Primes.bpl
