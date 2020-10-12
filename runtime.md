@@ -280,7 +280,7 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
          <globals> X |-> value(... value: _ => V) ... </globals>
          <currentImpl> CurrentImpl </currentImpl>
          <implId> CurrentImpl </implId>
-         <mods> Modifies </mods>
+         <modifies> Modifies </modifies>
       requires notBool X in_keys(Env)
        andBool         X in Modifies
 
@@ -409,7 +409,7 @@ and replace modifiable variables with fresh symbolic values.
 ```verification
     rule <k> cutpoint(I) ; => #generalize(envToIds(Rho) ++IdList Modifiable) ... </k>
          <locals> Rho </locals>
-         <mods> Modifiable </mods>
+         <modifies> Modifiable </modifies>
          <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
       requires notBool I in Cutpoints
 ```
@@ -582,7 +582,7 @@ When returning, we first `assert` that the post condition holds:
          <iargs> IArgs </iargs>
          <irets> IRets </irets>
          <implId> CurrentImpl </implId>
-         <posts> Ensures </posts>
+         <ensures> Ensures </ensures>
          <args> PArgs </args>
          <rets> PRets </rets>
 ```
@@ -637,8 +637,8 @@ In the verification, we simply throw away the return values: all assertion have 
          <procName> ProcedureName </procName>
          <args> Args </args>
          <rets> Rets </rets>
-         <pres> Requires </pres>
-         <posts> Ensures </posts>
+         <requires> Requires </requires>
+         <ensures> Ensures </ensures>
       requires isKResult(ArgVals)
 ```
 
@@ -668,7 +668,7 @@ In the verification, we simply throw away the return values: all assertion have 
          <procName> ProcedureName </procName>
          <args> PArgs </args>
          <rets> PRets </rets>
-         <pres> Requires </pres>
+         <requires> Requires </requires>
          <locals> Locals => .Map </locals>
          <labels> Labels => .Map </labels>
          <impl>

@@ -14,9 +14,9 @@ module BOOGIE-PROCEDURES
                       <procName> #token("ProcedureName", "Id") </procName>
                       <args> .IdsTypeWhereList </args>
                       <rets> .IdsTypeWhereList </rets>
-                      <pres> true:Expr </pres>   // requires
-                      <posts> true:Expr </posts> // ensures
-                      <mods> .IdList </mods>   // modifies
+                      <requires> true:Expr </requires>
+                      <ensures> true:Expr </ensures> // ensures
+                      <modifies> .IdList </modifies>   // modifies
                       <impls>
                         <impl multiplicity="*" type="Map">
                           <implId> -1 </implId>
@@ -69,21 +69,21 @@ Split procedures with a body into a procedure and an implementation:
              ...
          </k>
          <procName> ProcedureName </procName>
-         <pres> Reqs => Reqs && NewReq </pres>
+         <requires> Reqs => Reqs && NewReq </requires>
 
     rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
              ; (.Nothing ensures NewEnsures ; SpecList => SpecList)
              ...
          </k>
          <procName> ProcedureName </procName>
-         <posts> Ensures => Ensures && NewEnsures </posts>
+         <ensures> Ensures => Ensures && NewEnsures </ensures>
 
     rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
              ; (modifies Modifies ; SpecList => SpecList)
              ...
          </k>
          <procName> ProcedureName </procName>
-         <mods> .IdList => Modifies </mods>
+         <modifies> .IdList => Modifies </modifies>
 
     rule <k> ( #populateProcedure ~> procedure _:AttributeList _ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
                ; .SpecList

@@ -202,7 +202,7 @@ In the case of the verification semantics, we verify all procedures:
          <procName> ProcedureName </procName>
          <args> PArgs </args>
          <rets> PRets </rets>
-         <pres> Requires </pres>
+         <requires> Requires </requires>
          <impl>
             <implId> N </implId>
             <iargs> IArgs </iargs>
