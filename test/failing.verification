@@ -17,14 +17,11 @@ test/verification/test2/UpdateExpr.bpl
 test/verification/test2/LambdaExt.bpl                        # Also, existentiality
 test/verification/test2/LambdaPoly.bpl
 
-test/verification/test2/strings-no-where.bpl                 # string, forall, free...
-
 # Won't implement
 # ---------------
 
 test/verification/test2/Where.bpl                            # where is very esoteric
 test/verification/test2/strings-where.bpl                    # where. Also, string, forall, free, where
-test/verification/test2/OldIllegal.bpl                       # Ill-formed
 
 # Uses boogie internal features
 test/verification/test2/AssertVerifiedUnder0.bpl             # {:verified_under A}
@@ -38,6 +35,9 @@ test/verification/test2/SelectiveChecking.bpl                # {:selective_check
 test/verification/test2/Timeouts0.bpl                        # {:timeLimit 8}
 test/verification/test2/sk_hack.bpl                          # sk_hack?
 
+# Ill-formed
+test/verification/test2/OldIllegal.bpl
+test/verification/test2/strings-no-where.bpl
 
 # Unchecked
 # ---------
