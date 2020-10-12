@@ -15,8 +15,10 @@ module BOOGIE-PROCEDURES
                       <args> .IdsTypeWhereList </args>
                       <rets> .IdsTypeWhereList </rets>
                       <requires> true:Expr </requires>
-                      <ensures> true:Expr </ensures> // ensures
-                      <modifies> .IdList </modifies>   // modifies
+                      <freeRequires> true:Expr </freeRequires>
+                      <ensures> true:Expr </ensures>
+                      <freeEnsures> true:Expr </freeEnsures>
+                      <modifies> .IdList </modifies>
                       <impls>
                         <impl multiplicity="*" type="Map">
                           <implId> -1 </implId>
@@ -72,11 +74,25 @@ Split procedures with a body into a procedure and an implementation:
          <requires> Reqs => Reqs && NewReq </requires>
 
     rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
+             ; (free requires NewReq ; SpecList => SpecList)
+             ...
+         </k>
+         <procName> ProcedureName </procName>
+         <freeRequires> Reqs => Reqs && NewReq </freeRequires>
+
+    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
              ; (.Nothing ensures NewEnsures ; SpecList => SpecList)
              ...
          </k>
          <procName> ProcedureName </procName>
          <ensures> Ensures => Ensures && NewEnsures </ensures>
+
+    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
+             ; (free ensures NewEnsures ; SpecList => SpecList)
+             ...
+         </k>
+         <procName> ProcedureName </procName>
+         <freeEnsures> Ensures => Ensures && NewEnsures </freeEnsures>
 
     rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
              ; (modifies Modifies ; SpecList => SpecList)

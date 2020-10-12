@@ -630,7 +630,7 @@ In the verification, we simply throw away the return values: all assertion have 
                (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
           ~> freshen(X)
           ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
-                                         :: Ensures )
+                                         :: Ensures && FreeEnsures )
                                    [ ArgVals ++ExprList IdListToExprList(X) ] ;
              ...
          </k>
@@ -639,6 +639,7 @@ In the verification, we simply throw away the return values: all assertion have 
          <rets> Rets </rets>
          <requires> Requires </requires>
          <ensures> Ensures </ensures>
+         <freeEnsures> FreeEnsures </freeEnsures>
       requires isKResult(ArgVals)
 ```
 

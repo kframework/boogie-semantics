@@ -155,7 +155,7 @@ TODO: Signature should allow "returns" syntax
     syntax Spec ::= OptionalFree "requires" Expr ";"
                   | OptionalFree "ensures"  Expr ";"
                   | "modifies" IdList ";"
-    syntax OptionalFree ::= Nothing | "free" [unused]
+    syntax OptionalFree ::= Nothing | "free"
     syntax SpecList ::= List{Spec, ""} [klabel(SpecList)]
 ```
 

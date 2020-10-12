@@ -7,7 +7,6 @@ test/verification/test2/Quantifiers.bpl                      # Triggers
 test/verification/test2/Structured.bpl
 
 # free
-test/verification/test2/AssumeEnsures.bpl
 test/verification/test2/FreeCall.bpl
 
 test/verification/test2/LambdaOldExpressions.bpl             # Syntax for qunatifiers does not allow attributes

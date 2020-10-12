@@ -192,7 +192,7 @@ In the case of the verification semantics, we verify all procedures:
           => #pause
           ~> makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
           ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
-          ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)] ;
+          ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires && FreeRequires)[IdsTypeWhereListToExprList(IArgs)] ;
           ~> #collectLabel(StartLabel, .StmtList) ~> StmtList
           ~> goto StartLabel;
          </k>
@@ -203,6 +203,7 @@ In the case of the verification semantics, we verify all procedures:
          <args> PArgs </args>
          <rets> PRets </rets>
          <requires> Requires </requires>
+         <freeRequires> FreeRequires </freeRequires>
          <impl>
             <implId> N </implId>
             <iargs> IArgs </iargs>
