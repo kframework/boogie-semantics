@@ -15,6 +15,13 @@ procedure main() returns () {
 
 }
 
+var x : int;
+procedure P() returns() modifies x; {
+    x := 5;
+    call P();
+    assert(x == 5);
+}
+
 // From test2/Call: Parameters for the procedures have been renamed
 // since the haskell backed doesn't support substitution
 
@@ -73,6 +80,14 @@ implementation DifferentFormalNames(x: int, y: int) returns (z: int)
   start:
     z := y;
     return;  // error: postcondition violation
+}
+
+implementation DifferentFormalNames(x: int, y: int) returns (z: int)
+{
+  start:
+    z := y;
+    return;  // error: postcondition violation
+
 }
 
 type ref;
