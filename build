@@ -30,7 +30,6 @@ def build(alias):
                           )
 
 verification = build('verification')
-operational  = build('operational')
 
 # Tests
 # =====
@@ -80,12 +79,6 @@ suite('test-verification'
      , runner = kboogie_runner(verification, expected_extension = 'expect')
      , tests   = glob('test/*/*/*.bpl')
      , failing = readlines('test/failing.verification')
-     )
-
-suite('test-operational'
-     , runner = kboogie_runner(operational, expected_extension = 'opexpect')
-     , tests   = glob('test/operational/*/*.bpl')
-     , failing = readlines('test/failing.operational')
      )
 
 # Main

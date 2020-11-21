@@ -24,20 +24,6 @@ module BOOGIE-RUNTIME
                   </runtime>
 ```
 
-```operational
-    syntax KItem ::=  (Int, K, Map, Map, Map) // Impl, K, olds, locals, labels TODO how do I work CurrentImplCell in here?
-    configuration <runtime>
-                    <locals> .Map </locals>
-                    <globals> .Map </globals>
-                    <olds> .Map </olds>
-                    <labels> .Map </labels>
-                    <cutpoints> .List </cutpoints>
-                    <implStack> .List </implStack>
-                    <currentImpl multiplicity="?"> -1 </currentImpl>
-                    <freshVars> .K </freshVars>
-                  </runtime>
-```
-
 4 Expressions
 -------------
 
@@ -292,13 +278,6 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
            <labels> _ </labels>
            <cutpoints> _ </cutpoints>
            <freshVars> _ </freshVars>
-```
-
-```operational
-           <implStack> _ </implStack>
-```
-
-```k
          </runtime>
       requires notBool X in_keys(Env)
 ```
@@ -426,10 +405,6 @@ the states when we first encountered the cutpoint (modulo `free invariant`s and
 ```
 
 When executing concretely, cutpoints are simply a no-op.
-
-```operational
-    rule cutpoint(_) ; => .
-```
 
 ```k
     syntax KItem ::= "#generalize" "(" IdList ")"
@@ -586,22 +561,6 @@ When returning, we first `assert` that the post condition holds:
          <args> PArgs </args>
          <rets> PRets </rets>
 ```
-
-and (for the operational semantics) pop the stack frame:
-
-```operational
-    context #return HOLE
-    rule <k> #return Rets => Rets ~> K </k>
-         <currentImpl> _ => N </currentImpl>
-         <procName> CurrentProc </procName>
-         <implStack> ListItem((N, K:K, Olds:Map, Locals:Map, Labels:Map)) => .List ... </implStack>
-         <olds> _ => Olds </olds>
-         <locals> _ => Locals </locals>
-         <labels> _ => Labels </labels>
-      requires isKResult(Rets)
-```
-
-In the verification, we simply throw away the return values: all assertion have succeeded:
 
 ```verification
     rule <k> (#return Rets ~> K:K) => .K </k>
