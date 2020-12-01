@@ -628,7 +628,7 @@ In the verification, we simply throw away the return values: all assertion have 
     rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
           => assert { :code "BP5002" } { :source "???", 0 }
                (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
-          ~> freshen(X)
+          ~> freshen(X ++IdList Mods)
           ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
                                          :: Ensures )
                                    [ ArgVals ++ExprList IdListToExprList(X) ] ;
@@ -639,6 +639,7 @@ In the verification, we simply throw away the return values: all assertion have 
          <rets> Rets </rets>
          <pres> Requires </pres>
          <posts> Ensures </posts>
+         <mods> Mods </mods>
       requires isKResult(ArgVals)
 ```
 

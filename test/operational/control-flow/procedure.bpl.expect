@@ -1,13 +1,20 @@
-Boogie program verifier version 2.4.1.10503, Copyright (c) 2003-2014, Microsoft.
-procedure.bpl(33,5): Error BP5001: This assertion might not hold.
+Boogie program verifier version 2.3.0.61016, Copyright (c) 2003-2014, Microsoft.
+procedure.bpl(22,5): Error BP5001: This assertion might not hold.
 Execution trace:
-    procedure.bpl(29,3): entry
-procedure.bpl(66,5): Error BP5001: This assertion might not hold.
+    procedure.bpl(20,7): anon0
+procedure.bpl(40,5): Error BP5001: This assertion might not hold.
 Execution trace:
-    procedure.bpl(65,3): start
-procedure.bpl(75,5): Error BP5003: A postcondition might not hold on this return path.
-procedure.bpl(40,3): Related location: This is the postcondition that might not hold.
+    procedure.bpl(36,3): entry
+procedure.bpl(73,5): Error BP5001: This assertion might not hold.
 Execution trace:
-    procedure.bpl(73,3): start
+    procedure.bpl(72,3): start
+procedure.bpl(82,5): Error BP5003: A postcondition might not hold on this return path.
+procedure.bpl(47,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    procedure.bpl(80,3): start
+procedure.bpl(89,5): Error BP5003: A postcondition might not hold on this return path.
+procedure.bpl(47,3): Related location: This is the postcondition that might not hold.
+Execution trace:
+    procedure.bpl(87,3): start
 
-Boogie program verifier finished with 4 verified, 3 errors
+Boogie program verifier finished with 4 verified, 5 errors
