@@ -4,7 +4,7 @@ Helpers
 ```k
 module BOOGIE-HELPERS
     imports BOOGIE-RULE-SYNTAX
-    imports syntax DEFAULT-CONFIGURATION
+    imports DEFAULT-CONFIGURATION
     imports BOOL
     imports INT
 ```

@@ -1,9 +1,9 @@
 ```k
 module BOOGIE-RUNTIME
-    imports syntax DEFAULT-CONFIGURATION
-    imports syntax BOOGIE-FRESH-COUNTER
-    imports syntax BOOGIE-PROCEDURES
-    imports syntax BOOGIE-TYPES
+    imports DEFAULT-CONFIGURATION
+    imports BOOGIE-FRESH-COUNTER
+    imports BOOGIE-PROCEDURES
+    imports BOOGIE-TYPES
     imports BOOGIE-RULE-SYNTAX
     imports BOOGIE-HELPERS
     imports MAP

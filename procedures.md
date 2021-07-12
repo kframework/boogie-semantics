@@ -3,8 +3,8 @@
 
 ```k
 module BOOGIE-PROCEDURES
-    imports syntax DEFAULT-CONFIGURATION
-    imports syntax BOOGIE-FRESH-COUNTER
+    imports DEFAULT-CONFIGURATION
+    imports BOOGIE-FRESH-COUNTER
 
     imports INT
     imports BOOGIE-RULE-SYNTAX
