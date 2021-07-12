@@ -16,4 +16,4 @@ kore-exec --module BOOGIE "$definition/boogie-kompiled/definition.kore" \
           --output "$kore_output" --solver-transcript "$transcript" \
           "$@"
 # kprint $definition/boogie-kompiled $kore_output
-./.build/defn/driver/driver-kompiled/parser_PGM "$kore_output"
+./.build/defn/driver/driver-kompiled/parser_Pattern_KORE "$kore_output"
