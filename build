@@ -45,7 +45,7 @@ def kboogie_runner(definition, expected_extension):
     def runner(input):
         kboogie_rule = proj.rule( 'kboogie'
                                 , description = 'kboogie $definition: $in'
-                                , command = './driver/driver "$definition_dir" "$in" > "$out" 2>&1 || (cat $out; false)'
+                                , command = './driver/driver "$definition_dir" "$in" | tee "$out" || (cat $out; false)'
                                 , ext = definition._alias
                                 )
         implicit_deps = [definition.target, driver.target , proj.source('bin/kboogie'), *glob('driver/*')]
