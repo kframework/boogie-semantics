@@ -602,44 +602,6 @@ When returning, we first `assert` that the post condition holds:
       requires isKResult(ArgVals)
 ```
 
-```operational
-    syntax AssignRhs ::= "#call" Id "(" ExprList ")"
-    rule <k> call Xs:IdList := ProcedureName:Id(ArgVals:ExprList) ;
-          => IdListToLhsList(Xs) := #call ProcedureName(ArgVals) ;
-             ...
-         </k>
-
-    context #call _:Id(HOLE:ExprList)
-    rule <k> #call ProcedureName:Id(ArgVals:ExprList) ~> K
-          => makeDecls(IArgs) ++LocalVarDeclList
-             makeDecls(IRets) ++LocalVarDeclList
-             VarList
-             // TODO havoc all the local variables just in case they are used without being initialized?
-          ~> havoc .IdList ;
-          ~> IdListToLhsList(IdsTypeWhereListToIdList(IArgs)) := ArgVals ;
-          ~> assert .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)];
-          ~> #collectLabel(StartLabel, .StmtList) ~> StmtList
-          ~> goto StartLabel;
-         </k>
-         <implStack> .List => ListItem((CurrentImpl, K:K, Olds:Map, Locals:Map, Labels:Map)) ... </implStack>
-         <currentImpl> CurrentImpl => N </currentImpl>
-         <globals> Globals </globals>
-         <olds> Olds => Globals </olds>
-         <procName> ProcedureName </procName>
-         <args> PArgs </args>
-         <rets> PRets </rets>
-         <pres> Requires </pres>
-         <locals> Locals => .Map </locals>
-         <labels> Labels => .Map </labels>
-         <impl>
-            <implId> N </implId>
-            <iargs> IArgs </iargs>
-            <irets> IRets </irets>
-            <body> { VarList StartLabel: StmtList } </body>
-         </impl>
-      requires isKResult(ArgVals)
-```
-
 Inhabitants
 -----------
 

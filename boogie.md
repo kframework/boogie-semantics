@@ -217,17 +217,6 @@ This is used to reduce RAM usage by taking only one branch at a time (see driver
     syntax KItem ::= "#pause" [symbol, klabel(pause)]
 ```
 
-
-However, in the operational semantics we only execute the main procedure:
-
-```operational
-    syntax Id ::= "main" [token]
-    syntax KItem ::= "#dropReturnValue"
-    rule <k> #start => #call main(.ExprList) ~> #dropReturnValue ... </k>
-         (.CurrentImplCell => <currentImpl> -1 </currentImpl>)
-    rule <k> (_:ExprList ~> #dropReturnValue) => .K ... </k>
-```
-
 ```k
    rule <k> .LocalVarDeclList => .K ... </k>
 
