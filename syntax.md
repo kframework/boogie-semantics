@@ -194,12 +194,12 @@ This allows us to parse more restrictively, and still have more freedom in the s
                         | "assume" AttributeList Expr ";"
                         | "havoc" IdList ";"
                         | LhsList ":=" AssignRhs ";"
-                        | "call" OptionalCallLhs Id "(" ExprList ")" ";"
+                        | "call" CallLhs Id "(" ExprList ")" ";"
+                        | "call" Id "(" ExprList ")" ";"
     syntax AssignRhs ::= ExprList
     syntax Lhs ::= Id | Lhs "[" ExprList "]"
     syntax LhsList ::= List{Lhs, ","} [klabel(LhsList)]
     syntax BlockStmt ::= "{" StmtList "}"
-    syntax OptionalCallLhs ::= Nothing | CallLhs
     syntax CallLhs ::= IdList ":="
 ```
 

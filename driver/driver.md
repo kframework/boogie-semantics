@@ -1,94 +1,57 @@
 ```metak
+requires "k-io.md"
 requires "../quantification.md"
 requires "substitution.md"
-
-module KORE
-    imports STRING-SYNTAX
-    imports KVAR-SYNTAX
-
-    syntax KVar ::= r"[A-Za-z'-][A-Za-z'0-9-]*" [token]
-    syntax Sort ::= KVar "{" "}"
-    syntax Symbol ::= KVar "{" Sorts "}"
-    syntax Pattern ::= "\\dv" "{" Sort "}" "(" String ")"                           [klabel(\dv)]
-                     | KVar ":" Sort                                                [klabel(variable)]
-                     | Symbol "(" Patterns ")"                                      [klabel(application)]
-                     | "\\not" "{" Sort "}" "(" Pattern ")"                         [klabel(\not)]
-                     | "inj" "{" Sort "," Sort "}" "(" Pattern ")"                  [klabel(inj)]
-                     | "\\equals" "{" Sort "," Sort "}" "(" Pattern "," Pattern ")" [klabel(\equals)]
-                     | "\\and" "{" Sort "}" "(" Pattern "," Pattern ")"             [klabel(\and)]
-                     | "\\or" "{" Sort "}" "(" Pattern "," Pattern ")"              [klabel(\or)]
-                     | "\\top" "{" Sort "}" "(" ")"                                 [klabel(\top)]
-                     | "\\bottom" "{" Sort "}" "(" ")"                              [klabel(\bottom)]
-                     | "\\forall" "{" Sort "}" "(" Pattern "," Pattern ")"          [klabel(\forall)]
-                     | "\\exists" "{" Sort "}" "(" Pattern "," Pattern ")"          [klabel(\exists)]
-
-    syntax Patterns ::= List{Pattern, ","} [klabel(Patterns)]
-    syntax Sorts ::= List{Sort, ","}       [klabel(Sorts)]
-endmodule
-```
-
-```metak
-module KORE-UNPARSE
-    imports KORE
-    imports STRING
-
-    syntax String ::= unparsePattern(Pattern) [function, functional]
-    rule unparsePattern(\equals { S1 , S2 } (P1, P2)) => "\\equals{" +String unparseSort(S1) +String "," +String unparseSort(S2)  +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
-    rule unparsePattern(KVar : Sort)                  => NameToString(KVar) +String ":" +String unparseSort(Sort)
-    rule unparsePattern(\dv { S } (Value))            => "\\dv{" +String unparseSort(S)  +String "} (\"" +String Value +String "\")"
-    rule unparsePattern(\top { S } ())                => "\\top{" +String unparseSort(S)  +String "} ()"
-    rule unparsePattern(\bottom { S } ())                => "\\bottom{" +String unparseSort(S)  +String "} ()"
-    rule unparsePattern(inj { S1 , S2 } (P1))         => "inj{" +String unparseSort(S1) +String "," +String unparseSort(S2)  +String "} (" +String unparsePattern(P1) +String ")"
-    rule unparsePattern(\not { S1 } (P1))         => "\\not{" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String ")"
-    rule unparsePattern(S(Args:Patterns))             => unparseSymbol(S) +String "(" +String unparsePatterns(Args) +String ")"
-    rule unparsePattern(\and { S1 } (P1, P2))
-      => "\\and{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
-    rule unparsePattern(\or { S1 } (P1, P2))
-      => "\\or{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
-    rule unparsePattern(\forall  { S1 } (P1, P2)) => "\\forall {" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
-    rule unparsePattern(\exists  { S1 } (P1, P2)) => "\\exists {" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
-
-    syntax String ::= NameToString(KVar) [function, functional, hook(STRING.token2string)]
-
-    syntax String ::= unparseSort(Sort) [function, functional]
-    rule unparseSort(KVar {}) => NameToString(KVar) +String "{}"
-
-    syntax String ::= unparseSymbol(Symbol) [function, functional]
-    rule unparseSymbol(KVar {Sorts}) => NameToString(KVar) +String "{" +String unparseSorts(Sorts) +String "}"
-
-    syntax String ::= unparsePatterns(Patterns) [function, functional]
-    rule unparsePatterns(P, Ps) => unparsePattern(P) +String "," +String unparsePatterns(Ps) requires notBool Ps ==K .Patterns
-    rule unparsePatterns(P, .Patterns) => unparsePattern(P)
-    rule unparsePatterns(.Patterns) => ""
-
-    syntax String ::= unparseSorts(Sorts) [function, functional]
-    rule unparseSorts(S, Ss) => unparseSort(S) +String "," +String unparseSorts(Ss) requires notBool Ss ==K .Sorts
-    rule unparseSorts(S, .Sorts) => unparseSort(S)
-    rule unparseSorts(.Sorts) => ""
-endmodule
 ```
 
 Plumbing
 ========
 
-The following module implements IO, calls to system, and other the nitty-gritty details.
-
 ```metak
 module DRIVER-HELPERS
     imports KORE
     imports KORE-UNPARSE
-    imports K-IO
-    imports K-REFLECTION
+    imports KORE-UTILITIES
+
     imports LIST
     imports SUBSTITUTION
 ```
 
+We use these tokens in the definition.
+
 ```metak
-    syntax KItem ::= "init"
-    configuration <k> $PGM:Pattern ~> init </k>
+    syntax KVar ::= "VarResult"                   [token]
+                  | "Lbl'-LT-'freshVars'-GT-'"    [token]
+                  | "Lbl'-LT-'generatedTop'-GT-'" [token]
+                  | "Lbl'-LT-'k'-GT-'"            [token]
+                  | "Lbl'Hash'failure"            [token]
+                  | "Lbl'UndsEqlsEqls'Bool'Unds'" [token]
+                  | "Lbl'UndsEqlsEqls'Int'Unds'"  [token]
+                  | "Lbl'UndsEqlsEqls'K'Unds'"    [token]
+                  | "Lbland"                      [token]
+                  | "LbleqBool"                   [token]
+                  | "LbleqInt"                    [token]
+                  | "Lblforallbinder"             [token]
+                  | "Lblforallbindercooled"       [token]
+                  | "Lblforallbinderheated"       [token]
+                  | "Lblimplies"                  [token]
+                  | "Lblnot"                      [token]
+                  | "Lblor"                       [token]
+                  | "SortBool"                    [token]
+                  | "SortExpr"                    [token]
+                  | "SortGeneratedTopCell"        [token]
+                  | "SortInt"                     [token]
+                  | "SortK"                       [token]
+                  | "SortKItem"                   [token]
+                  | "SortString"                  [token]
+                  | "SortValueExpr"               [token]
+                  | "dotk"                        [token]
+                  | "kseq"                        [token]
+```
+
+```metak
+    configuration <k> $PGM:Pattern </k>
                   <freshVars> .K </freshVars>
-                  <out stream="stdout"> .List </out>
-                  <definition> $Definition:String </definition>
                   <workingDir> $WorkingDir:String </workingDir>
                   <exitcode exit="0"> 1 </exitcode>
     rule  <k> .K </k>
@@ -99,92 +62,10 @@ module DRIVER-HELPERS
     syntax KItem ::= triage(kcell: Patterns, config: Pattern)
 ```
 
-To execute a configuration, we:
-
-1. unparse it to a string,
-2. write that it to a temporary file,
-3. execute it using the `kore-exec-helper` script,
-4. and unparse the kore output into a K term.
-
-```metak
-    syntax KItem ::= exec(Pattern)
-
-    rule <k> exec(\and{_}(Pgm, \top{_}())) => exec(Pgm) ... </k>
-    rule <k> exec(Config)
-          => write-to-file(unparsePattern(Config), #open(WD +String "/" +String Int2String(!I) +String ".input", "w"))
-          ~> kore-exec(path:                             WD +String "/" +String Int2String(!I)                       )
-          ~> parseKORE
-             ...
-         </k>
-         <workingDir> WD </workingDir>
-      [owise]
-
-    syntax KItem ::= "write-to-file" "(" contents: String "," fd: IOInt ")"
-    rule <k> write-to-file(Str, Fd) => #write(Fd, Str) ~> close(Fd) ... </k>
-
-    syntax KItem ::= "kore-exec" "(" "path:" String ")" [seqstrict, result(String)]
-    rule <k> kore-exec(path: Path)
-          => #system("./driver/kore-exec-helper " +String Definition +String " " +String Path)
-             ...
-         </k>
-         <definition> Definition </definition>
-    rule <k> #systemResult(0, StdOut, _) => StdOut ... </k>
-
-    syntax KItem ::= "parseKORE"
-    rule <k> S:String ~> parseKORE
-          => #parseKORE(S):Pattern
-             ...
-         </k>
-
-    syntax KItem ::= close(Int)
-    rule <k> close(Fd) => #close(Fd) ... </k>
-```
-
-We use these tokens in the definition.
-
-```metak
-    syntax KVar ::= "SortK"                       [token]
-                  | "SortKItem"                   [token]
-                  | "SortValueExpr"               [token]
-                  | "VarResult"                   [token]
-                  | "kseq"                        [token]
-                  | "dotk"                        [token]
-                  | "SortGeneratedTopCell"        [token]
-                  | "Lbl'-LT-'generatedTop'-GT-'" [token]
-                  | "SortString"                  [token]
-                  | "Lbl'Hash'failure"            [token]
-                  | "Lblforallbinder"             [token]
-                  | "Lblforallbinderheated"       [token]
-                  | "Lblforallbindercooled"       [token]
-                  | "SortExpr"                    [token]
-                  | "SortBool"                    [token]
-                  | "SortInt"                     [token]
-                  | "Lblimplies"                  [token]
-                  | "Lbland"                      [token]
-                  | "Lblor"                       [token]
-                  | "Lblnot"                      [token]
-                  | "LbleqInt"                    [token]
-                  | "LbleqBool"                   [token]
-                  | "Lbl'UndsEqlsEqls'Int'Unds'"  [token]
-                  | "Lbl'UndsEqlsEqls'K'Unds'"    [token]
-                  | "Lbl'UndsEqlsEqls'Bool'Unds'" [token]
-                  | "Lbl'-LT-'k'-GT-'"            [token]
-```
-
 ```metak
     syntax Patterns ::= getKCell(Pattern) [function]
-    rule getKCell(Lbl'-LT-'k'-GT-' { .Sorts } ( Arg, .Patterns ) ) => Arg, .Patterns
-    rule getKCell(S { _ } ( Args ) ) => getKCellPs(Args) requires S =/=K Lbl'-LT-'k'-GT-'
-    rule getKCell(inj{ _, _ } (P) ) => getKCell(P)
-    rule getKCell(\not{ _ } (P) ) => getKCell(P)
-    rule getKCell(\dv{ _ } (_) ) => .Patterns
-    rule getKCell(_ : _) => .Patterns
+    rule getKCell(Term) => findSubTermsByConstructor(Lbl'-LT-'k'-GT-', Term)
 
-    syntax Patterns ::= getKCellPs(Patterns) [function, functional]
-    rule getKCellPs(P, Ps) => getKCell(P) +Patterns getKCellPs(Ps)
-    rule getKCellPs(.Patterns) => .Patterns
-
-    syntax KVar ::= "Lbl'-LT-'freshVars'-GT-'" [token]
     syntax Patterns ::= getFreshVars(Pattern) [function]
     rule getFreshVars(Lbl'-LT-'freshVars'-GT-' { .Sorts } ( Arg, .Patterns ) ) => Arg, .Patterns
     rule getFreshVars(S { _ } ( Args ) ) => getFreshVarsPs(Args) requires S =/=K Lbl'-LT-'freshVars'-GT-'
@@ -222,19 +103,6 @@ We use these tokens in the definition.
     rule setKCellPs(.Patterns, _) => .Patterns
 ```
 
-We use fresh variables from a domain distinct from both the Haskell backend's names, and `KVar`'s.
-
-```metak
-    syntax KVar ::= freshVariable(Int) [function]
-    rule freshVariable(I) => String2KVar("VDriver" +String Int2String(I))
-```
-
-```metak
-    syntax Patterns ::= Patterns "+Patterns" Patterns [function, functional, left]
-    rule (P1, P1s) +Patterns P2s => P1, (P1s +Patterns P2s)
-    rule .Patterns +Patterns P2s =>                    P2s
-```
-
 ```metak
 endmodule
 ```
@@ -243,47 +111,15 @@ endmodule
 module DRIVER
     imports DRIVER-HELPERS
     imports BOOGIE-QUANTIFIERS-META
+    imports K-FRONTEND
 ```
 
 Normalization
 =============
 
-The result of `kore-exec --search` and `krun` are of the form:
-
-```
-    {       sideconditions
-    #And    Result == Configuration
-    }
-```
-
-whereas, `kore-exec` accepts initial configurations for the form:
-
-```
-    {       sideconditions
-    #And    Configuration
-    }
-```
-
 First, we bring the configuration to the front of the conjunction:
 
 ```metak
-    rule \and { S }(P, \and { S } (Lbl'-LT-'generatedTop'-GT-' { .Sorts } (_) #as Config, Ps)) => \and { S }(Config, \and { S } (P, Ps)) [anywhere]
-    rule \and { S }(P, (Lbl'-LT-'generatedTop'-GT-' { .Sorts } (_) #as Config)) => \and { S }(Config, P)                                 [anywhere]
-```
-
-Next, we convert the substitution like predicate `Result == Configuration` into a constrained term:
-
-```metak
-    rule \equals { SortK { } , SortKItem { } } ( VarResult : SortK { }
-                                               , kseq { .Sorts } ( inj { SortGeneratedTopCell { } , SortKItem { } }(Result)
-                                                          , dotk { .Sorts } ( .Patterns )
-                                                          )
-                                               )
-      => Result
-    rule \equals { _ , _ } ( VarResult : SortGeneratedTopCell { } , Result ) => Result [anywhere]
-    rule (P, (Lbl'-LT-'generatedTop'-GT-' { .Sorts } ( _ ) #as Config), Ps)
-      => Config, P, Ps [anywhere]
-
     rule <k> Lbl'-LT-'generatedTop'-GT-' { .Sorts } ( _ ) #as Pgm => \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}()) ... </k>
     rule <k> T:KItem
           ~> Lbl'-LT-'generatedTop'-GT-' { .Sorts } ( _ ) #as Pgm
@@ -308,38 +144,29 @@ We perform a depth first search over branches:
 For each constrained configuration, we triage according to the content of the `<k>` cell:
 
 ```metak
-    rule <k> \and { SortGeneratedTopCell { } }(Lbl'-LT-'generatedTop'-GT-' { .Sorts } (_) #as Config, _Constraints) #as ConstrainedConfiguration
-          => triage(getKCell(Config), ConstrainedConfiguration)
+    rule <k> \and { SortGeneratedTopCell { } }(_, _) #as ConstrainedConfiguration
+          => triage(getKCell(ConstrainedConfiguration), ConstrainedConfiguration)
              ...
          </k>
     rule <k> \bottom{_}() => .K ... </k> // TODO: This is broken when the only result from a forall is `\bottom`
 ```
 
-```metak
-    rule <k> triage(_, Pgm)  ~> init => exec(Pgm) ... </k>
-```
-
 ### Failure
 
 ```metak
-    rule <k> triage(kseq{ .Sorts } ( Lbl'Hash'failure { .Sorts } ( \dv { SortString { } } ( Message ) ), _) , Pgm) => .K ... </k>
-         <out> ... .List
-            => ListItem("==== failure\n")
-               ListItem(Message)             ListItem("\n")
-               ListItem(unparsePattern(Pgm)) ListItem("\n")
-               ListItem("\n")
-         </out>
+    rule <k> triage(kseq{ .Sorts } ( Lbl'Hash'failure { .Sorts } ( \dv { SortString { } } ( Message ) ), _) , Pgm)
+          => print("==== failure\n") ~> print(Message) ~> print("\n") ~> prettyPrint(Pgm) ~> print("\n")
+             ...
+         </k>
 ```
 
 ### Succeeded:
 
 ```metak
-    rule <k> triage(dotk {.Sorts} (.Patterns), Pgm) => .K ... </k>
-         <out> ... .List
-            => ListItem("==== success\n")
-               ListItem(unparsePattern(Pgm))
-               ListItem("\n")
-         </out>
+    rule <k> triage(dotk {.Sorts} (.Patterns), Pgm)
+          => print("==== success\n") ~> prettyPrint(Pgm) ~> print("\n")
+             ...
+         </k>
 ```
 
 #### Pause
@@ -347,10 +174,22 @@ For each constrained configuration, we triage according to the content of the `<
 ```metak
     syntax KVar ::= "Lblpause" [token]
     rule <k> triage(kseq{ .Sorts } ( Lblpause { .Sorts } ( .Patterns ), Rest) , Pgm)
-          => exec(setKCell(Pgm, Rest))
+          => koreExec(setKCell(Pgm, Rest))
              ...
          </k>
 ```
+
+#### Stuck?
+
+//```metak
+//    syntax KItem ::= "#Stuck"
+//    rule <k> triage(_ , Pgm)
+//          => prettyPrint(Pgm)
+//          ~> #Stuck
+//             ...
+//         </k>
+//         [owise]
+//```
 
 ## `forall`
 
