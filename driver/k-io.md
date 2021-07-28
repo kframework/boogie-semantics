@@ -290,7 +290,7 @@ Pretty print
     rule prettyPrint(File)
       => print(system("kprint .build/defn/verification/boogie-kompiled/" +String
                     " " +String File +String
-                    " true true"
+                    " false true"
                ))
 ```
 
