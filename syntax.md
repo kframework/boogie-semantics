@@ -160,12 +160,8 @@ TODO: Signature should allow "returns" syntax
 ```
 
 ```k
-    // TODO: where clauses should not be in the Args or the Returns, we need to remove them when
-    // desugaring from procedure declaration to implementation declaration
-    syntax ImplementationDecl ::= "implementation" AttributeList Id ISig Body
-    syntax ISig               ::= OptionalTypeArgs "(" IdsTypeWhereList ")" OptionalImpOutParameters
-    syntax OptionalImpOutParameters ::= Nothing | ImpOutParameters
-    syntax ImpOutParameters   ::= "returns" "(" IdsTypeWhereList ")"
+    // TODO: unlike in procedures, "where" clauses are not allowed in Args or Returns.
+    syntax ImplementationDecl ::= "implementation" AttributeList Id PSig Body
 ```
 
 9 Statements
@@ -233,6 +229,7 @@ Exists are desugared for forall. We cannot implement simply use K's `!` variable
 ```k
     rule ( exists IdsTypeList :: Trigger Expr ) => ! ( forall IdsTypeList :: Trigger ! Expr ) [macro]
 ````
+
 ```k
 endmodule
 ```

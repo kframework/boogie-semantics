@@ -26,7 +26,7 @@ def build(alias):
                           , main          = 'boogie.md'
                           , other         = ['syntax.md', 'nothing.md', 'procedures.md', 'helpers.md', 'runtime.md', 'quantification.md']
                           , backend       = 'haskell'
-                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --emit-json --md-selector "%s" --gen-bison-parser' % selector
+                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --main-module BOOGIE --md-selector "%s" --gen-glr-bison-parser' % selector
                           )
 
 verification = build('verification')
@@ -36,50 +36,51 @@ verification = build('verification')
  
 driver = proj.definition( alias         = 'driver'
                         , main          = 'driver/driver.md'
-                        , other         = ['quantification.md']
+                        , other         = ['driver/k-io.md', 'quantification.md']
                         , backend       = 'llvm'
-                        , flags         = '--md-selector "k | metak" -ccopt -g -ccopt -O0 --gen-bison-parser --syntax-module KORE'
+                        , flags         = '--md-selector "k | metak" -ccopt -g -ccopt -O0 --gen-bison-parser --syntax-module KORE-SYNTAX'
                         )
 
-def kboogie_runner(definition, expected_extension):
-    def runner(input):
-        kboogie_rule = proj.rule( 'kboogie'
-                                , description = 'kboogie $definition: $in'
-                                , command = './driver/driver "$definition_dir" "$in" | tee "$out" || (cat $out; false)'
-                                , ext = definition._alias
-                                )
-        implicit_deps = [definition.target, driver.target , proj.source('bin/kboogie'), *glob('driver/*')]
-        kboogie_rule = kboogie_rule.implicit(implicit_deps)
-        kboogie_rule = kboogie_rule.variable('definition_dir', definition._directory)
-        kboogie_rule = kboogie_rule.variable('definition', definition._alias)
-        kboogie_out = proj.source(input).then(kboogie_rule)
+infer_rule = proj.rule( 'infer'
+                      , description = 'infer $in'
+                      , command = 'bin/kboogie $flags $in > "$out"'
+                      , ext = 'infered.bpl'
+                      )
 
-        kboogie_diff_rule = proj.rule( 'diff-kboogie'
-                                     , description = 'diff-kboogie: $in'
-                                     , command = 'bin/diff-kboogie $in $expected'
-                                     , ext = 'diff'
-                                     )
-        kboogie_diff_rule = kboogie_diff_rule.variable('expected', input + '.' + expected_extension)
-        ret = kboogie_out.then(kboogie_diff_rule)
-        proj.alias(input + '.' + definition._alias, [ret])
-        return ret
+kboogie_rule = proj.rule( 'kboogie'
+                        , description = 'kboogie $definition: $in'
+                        , command = './driver/driver "$definition_dir" "$in" | tee "$out"'
+                        , ext = verification._alias
+                        )
+kboogie_rule = kboogie_rule.variable('definition_dir', verification._directory)
+kboogie_rule = kboogie_rule.variable('verification', verification._alias)
 
-    return runner
+def kboogie(input):
+    if input in test_no_infer:
+        infered = proj.source(input).then(infer_rule.variable('flags', '--no-infer'))
+    else:
+        infered = proj.source(input).then(infer_rule)
 
-# TODO: Merge upstream
-def suite(name, runner, tests, failing = None):
-    all_tests     = tests
-    failing_tests = failing
-    passing_tests = filter_out(all_tests, failing_tests)
-    proj.suite(name,              passing_tests, runner)
-    proj.suite(name + '-failing', failing_tests, runner, default = False)
+    implicit_deps = [verification.target, driver.target , proj.source('bin/kboogie'), *glob('driver/*')]
+    kboogie_out = infered.then(kboogie_rule.implicit(implicit_deps))
 
-# Run all test as verification tests
-suite('test-verification'
-     , runner = kboogie_runner(verification, expected_extension = 'expect')
-     , tests   = glob('test/*/*/*.bpl')
-     , failing = readlines('test/failing.verification')
-     )
+    kboogie_diff_rule = proj.rule( 'diff-kboogie'
+                                 , description = 'diff-kboogie: $in'
+                                 , command = 'bin/diff-kboogie $in $expected'
+                                 , ext = 'diff'
+                                 )
+    kboogie_diff_rule = kboogie_diff_rule.variable('expected', input + '.expect')
+    ret = kboogie_out.then(kboogie_diff_rule)
+    proj.alias(input + '.' + verification._alias, [ret])
+    return ret
+
+all_tests     = glob('test/verification/*/*.bpl')
+test_no_infer = [ 'test/verification/test2/LambdaLifting.bpl', 'test/verification/test2/Lambda.bpl' ]
+failing_tests = readlines('test/failing.verification')
+passing_tests = filter_out(all_tests, failing_tests)
+
+proj.suite('test-verification',         passing_tests, kboogie)
+proj.suite('test-verification-failing', failing_tests, kboogie, default = False)
 
 # Main
 # ====

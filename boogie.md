@@ -109,9 +109,6 @@ When we first encounter a type , we create an entry in the list of types.
 Since `<type>` has `multiplicity="Map"` and the key for maps (i.e. the `<typeName>`)
 must be unique, multiple entries aren't created for each type.
 
-3 Constants and functions
--------------------------
-
 ```k
     rule <k> const Attrs OptionalUnique X, Xs : T ;
           => const Attrs OptionalUnique X  : T ;
@@ -127,9 +124,14 @@ must be unique, multiple entries aren't created for each type.
        requires notBool(X in_keys(Rho))
 ```
 
-Functions are constant maps:
+Functions are lambdas:
 
 ```k
+    rule <k> function Attrs F (IdsTypeList) : TR { Expr }
+          => function Attrs F (IdsTypeList) : TR ;
+          ~> F := (lambda IdsTypeList :: Expr), .ExprList ;
+             ...
+         </k>
     rule <k> function Attrs F (IdsTypeList) : TR ;
           => const Attrs .Nothing (F, .IdList) : ([IdsTypeListToTypeList(IdsTypeList)]TR):Type ;
              ...
@@ -193,8 +195,7 @@ In the case of the verification semantics, we verify all procedures:
           ~> makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
           ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
           ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)] ;
-          ~> #collectLabel(StartLabel, .StmtList) ~> StmtList
-          ~> goto StartLabel;
+          ~> #collectLabels(StmtList)
          </k>
          (.CurrentImplCell => <currentImpl> N </currentImpl>)
          <globals> Globals </globals>
@@ -207,8 +208,73 @@ In the case of the verification semantics, we verify all procedures:
             <implId> N </implId>
             <iargs> IArgs </iargs>
             <irets> IRets </irets>
-            <body> { VarDeclList StartLabel: StmtList } </body>
+            <body> { VarDeclList StmtList } </body>
          </impl>
+```
+
+`#collectLabels` splits procedure bodies into labeled blocks, and populates the
+`<labels>` cell with a map from labels to their bodies.
+
+```k
+    syntax KItem ::= #collectLabels(StmtList)
+    syntax Id ::= "$start" [token]
+    rule <k> #collectLabels((_:Stmt _) #as StmtList)
+          => #collectLabels($start : StmtList)
+             ...
+         </k>
+
+    rule <k> #collectLabels(StartLabel:Id : StmtList)
+          => #collectLabels(StartLabel, .StmtList, StmtList)
+          ~> goto StartLabel;
+             ...
+         </k>
+
+    syntax KItem ::= #collectLabels(currLabel: Id, block: StmtList, rest: StmtList)
+    rule <k> #collectLabels(L, S1s, S2:Stmt S2s:StmtList)
+          => #collectLabels(L, S1s ++StmtList S2 .StmtList, S2s)
+             ...
+         </k>
+    rule <k> #collectLabels(L1, S1s,       L2: S2s:StmtList)
+          => #collectLabels(L2, .StmtList, S2s:StmtList)
+             ...
+         </k>
+         <labels> (.Map => L1 |-> S1s) Labels </labels>
+    rule <k> #collectLabels(L, S1s, .StmtList)
+          => .K
+             ...
+         </k>
+         <labels> (.Map => L |-> S1s) Labels </labels>
+```
+
+We use `boogie` to infer invaraints and cutpoints.
+We rearrange the generated `assume`s to work with cutpoints.
+
+```k
+    syntax Id ::= "inferred" [token]
+    rule <k> #collectLabels(_L, _S1s,
+                             ( ( assert { :inferred .AttrArgList } Inferred ;
+                                 assert _:AttributeList Invariant ;
+                                 S2s:StmtList
+                               )
+                            => ( assert { :code "Inferred" } { :source "???", 0 } Inferred; // This should never fail
+                                 assert { :code "BP5004" } { :source "???", 0 } Invariant;
+                                 cutpoint(!_:Int) ;
+                                 assume .AttributeList Inferred;
+                                 assume .AttributeList Invariant;
+                                 S2s:StmtList
+                           ) ) )
+             ...
+         </k> [priority(48)]
+
+    rule <k> #collectLabels(_L, _S1s,
+               assert { :inferred .AttrArgList } Inferred;
+               ( (S2 S2s:StmtList)
+              => ( assert .AttributeList true ;
+                   S2 S2s:StmtList
+             ) ) )
+             ...
+         </k>
+      requires assert _:AttributeList _ ; :/=K  S2 [priority(48)]
 ```
 
 This is used to reduce RAM usage by taking only one branch at a time (see driver.md)
@@ -220,23 +286,34 @@ This is used to reduce RAM usage by taking only one branch at a time (see driver
 ```k
    rule <k> .LocalVarDeclList => .K ... </k>
 
-   rule <k> var .AttributeList X:Id : T           ; Vs:LocalVarDeclList
-         => var .AttributeList X:Id : T where true; Vs
+   rule <k> var Attrs IdsTypeWhere, Rest:IdsTypeWhereList ; Vs:LocalVarDeclList
+         => var Attrs IdsTypeWhere; var Attrs Rest; Vs
+            ...
+        </k>
+     requires Rest =/=K .IdsTypeWhereList
+
+   rule <k> var Attrs Xs : T            ; Vs:LocalVarDeclList
+         => var Attrs Xs : T where true ; Vs
             ...
         </k>
 
-   rule <k> var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
-         => Vs
+   rule <k> var .AttributeList X:Id, Xs : T where Where; Vs:LocalVarDeclList
+         => var .AttributeList       Xs : T where Where; Vs
             ...
         </k>
         <locals> (.Map => X:Id |-> value("undefined", T, Where)) Rho </locals>
      requires notBool( X in_keys(Rho) )
 
-   rule <k> var .AttributeList X:Id : T where Where; Vs:LocalVarDeclList
-         => Vs
+   rule <k> var .AttributeList X:Id, Xs : T where Where; Vs:LocalVarDeclList
+         => var .AttributeList       Xs : T where Where; Vs
             ...
         </k>
         <locals> X |-> (_ => value("undefined", T, Where)) ... </locals>
+
+   rule <k> var .AttributeList .IdList : T where Where; Vs:LocalVarDeclList
+         => Vs
+            ...
+        </k>
 ```
 
 ```k

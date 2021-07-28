@@ -44,6 +44,7 @@ the other at the object level (code-blocks tagged with `object`):
 ```metak
 module BOOGIE-QUANTIFIERS-META
     imports DRIVER-HELPERS
+    imports K-FRONTEND
 ```
 
 When Boogie's forall is encountered, we convert it to a binder. We use `lambda` because the haskell backend does not support substitution.
@@ -62,8 +63,8 @@ i.e. a `forall` encountered along one program path must be evaulated separately 
 ```
 
 ```metak
-    rule <k> triage(kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinder  { .Sorts } ( V, E )), Rest) , Pgm) => .K
-          ~> exec(setKCell(Pgm, kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated  { .Sorts } ( V, E )), dotk { .Sorts }(.Patterns))))
+    rule <k> triage(kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinder  { .Sorts } ( V, E )), Rest) , Pgm)
+          => koreExec(setKCell(Pgm, kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated  { .Sorts } ( V, E )), dotk { .Sorts }(.Patterns))))
           ~> forallFreezer(Rest, Pgm)
              ...
          </k>
@@ -74,7 +75,7 @@ The evaluation of the quantified expression results in a disjunction of configur
 
 ```metak
     syntax KItem ::= forallResult(Pattern, Pattern)
-    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { QSort, SortValueExpr{} } ( V : QSort ) ,inj{SortBool{},SortExpr{}}(E))),dotk { .Sorts }(.Patterns)),\and{_}(C,PathConditions))
+    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { QSort, SortValueExpr{} } ( V : QSort ), inj{SortBool{},SortExpr{}}(E))),dotk { .Sorts }(.Patterns)),\and{_}(C,PathConditions))
           => forallResult( V : QSort
                          , \or { SortGeneratedTopCell {}}
                                ( \not {SortGeneratedTopCell{}}( makePathConditions(PathConditions, FreshVarsOrig, getFreshVars(C)) )
@@ -124,8 +125,8 @@ We may sometimes need to alpha-rename the bound variable to enable this.
 We bring each branch to the front to allow them to be triaged.
 
 ```metak
-    rule <k> (forallResult(_, _) #as Curr) ~> (\and { SortGeneratedTopCell{}} (_, _) #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
-    rule <k> (forallResult(_, _) #as Curr) ~> (exec(_)                               #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
+    rule <k> (forallResult(_, _) #as Curr) ~> (P:Pattern    #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
+    rule <k> (forallResult(_, _) #as Curr) ~> (koreExec(_)  #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
 ```
 
 Finally, when all branch branches are fully reduced, we cool the result back into the original context,
@@ -139,12 +140,12 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
     syntax KItem ::= forallFreezer(kcellRest: Pattern, config: Pattern)
     rule <k> forallResult(V : QSort, E)
           ~> forallFreezer(Rest, Pgm)
-          => exec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
-                                                 , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
-                 )                               )
-          ~> exec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
-                                                 , \not {SortGeneratedTopCell{}} (\not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))))
-                 )                               )
+          => koreExec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
+                                                     , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
+                     )                               )
+          ~> koreExec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
+                                                     , \not {SortGeneratedTopCell{}} (\not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))))
+                     )                               )
              ...
          </k>
          <freshVars> _:Patterns => .K ... </freshVars>

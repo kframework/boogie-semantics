@@ -198,6 +198,13 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
 -------------------------------------------------
 
 ```k
+  rule <k> var Attrs X,Xs : T:Type ;:Decl
+        => var Attrs X    : T:Type ;:Decl
+        ~> var Attrs Xs   : T:Type ;:Decl
+           ...
+       </k>
+    requires notBool Xs ==K .IdList
+
   rule <k> var .AttributeList X:Id : T:Type ;:Decl
         => X := inhabitants(T), .ExprList ;
            ...
@@ -275,14 +282,8 @@ TODO: Done in this strange way because of https://github.com/kframework/kore/iss
        andBool         X in Modifies
 
     rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
-         <runtime>
-           <locals> Env </locals>
-           <globals> X |-> value(... value: _ => V) ... </globals>
-           <olds> _ </olds>
-           <labels> _ </labels>
-           <cutpoints> _ </cutpoints>
-           <freshVars> _ </freshVars>
-         </runtime>
+         <locals> Env </locals>
+         <globals> X |-> value(... value: _ => V) ... </globals>
       requires notBool X in_keys(Env)
 ```
 
@@ -315,27 +316,6 @@ type.
 9.5 Label Statements and jumps
 ------------------------------
 
-`#collectLabel` splits procedure bodies into labeled blocks, and populates the
-`<labels>` cell with a map from labels to their bodies.
-
-```k
-    syntax KItem ::= #collectLabel(Id, StmtList)
-    rule <k> (#collectLabel(L, S1s) ~> S2:Stmt S2s:StmtList)
-          => (#collectLabel(L, S1s ++StmtList S2 .StmtList) ~> S2s)
-             ...
-         </k>
-    rule <k> (#collectLabel(L1, S1s)       ~> L2: S2s:StmtList)
-          => (#collectLabel(L2, .StmtList) ~> S2s:StmtList)
-             ...
-         </k>
-         <labels> (.Map => L1 |-> S1s) Labels </labels>
-    rule <k> (#collectLabel(L, S1s) ~> .StmtList)
-          => .K
-             ...
-         </k>
-         <labels> (.Map => L |-> S1s) Labels </labels>
-```
-
 Non-deterministically transition to all labels
 
 ```k
@@ -349,38 +329,6 @@ Non-deterministically transition to all labels
 
 
 See [note below](#where-cutpoint-interactions) about the interaction between `where` clauses and loops.
-
-We use `boogie` to infer invaraints and cutpoints.
-These inferred cutpoints are output as assertions following a label.
-
-```k
-    syntax Id ::= "inferred" [token]
-    rule <k> #collectLabel(_L, _S1s) ~>
-           ( ( assert { :inferred .AttrArgList } Inferred ;
-               assert _:AttributeList Invariant ;
-               S2s:StmtList
-             )
-          => ( assert { :code "Inferred" } { :source "???", 0 } Inferred; // This should never fail
-               assert { :code "BP5004" } { :source "???", 0 } Invariant;
-               cutpoint(!_:Int) ;
-               assume .AttributeList Inferred;
-               assume .AttributeList Invariant;
-               S2s:StmtList
-           ) )
-             ...
-         </k> [priority(48)]
-
-    rule <k> #collectLabel(_L, _S1s) ~>
-             assert { :inferred .AttrArgList } Inferred;
-             ( (S2 S2s:StmtList)
-            => ( assert .AttributeList true ;
-                 S2 S2s:StmtList
-               )
-             )
-             ...
-         </k>
-      requires assert _:AttributeList _ ; :/=K  S2 [priority(48)]
-```
 
 When we reach a particular cutpoint the first time, we treat it as an abstraction point
 and replace modifiable variables with fresh symbolic values.
@@ -580,7 +528,7 @@ When returning, we first `assert` that the post condition holds:
 -------------------
 
 ```k
-    rule <k> call .Nothing ProcedureName:Id(ArgVals) ;
+    rule <k> call ProcedureName:Id(ArgVals) ;
           => call .IdList := ProcedureName:Id(ArgVals) ;
              ...
          </k>

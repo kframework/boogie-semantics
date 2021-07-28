@@ -33,11 +33,11 @@ Split procedures with a body into a procedure and an implementation:
 
 ```k
     rule <k> (procedure Attrs:AttributeList
-                ProcedureName .Nothing ( Args ) returns ( Rets ) SpecList
+                ProcedureName PSig:PSig SpecList
                 Body):Decl
           => procedure Attrs:AttributeList
-               ProcedureName .Nothing ( Args ) returns ( Rets ) ; SpecList
-          ~> implementation Attrs ProcedureName .Nothing ( Args ) returns ( Rets )
+               ProcedureName PSig ; SpecList
+          ~> implementation Attrs ProcedureName PSig
                Body
              ...
          </k>

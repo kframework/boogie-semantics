@@ -14,17 +14,16 @@ import tempfile
 # High-level helpers
 # ==================
 
-infer_only = False
-should_infer = True
-input_path = None
+should_preprocess = True
+should_infer      = True
+input_path        = None
 
 def parse_args(args):
     global infer_only , should_infer , input_path 
     while not(input_path):
         arg = args.pop(0)
-        if   arg == '--infer-only': infer_only = True
-        elif arg == '--no-infer'  : should_infer = False
-        else                      : input_path = arg
+        if   arg == '--no-infer': should_infer = False
+        else                    : input_path = arg
 
 def preprocess(input_lines, filename):
     """ Annotate `assert` statements with line numbers"""
@@ -53,6 +52,7 @@ def infer(input):
 sys.argv.pop(0)
 parse_args(sys.argv)
 output = open(input_path).readlines()
-output = preprocess(output, os.path.basename(input_path))
-print(infer(output))
+if should_preprocess: output = preprocess(output, os.path.basename(input_path))
+if should_infer:      output = infer(output)
+print(output)
 

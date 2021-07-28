@@ -181,15 +181,18 @@ For each constrained configuration, we triage according to the content of the `<
 
 #### Stuck?
 
-//```metak
-//    syntax KItem ::= "#Stuck"
-//    rule <k> triage(_ , Pgm)
-//          => prettyPrint(Pgm)
-//          ~> #Stuck
-//             ...
-//         </k>
-//         [owise]
-//```
+```metak
+    syntax KItem ::= "#Stuck"
+    rule <k> ( .K
+            => print("==== stuck\n")
+            ~> prettyPrint(Pgm)
+            ~> #Stuck
+             )
+          ~> triage(_ , Pgm)
+             ...
+         </k>
+         [owise]
+```
 
 ## `forall`
 

@@ -88,14 +88,14 @@ module BOOGIE-HELPERS
 ```k
     syntax IdList ::= IdsTypeWhereListToIdList(IdsTypeWhereList) [function, functional]
     rule IdsTypeWhereListToIdList(.IdsTypeWhereList) => .IdList
-    rule IdsTypeWhereListToIdList(Xs : T            , Rest) => Xs, IdsTypeWhereListToIdList(Rest)
-    rule IdsTypeWhereListToIdList((Xs : T where Exp), Rest) => Xs, IdsTypeWhereListToIdList(Rest)
+    rule IdsTypeWhereListToIdList(Xs:IdList  : T           , Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
+    rule IdsTypeWhereListToIdList((Xs:IdList : T where Exp), Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
 ```
 
 ```k
     syntax IdsTypeWhereList ::= IdsTypeListToIdsTypeWhereList(IdsTypeList) [function, functional]
     rule IdsTypeListToIdsTypeWhereList(.IdsTypeList) => .IdsTypeWhereList
-    rule IdsTypeListToIdsTypeWhereList(Xs : T            , Rest) => Xs : T, IdsTypeListToIdsTypeWhereList(Rest)
+    rule IdsTypeListToIdsTypeWhereList(Xs : T , Rest) => Xs : T, IdsTypeListToIdsTypeWhereList(Rest)
 ```
 
 ```k
