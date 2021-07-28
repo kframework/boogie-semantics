@@ -1,6 +1,10 @@
 # Unimplemented
 # -------------
 
+# Equality between lambdas and maps
+test/verification/test2/Lambda.bpl
+test/verification/test2/LambdaLifting.bpl
+
 # forall/exists/functions
 test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
 test/verification/test2/Quantifiers.bpl                      # Triggers
