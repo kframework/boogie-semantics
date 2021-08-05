@@ -1,6 +1,6 @@
 # To be debugged after K update
-# test/verification/test2/Arrays.bpl
-# test/verification/test2/Ensures.bpl
+test/verification/test2/Arrays.bpl
+test/verification/test2/Ensures.bpl
 
 # Unimplemented
 # -------------
