@@ -277,12 +277,6 @@ We rearrange the generated `assume`s to work with cutpoints.
       requires assert _:AttributeList _ ; :/=K  S2 [priority(48)]
 ```
 
-This is used to reduce RAM usage by taking only one branch at a time (see driver.md)
-
-```k
-    syntax KItem ::= "#pause" [symbol, klabel(pause)]
-```
-
 ```k
    rule <k> .LocalVarDeclList => .K ... </k>
 
