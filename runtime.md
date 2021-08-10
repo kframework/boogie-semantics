@@ -167,18 +167,17 @@ Coersions are ignored for now:
     rule <k> (lambda Bound :: Exp)[Vals]
           => makeDecls(IdsTypeListToIdsTypeWhereList(Bound))
           ~> makeAssignments(IdsTypeListToIdList(Bound), Vals)
-          ~> restoreLocals(Exp, Locals)
+          ~> Exp
+          ~> restoreLocals(Locals)
              ...
          </k>
          <locals> Locals </locals>
       requires isKResult(Vals)
 ```
 
-TODO: Done in this strange way because of https://github.com/kframework/kore/issues/2023
-
 ```k
-    syntax KItem ::= restoreLocals(Expr, Map) [strict(1)]
-    rule <k> restoreLocals(E:ValueExpr, Locals) => E ... </k>
+    syntax KItem ::= restoreLocals(Map)
+    rule <k> (V:ValueExpr ~> restoreLocals(Locals)) => V ... </k>
          <locals> _ => Locals </locals>
 ```
 
