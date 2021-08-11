@@ -10,6 +10,5 @@ program=$1; shift
 mkdir -p "$(pwd)/.build/tmp/"
 working_dir=$(mktemp -d $(pwd)/.build/tmp/boogie-driver-XXXXXX)
 
-# bin/kboogie --infer-only $program > "$working_dir/infered"
 krun --directory "$definition" --output kore $program > "$working_dir/initconfig"
 krun --directory $basedir/.build/defn/driver/ "$working_dir/initconfig" -cWorkingDir=\"$working_dir\" "$@"
