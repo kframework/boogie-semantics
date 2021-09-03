@@ -43,7 +43,7 @@ driver = proj.definition( alias         = 'driver'
 
 infer_rule = proj.rule( 'infer'
                       , description = 'infer $in'
-                      , command = 'bin/kboogie $flags $in > "$out"'
+                      , command = 'bin/boogie-infer $flags $in > "$out"'
                       , ext = 'infered.bpl'
                       )
 
@@ -52,6 +52,7 @@ kboogie_rule = proj.rule( 'kboogie'
                         , command = './driver/driver "$definition_dir" "$in" | tee "$out"'
                         , ext = verification._alias
                         )
+
 kboogie_rule = kboogie_rule.variable('definition_dir', verification._directory)
 kboogie_rule = kboogie_rule.variable('verification', verification._alias)
 
@@ -61,7 +62,7 @@ def kboogie(input):
     else:
         infered = proj.source(input).then(infer_rule)
 
-    implicit_deps = [verification.target, driver.target , proj.source('bin/kboogie'), *glob('driver/*')]
+    implicit_deps = [verification.target, driver.target , proj.source('bin/boogie-infer'), *glob('driver/*')]
     kboogie_out = infered.then(kboogie_rule.implicit(implicit_deps))
 
     kboogie_diff_rule = proj.rule( 'diff-kboogie'

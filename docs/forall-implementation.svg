@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="170.22964mm"
+   height="169.40871mm"
+   viewBox="0 0 170.22964 169.40872"
+   version="1.1"
+   id="svg120584"
+   sodipodi:docname="forall-implementation.svg"
+   inkscape:version="1.1 (c4e8f9ed74, 2021-05-24)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview861"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.8885764"
+     inkscape:cx="362.37739"
+     inkscape:cy="516.55659"
+     inkscape:window-width="1803"
+     inkscape:window-height="1353"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs120581">
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend"
+       refX="0"
+       refY="0"
+       orient="auto">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path74036" />
+    </marker>
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="693.64404"
+       height="537.1554"
+       id="rect123339" />
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="337.62311"
+       height="47.01878"
+       id="rect123339-4" />
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="700.36029"
+       height="62.82177"
+       id="rect123339-6" />
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="729.58118"
+       height="164.83887"
+       id="rect123339-6-6" />
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="764.45557"
+       height="431.65305"
+       id="rect123339-3" />
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="729.58118"
+       height="164.83887"
+       id="rect123339-6-6-3" />
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-6"
+       refX="0"
+       refY="0"
+       orient="auto">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path74036-2" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-0"
+       refX="0"
+       refY="0"
+       orient="auto">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path74036-6" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-6-2"
+       refX="0"
+       refY="0"
+       orient="auto">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path74036-2-6" />
+    </marker>
+  </defs>
+  <g
+     id="layer1"
+     transform="translate(-4.1237957,-7.9323904)">
+    <rect
+       style="fill:#cccccc;stroke:#000000;stroke-width:0.0902224;stop-color:#000000"
+       id="rect221608-5"
+       width="85.897911"
+       height="8.6794157"
+       x="20.050488"
+       y="9.3765669"
+       rx="0.6068958"
+       ry="0.36816531" />
+    <rect
+       style="fill:#cccccc;stroke:#000000;stroke-width:0.172692;stop-color:#000000"
+       id="rect221608-5-2"
+       width="155.04276"
+       height="31.979753"
+       x="16.781301"
+       y="120.40443"
+       rx="1.0726355"
+       ry="0.76316428" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-13.807021,-70.659839)"
+       id="text123337"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24px;line-height:1.25;font-family:'Noto Sans Mono';-inkscape-font-specification:'Noto Sans Mono';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect123339)"><tspan
+         x="72.625"
+         y="326.67294"
+         id="tspan121707">&lt;k&gt; (forall X : T :: Expr) ~&gt; Rest &lt;/k&gt;
+</tspan><tspan
+         x="72.625"
+         y="356.67294"
+         id="tspan121709">&lt;locals&gt; Locals &lt;/locals&gt;</tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-14.444499,40.331766)"
+       id="text123337-7"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24px;line-height:1.25;font-family:'Noto Sans Mono';-inkscape-font-specification:'Noto Sans Mono';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect123339-3)"><tspan
+         x="72.625"
+         y="326.67294"
+         id="tspan121711">&lt;k&gt; #Forall ?X .
+</tspan><tspan
+         x="72.625"
+         y="356.67294"
+         id="tspan121713">           #if   PC1 #then FuncPattern1(?X)
+</tspan><tspan
+         x="72.625"
+         y="386.67294"
+         id="tspan121715">           ...
+</tspan><tspan
+         x="72.625"
+         y="416.67294"
+         id="tspan121717">           #elif PCN #then FuncPatternN(?X)
+</tspan><tspan
+         x="72.625"
+         y="446.67294"
+         id="tspan121719">~&gt; Rest
+</tspan><tspan
+         x="72.625"
+         y="476.67294"
+         id="tspan121721">&lt;/k&gt;
+</tspan><tspan
+         x="72.625"
+         y="506.67294"
+         id="tspan121723">&lt;locals&gt; Locals &lt;/locals&gt;</tspan></text>
+    <rect
+       style="fill:#cccccc;stroke:#000000;stroke-width:0.2;stop-color:#000000"
+       id="rect221608"
+       width="155.40286"
+       height="23.574789"
+       x="7.3689575"
+       y="44.410534"
+       rx="1.0979705"
+       ry="1.0000006" />
+    <rect
+       style="fill:#cccccc;stroke:#000000;stroke-width:0.132059;stop-color:#000000"
+       id="rect221608-4"
+       width="134.34717"
+       height="11.889174"
+       x="21.050276"
+       y="71.684715"
+       rx="0.94920456"
+       ry="0.50431758" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-5.1800687,-33.028009)"
+       id="text123337-5"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24px;line-height:1.25;font-family:'Noto Sans Mono';-inkscape-font-specification:'Noto Sans Mono';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect123339-6)"><tspan
+         x="72.625"
+         y="326.67294"
+         id="tspan121725">&lt;k&gt; Expr &lt;/k&gt;
+</tspan><tspan
+         x="72.625"
+         y="356.67294"
+         id="tspan121727">&lt;locals&gt; Locals[x &lt;- ?X:Int] &lt;/locals&gt;</tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,4.2274943,-6.3772908)"
+       id="text123337-5-9"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24px;line-height:1.25;font-family:'Noto Sans Mono';-inkscape-font-specification:'Noto Sans Mono';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect123339-6-6)"><tspan
+         x="72.625"
+         y="326.67294"
+         id="tspan121729">&lt;k&gt; FuncPattern1(?X) &lt;/k&gt; #And PC1
+</tspan><tspan
+         x="72.625"
+         y="356.67294"
+         id="tspan121731">
+</tspan></text>
+    <rect
+       style="fill:#cccccc;stroke:#000000;stroke-width:0.132059;stop-color:#000000"
+       id="rect221608-4-6"
+       width="134.34717"
+       height="11.889174"
+       x="21.050276"
+       y="96.085815"
+       rx="0.94920456"
+       ry="0.50431758" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,3.9465976,17.509525)"
+       id="text123337-5-9-7"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24px;line-height:1.25;font-family:'Noto Sans Mono';-inkscape-font-specification:'Noto Sans Mono';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect123339-6-6-3)"><tspan
+         x="72.625"
+         y="326.67294"
+         id="tspan121733">&lt;k&gt; FuncPatternN(?X) &lt;/k&gt; #And PCN
+</tspan><tspan
+         x="72.625"
+         y="356.67294"
+         id="tspan121735">
+</tspan></text>
+    <rect
+       style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.21236;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+       id="rect221778-5"
+       width="170.01729"
+       height="19.727671"
+       x="4.2299757"
+       y="8.0385704"
+       rx="1.2382352"
+       ry="0.99970627" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.21236;stop-color:#000000"
+       id="rect221778-5-2"
+       width="170.01729"
+       height="58.071365"
+       x="4.2299757"
+       y="119.16356"
+       rx="1.2382352"
+       ry="0.99970627" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 103.52888,18.296635 c 0.28624,12.289514 2.0081,12.429254 -6.231586,12.484667 -6.415436,0.04315 -5.567096,2.644495 -5.823048,12.457397"
+       id="path221937"
+       sodipodi:nodetypes="csc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 12.900478,102.01199 6.959096,0.0462"
+       id="path221939" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-6)"
+       d="m 12.807427,77.610892 6.959096,0.04623"
+       id="path221939-9" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 12.900478,102.01199 V 67.980627"
+       id="path58608"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 163.33025,102.04877 -7.78603,-0.0462"
+       id="path221939-1"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 163.2372,77.647685 -7.78603,-0.0462"
+       id="path221939-9-8"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="M 163.2372,77.647685 V 119.96458"
+       id="path58608-7"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="85.106651"
+       y="-85.725883"
+       id="text61031"
+       transform="rotate(90)"><tspan
+         sodipodi:role="line"
+         id="tspan61029"
+         style="stroke-width:0.264583"
+         x="85.106651"
+         y="-85.725883">...</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.46225px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.161557"
+       x="71.627342"
+       y="-6.4031649"
+       id="text121049"
+       transform="rotate(90)"><tspan
+         sodipodi:role="line"
+         id="tspan121047"
+         style="stroke-width:0.161557"
+         x="71.627342"
+         y="-6.4031649">kore-exec</tspan></text>
+  </g>
+</svg>

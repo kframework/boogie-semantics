@@ -41,10 +41,10 @@ module BOOGIE-RUNTIME
     context _LHS:ValueExpr _:RelOp HOLE
 
     rule <k> LHS:ValueExpr == RHS:ValueExpr => LHS ==K RHS ... </k>
-      requires notBool(isFreshMapValue(LHS) orBool isFreshMapValue(RHS)
+      requires notBool(isMapValue(LHS)      orBool isMapValue(RHS)
                    orBool isLambdaExpr(LHS) orBool isLambdaExpr(RHS))
     rule <k> LHS:ValueExpr != RHS:ValueExpr => LHS =/=K RHS ... </k>
-      requires notBool(isFreshMapValue(LHS) orBool isFreshMapValue(RHS)
+      requires notBool(isMapValue(LHS)      orBool isMapValue(RHS)
                    orBool isLambdaExpr(LHS) orBool isLambdaExpr(RHS))
 
     rule <k> LHS <  RHS => LHS  <Int RHS ... </k>

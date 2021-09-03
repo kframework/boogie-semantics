@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210.62492mm"
+   height="64.242073mm"
+   viewBox="0 0 210.62492 64.242073"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1 (c4e8f9ed74, 2021-05-24)"
+   sodipodi:docname="boogie-architecture.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.1326109"
+     inkscape:cx="317.40822"
+     inkscape:cy="159.80776"
+     inkscape:window-width="2516"
+     inkscape:window-height="1353"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     width="400mm"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <defs
+     id="defs2">
+    <rect
+       x="-154.45163"
+       y="-228.86143"
+       width="1148.8632"
+       height="505.27615"
+       id="rect113447" />
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path74036" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-5"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path74036-6" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-7"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path74036-3" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker101839"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path101837" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend-5-6"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path74036-6-1" />
+    </marker>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-0.22183211,27.094515)">
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="50.090134"
+       y="24.169716"
+       id="text5816-3"><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="50.090134"
+         y="24.169716"
+         id="tspan19222">Translator</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="50.090134"
+         y="29.461378"
+         id="tspan14090" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="86.705025"
+       y="24.763962"
+       id="text25134"><tspan
+         sodipodi:role="line"
+         id="tspan25132"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="86.705025"
+         y="24.763962">Boogie</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="86.705025"
+         y="32.701462"
+         id="tspan52231">Program</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="115.45671"
+       y="24.126848"
+       id="text25930"><tspan
+         sodipodi:role="line"
+         id="tspan25928"
+         style="font-size:4.23333px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="115.45671"
+         y="24.126848">Boogie</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="14.405462"
+       y="19.95171"
+       id="text46226"><tspan
+         sodipodi:role="line"
+         id="tspan46224"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="14.405462"
+         y="19.95171">Source</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="14.405462"
+         y="27.88921"
+         id="tspan99106">language</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="14.405462"
+         y="35.82671"
+         id="tspan99104">Program</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="M 30.56161,25.987693 H 69.092604"
+       id="path51613"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="131.00745"
+       y="28.081846"
+       id="text60817"><tspan
+         sodipodi:role="line"
+         id="tspan60815"
+         style="stroke-width:0.264583"
+         x="131.00745"
+         y="28.081846">VCs</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="160.8788"
+       y="24.314432"
+       id="text68454"><tspan
+         sodipodi:role="line"
+         id="tspan68452"
+         style="font-size:4.23333px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="160.8788"
+         y="24.314432">Z3</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="189.73177"
+       y="20.598896"
+       id="text70844"><tspan
+         sodipodi:role="line"
+         id="tspan70842"
+         style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="189.73177"
+         y="20.598896">&quot;Success&quot;</tspan><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="189.73177"
+         y="28.536396"
+         id="tspan70846">or</tspan><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="189.73177"
+         y="36.473896"
+         id="tspan70848">list of failures</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 101.94152,25.987693 h 27.34755"
+       id="path73947" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-5)"
+       d="m 146.87369,25.987694 h 27.34755"
+       id="path73947-2" />
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="50.090134"
+       y="-18.163618"
+       id="text5816-3-2"><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="50.090134"
+         y="-18.163618"
+         id="tspan19222-9">Compiler</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:4.23333px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="50.090134"
+         y="-12.871956"
+         id="tspan14090-3" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="86.705025"
+       y="-17.569372"
+       id="text25134-1"><tspan
+         sodipodi:role="line"
+         id="tspan25132-9"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="86.705025"
+         y="-17.569372">LLVM</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="86.705025"
+         y="-9.6318722"
+         id="tspan52231-4">Program</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="115.45671"
+       y="-18.206486"
+       id="text25930-7"><tspan
+         sodipodi:role="line"
+         id="tspan25928-8"
+         style="font-size:4.23333px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="115.45671"
+         y="-18.206486">LLVM</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="14.405462"
+       y="-22.381624"
+       id="text46226-4"><tspan
+         sodipodi:role="line"
+         id="tspan46224-5"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="14.405462"
+         y="-22.381624">Source</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="14.405462"
+         y="-14.444124"
+         id="tspan99106-0">language</tspan><tspan
+         sodipodi:role="line"
+         style="font-size:6.35px;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="14.405462"
+         y="-6.5066242"
+         id="tspan99104-3">Program</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-7)"
+       d="M 30.56161,-16.345642 H 69.092604"
+       id="path51613-6"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:6.35px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+       x="152.69006"
+       y="-21.734438"
+       id="text70844-2"><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="152.69006"
+         y="-21.734438"
+         id="tspan70848-1"></tspan><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="152.69006"
+         y="-13.796938"
+         id="tspan109313">Machine code</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-7)"
+       d="m 101.94152,-16.345642 h 27.34755"
+       id="path73947-5" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,0.22183211,15.238819)"
+       id="text113445"
+       style="font-size:24px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect113447)" />
+  </g>
+</svg>

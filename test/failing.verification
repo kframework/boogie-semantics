@@ -1,4 +1,4 @@
-# To be debugged after K update
+# restoreLocals rule gets stuck, not sure why.
 test/verification/test2/Ensures.bpl
 
 # Unimplemented
@@ -6,6 +6,8 @@ test/verification/test2/Ensures.bpl
 
 # Equality between lambdas and maps
 test/verification/test2/Lambda.bpl
+
+# Equality (modulo alpha-renaming, contexts) between lambda
 test/verification/test2/LambdaLifting.bpl
 
 # forall/exists/functions

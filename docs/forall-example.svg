@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="171.5392mm"
+   height="173.29686mm"
+   viewBox="0 0 171.5392 173.29686"
+   version="1.1"
+   id="svg120584"
+   inkscape:version="1.1 (c4e8f9ed74, 2021-05-24)"
+   sodipodi:docname="forall-example.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview120586"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.1326109"
+     inkscape:cx="306.37177"
+     inkscape:cy="373.47337"
+     inkscape:window-width="1829"
+     inkscape:window-height="1353"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <defs
+     id="defs120581">
+    <marker
+       style="overflow:visible"
+       id="Arrow1Lend"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path74036" />
+    </marker>
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="693.64404"
+       height="537.1554"
+       id="rect123339" />
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="337.62311"
+       height="47.01878"
+       id="rect123339-4" />
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="700.36029"
+       height="62.82177"
+       id="rect123339-6" />
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="729.58118"
+       height="164.83887"
+       id="rect123339-6-6" />
+    <rect
+       x="72.625481"
+       y="304.83679"
+       width="693.64404"
+       height="537.1554"
+       id="rect123339-3" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-1.8976883,-3.8308519)">
+    <rect
+       style="fill:#cccccc;stroke:#000000;stroke-width:0.153666;stop-color:#000000"
+       id="rect221608-5"
+       width="120.08083"
+       height="18.010454"
+       x="19.137995"
+       y="8.3551083"
+       rx="0.84840906"
+       ry="0.76397133" />
+    <rect
+       style="fill:#cccccc;stroke:#000000;stroke-width:0.172692;stop-color:#000000"
+       id="rect221608-5-2"
+       width="151.81705"
+       height="17.991428"
+       x="19.30617"
+       y="136.27943"
+       rx="1.0726355"
+       ry="0.76316428" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-13.807021,-70.659839)"
+       id="text123337"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24px;line-height:1.25;font-family:'Noto Sans Mono';-inkscape-font-specification:'Noto Sans Mono';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect123339)"><tspan
+         x="72.625"
+         y="326.67294"
+         id="tspan223910">&lt;k&gt; (forall x : int :: f(x, y) &gt; 3
+</tspan><tspan
+         x="72.625"
+         y="356.67294"
+         id="tspan223912">                    || f(y, x) &gt; 3)
+</tspan><tspan
+         x="72.625"
+         y="386.67294"
+         id="tspan223914">     ~&gt; Rest &lt;/k&gt;
+</tspan><tspan
+         x="72.625"
+         y="416.67294"
+         id="tspan223916">&lt;locals&gt; Locals &lt;/locals&gt;</tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-13.386165,57.265101)"
+       id="text123337-7"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24px;line-height:1.25;font-family:'Noto Sans Mono';-inkscape-font-specification:'Noto Sans Mono';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect123339-3)"><tspan
+         x="72.625"
+         y="326.67294"
+         id="tspan223918">&lt;k&gt; #Forall ?X . #lookup(f, ?X, ?Y) &gt;Int 3
+</tspan><tspan
+         x="72.625"
+         y="356.67294"
+         id="tspan223920">          orBool #lookup(f, ?Y, ?X) &gt;Int 3
+</tspan><tspan
+         x="72.625"
+         y="386.67294"
+         id="tspan223922">     ~&gt; Rest
+</tspan><tspan
+         x="72.625"
+         y="416.67294"
+         id="tspan223924">&lt;/k&gt;
+</tspan><tspan
+         x="72.625"
+         y="446.67294"
+         id="tspan223926">&lt;locals&gt; Locals &lt;/locals&gt;</tspan></text>
+    <rect
+       style="fill:#cccccc;stroke:#000000;stroke-width:0.2;stop-color:#000000"
+       id="rect221608"
+       width="155.40286"
+       height="23.574789"
+       x="16.364784"
+       y="60.285538"
+       rx="1.0979705"
+       ry="1.0000006" />
+    <rect
+       style="fill:#cccccc;stroke:#000000;stroke-width:0.213765;stop-color:#000000"
+       id="rect221608-4"
+       width="155.40286"
+       height="26.931627"
+       x="16.580944"
+       y="90.901024"
+       rx="1.0979705"
+       ry="1.1423917" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,3.815765,-17.153008)"
+       id="text123337-5"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24px;line-height:1.25;font-family:'Noto Sans Mono';-inkscape-font-specification:'Noto Sans Mono';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect123339-6)"><tspan
+         x="72.625"
+         y="326.67294"
+         id="tspan223928">&lt;k&gt; f(x, y) &gt; 3 || f(y, x) &gt; 3 &lt;/k&gt;
+</tspan><tspan
+         x="72.625"
+         y="356.67294"
+         id="tspan223930">&lt;locals&gt; Locals[x &lt;- ?X:Int] &lt;/locals&gt;</tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,0.96083096,12.9425)"
+       id="text123337-5-9"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:24px;line-height:1.25;font-family:'Noto Sans Mono';-inkscape-font-specification:'Noto Sans Mono';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect123339-6-6)"><tspan
+         x="72.625"
+         y="326.67294"
+         id="tspan223932">&lt;k&gt;      #lookup(f, ?X, ?Y) &gt;Int 3
+</tspan><tspan
+         x="72.625"
+         y="356.67294"
+         id="tspan223934">  orBool #lookup(f, ?Y, ?X) &gt;Int 3 &lt;/k&gt;
+</tspan><tspan
+         x="72.625"
+         y="386.67294"
+         id="tspan223936">&lt;locals&gt; Locals[x &lt;- ?X:Int] &lt;/locals&gt;</tspan></text>
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.2;stop-color:#000000"
+       id="rect221778"
+       width="149.94536"
+       height="41.995331"
+       x="1.9976883"
+       y="3.9308519"
+       rx="1.0979705"
+       ry="1.0000006" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.21236;stop-color:#000000"
+       id="rect221778-5"
+       width="169.10074"
+       height="41.982971"
+       x="4.2299757"
+       y="135.03856"
+       rx="1.2382352"
+       ry="0.99970627" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 138.9942,17.646247 c 6.48394,0.02902 16.38471,-1.142139 19.68261,2.231855 4.31717,4.416779 2.79769,28.414722 -0.0385,30.695114 -2.28747,1.839211 -42.69485,-0.321987 -58.04053,-0.03463 -10.272206,0.192354 -8.83295,0.522566 -9.123534,9.10428"
+       id="path221937"
+       sodipodi:nodetypes="csssc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 91.800865,83.874044 -0.04623,6.959091"
+       id="path221939"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 92.515622,118.18101 0.134274,17.55462"
+       id="path221941"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>
