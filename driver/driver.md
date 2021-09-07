@@ -13,6 +13,8 @@ module DRIVER-HELPERS
     imports KORE-UNPARSE
     imports KORE-UTILITIES
 
+    imports INT
+    imports BOOL
     imports LIST
     imports SUBSTITUTION
 ```

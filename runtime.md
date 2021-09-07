@@ -7,9 +7,11 @@ module BOOGIE-RUNTIME
     imports BOOGIE-RULE-SYNTAX
     imports BOOGIE-HELPERS
     imports MAP
+    imports LIST
     imports INT
     imports ID
     imports STRING
+    imports K-EQUAL
 ```
 
 ```verification
