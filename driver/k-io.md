@@ -13,6 +13,7 @@ module IO-NONFUNCTIONAL
     imports K-IO
     imports STRING
     imports INT
+    imports BOOL
 ```
 
 ```k
@@ -144,6 +145,8 @@ endmodule
 module KORE-UNPARSE
     imports KORE
     imports STRING
+    imports BOOL
+    imports K-EQUAL
 
     syntax String ::= unparsePattern(Pattern) [function, functional]
     rule unparsePattern(\equals { S1 , S2 } (P1, P2)) => "\\equals{" +String unparseSort(S1) +String "," +String unparseSort(S2)  +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
@@ -214,6 +217,7 @@ module KORE-UTILITIES
     imports KORE
     imports K-EQUAL
     imports KVAR
+    imports STRING
 
     syntax KVar ::= freshVariable(Int) [function]
     rule freshVariable(I) => String2KVar("VDriver" +String Int2String(I))

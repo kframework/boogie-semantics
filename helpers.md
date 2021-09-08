@@ -7,6 +7,7 @@ module BOOGIE-HELPERS
     imports DEFAULT-CONFIGURATION
     imports BOOL
     imports INT
+    imports K-EQUAL
 ```
 
 ```k
