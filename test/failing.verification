@@ -1,6 +1,10 @@
 # restoreLocals rule gets stuck, not sure why.
 test/verification/test2/Ensures.bpl
 
+# Failing due to possible bug in K
+# K gets stuck on branch with sidecondition `#Not(#Not(#Not(true #Equals true)))`
+test/verification/test2/Arrays.bpl
+
 # Unimplemented
 # -------------
 
