@@ -76,7 +76,7 @@ module BOOGIE-HELPERS
 ```k
     syntax IdList ::= IdsTypeListToIdList(IdsTypeList) [function, functional]
     rule IdsTypeListToIdList(.IdsTypeList) => .IdList
-    rule IdsTypeListToIdList(Xs : T, Rest) => Xs, IdsTypeListToIdList(Rest)
+    rule IdsTypeListToIdList(Xs : T, Rest) => Xs ++IdList  IdsTypeListToIdList(Rest)
 ```
 
 ```k
@@ -102,8 +102,8 @@ module BOOGIE-HELPERS
 ```k
     syntax ExprList ::= IdsTypeWhereListToExprList(IdsTypeWhereList) [function, functional]
     rule IdsTypeWhereListToExprList(.IdsTypeWhereList) => .ExprList
-    rule IdsTypeWhereListToExprList(Xs : T            , Rest) => Xs ++ExprList IdsTypeWhereListToExprList(Rest)
-    rule IdsTypeWhereListToExprList((Xs : T where Exp), Rest) => Xs ++ExprList IdsTypeWhereListToExprList(Rest)
+    rule IdsTypeWhereListToExprList(Xs : T            , Rest) => IdListToExprList(Xs) ++ExprList IdsTypeWhereListToExprList(Rest)
+    rule IdsTypeWhereListToExprList((Xs : T where Exp), Rest) => IdListToExprList(Xs) ++ExprList IdsTypeWhereListToExprList(Rest)
 ```
 
 ```k
