@@ -76,6 +76,21 @@ module BOOGIE
     rule <k> #declareTypes ~> .DeclList => .K ... </k>
 ```
 
+Type declarations:
+
+```k
+    rule <k> type Attrs T:Id,Ts ; => type Attrs Ts ; ... </k>
+         <types> .Bag
+              => <type> <typeName> T </typeName> ... </type>
+                 ...
+         </types>
+    rule <k> type Attrs T:Id,Ts ; => type Attrs Ts ; ... </k>
+         <typeName> T </typeName>
+    rule <k> type _Attrs .IdList ; => . ... </k>
+```
+
+Type aliases:
+
 ```k
     rule <k> type _Attrs T:Id = T2 ; => .K ... </k>
          <types> .Bag
@@ -88,19 +103,6 @@ module BOOGIE
          </types>
 ```
 
-```k
-    rule <k> type _Attrs T:Id ; ... </k>
-         <types> .Bag
-              => <type>
-                   <typeName> T </typeName>
-                   ...
-                 </type>
-                 ...
-         </types>
-
-    rule <k> type _Attrs T:Id ; => .K ... </k>
-         <typeName> T </typeName>
-```
 
 3 Constants and functions
 -------------------------

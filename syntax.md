@@ -36,7 +36,7 @@ module BOOGIE-COMMON-SYNTAX
 ```k
     syntax TypeDecl ::= TypeConstructor
                       | TypeSynonym
-    syntax TypeConstructor ::= "type" AttributeList Id ";"
+    syntax TypeConstructor ::= "type" AttributeList IdList ";"
     syntax TypeSynonym ::= "type" AttributeList Id "=" Type ";"
 ```
 
