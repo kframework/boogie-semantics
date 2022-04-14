@@ -72,6 +72,10 @@ TODO: Signature should allow "returns" syntax
                           | "function" AttributeList Id FSig "{" Expr "}"
     syntax FSig ::= "(" IdsTypeList ")" ":" Type [avoid]
                   | "(" TypeList ")" ":" Type
+                  | "(" IdsTypeList ")" "returns" "(" Type ")" [avoid, macro]
+                  | "(" TypeList ")"    "returns" "(" Type ")" [macro]
+    rule ((Args:IdsTypeList) returns(Type)):FSig => (Args) : Type
+    rule ((Args:TypeList)    returns(Type)):FSig => (Args) : Type
 ```
 
 4 Expressions
