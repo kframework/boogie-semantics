@@ -219,10 +219,8 @@ In the case of the verification semantics, we verify all procedures:
 ```k
     syntax KItem ::= #collectLabels(StmtList)
     syntax Id ::= "$start" [token]
-    rule <k> #collectLabels((_:Stmt _) #as StmtList)
-          => #collectLabels($start : StmtList)
-             ...
-         </k>
+    rule <k> #collectLabels((_:Stmt _)  #as StmtList) => #collectLabels($start : StmtList) ... </k>
+    rule <k> #collectLabels((.StmtList) #as StmtList) => #collectLabels($start : StmtList) ... </k>
 
     rule <k> #collectLabels(StartLabel:Id : StmtList)
           => #collectLabels(StartLabel, .StmtList, StmtList)
