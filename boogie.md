@@ -9,7 +9,7 @@ requires "runtime.md"
 requires "syntax.md"
 
 module BOOGIE-FRESH-COUNTER
-    imports INT-SYNTAX
+    imports UNSIGNED-INT-SYNTAX
     configuration <freshCounter> 0 </freshCounter>
 endmodule
 

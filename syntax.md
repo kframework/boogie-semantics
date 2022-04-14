@@ -7,7 +7,7 @@ requires "nothing.md"
 module BOOGIE-COMMON-SYNTAX
     imports BOOL-SYNTAX
     imports ID-SYNTAX
-    imports INT-SYNTAX
+    imports UNSIGNED-INT-SYNTAX
     imports STRING-SYNTAX
     imports NOTHING-COMMON-SYNTAX
 ```
