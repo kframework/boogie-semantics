@@ -56,13 +56,13 @@ kboogie_rule = kboogie_rule.variable('definition_dir', verification._directory)
 kboogie_rule = kboogie_rule.variable('verification', verification._alias)
 
 def kboogie(input):
-    if input in test_no_infer:
-        infered = proj.source(input).then(infer_rule.variable('flags', '--no-infer'))
-    else:
+    if input in test_infer:
         infered = proj.source(input).then(infer_rule)
+    else:
+        infered = proj.source(input).then(infer_rule.variable('flags', '--no-infer'))
 
     implicit_deps = [verification.target, driver.target , proj.source('bin/boogie-infer'), *glob('driver/*')]
-    kboogie_out = infered.then(kboogie_rule.implicit(implicit_deps))
+    kboogie_out = infered.then(kboogie_rule.implicit(list(implicit_deps)))
 
     kboogie_diff_rule = proj.rule( 'diff-kboogie'
                                  , description = 'diff-kboogie: $in'
@@ -75,7 +75,15 @@ def kboogie(input):
     return ret
 
 all_tests     = glob('test/verification/*/*.bpl')
-test_no_infer = [ 'test/verification/test2/LambdaLifting.bpl', 'test/verification/test2/Lambda.bpl' ]
+test_infer = [ 'test/verification/test2/CutBackEdge.bpl',
+               'test/verification/test2/InvariantVerifiedUnder0.bpl',
+               'test/verification/test2/LoopInvAssume.bpl',
+               'test/verification/test2/Passification.bpl',
+               'test/verification/test2/Rlimitouts0.bpl',
+               'test/verification/test2/Structured.bpl',
+               'test/verification/test2/Timeouts0.bpl',
+               'test/verification/test2/Where.bpl',
+             ]
 failing_tests = readlines('test/failing.verification')
 passing_tests = filter_out(all_tests, failing_tests)
 
