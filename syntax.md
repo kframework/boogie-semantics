@@ -183,15 +183,14 @@ This allows us to parse more restrictively, and still have more freedom in the s
 ```
 
 ```k
-    syntax Stmt ::= SimpleStmt
-                  | "goto" IdList ";"
+    syntax Stmt ::= "goto" IdList ";"
                   | "return" ";"
-    syntax SimpleStmt ::= "assert" AttributeList Expr ";"
-                        | "assume" AttributeList Expr ";"
-                        | "havoc" IdList ";"
-                        | LhsList ":=" AssignRhs ";"
-                        | "call" CallLhs Id "(" ExprList ")" ";"
-                        | "call" Id "(" ExprList ")" ";"
+                  | "assert" AttributeList Expr ";"
+                  | "assume" AttributeList Expr ";"
+                  | "havoc" IdList ";"
+                  | LhsList ":=" AssignRhs ";"
+                  | "call" CallLhs Id "(" ExprList ")" ";"
+                  | "call" Id "(" ExprList ")" ";"
     syntax AssignRhs ::= ExprList
     syntax Lhs ::= Id | Lhs "[" ExprList "]"
     syntax LhsList ::= List{Lhs, ","} [klabel(LhsList)]
