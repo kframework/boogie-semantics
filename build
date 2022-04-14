@@ -26,7 +26,7 @@ def build(alias):
                           , main          = 'boogie.md'
                           , other         = ['syntax.md', 'nothing.md', 'procedures.md', 'helpers.md', 'runtime.md', 'quantification.md']
                           , backend       = 'haskell'
-                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --main-module BOOGIE --md-selector "%s" --gen-glr-bison-parser' % selector
+                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --main-module BOOGIE --md-selector "%s"' % selector
                           )
 
 verification = build('verification')
