@@ -240,12 +240,12 @@ In the case of the verification semantics, we verify all procedures:
           => #collectLabels(L2, .StmtList, S2s:StmtList)
              ...
          </k>
-         <labels> (.Map => L1 |-> S1s) Labels </labels>
+         <labels> (.Map => L1 |-> S1s ++StmtList return;) Labels </labels>
     rule <k> #collectLabels(L, S1s, .StmtList)
           => .K
              ...
          </k>
-         <labels> (.Map => L |-> S1s) Labels </labels>
+         <labels> (.Map => L |-> S1s ++StmtList return;) Labels </labels>
 ```
 
 We use `boogie` to infer invaraints and cutpoints.
