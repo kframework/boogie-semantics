@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -eu
+
+K_IMMAGE_ID=$(cd ext/k; git describe --tag | sed s/^v//)
+docker build --build-arg K_COMMIT=${K_IMMAGE_ID} -t boogie-dev .
+docker run --interactive --tty --rm \
+           --mount type=bind,source="$(pwd)/",target=/home/user/boogie/ \
+           --env KNINJA_USE_SYSTEM_K=yes \
+           boogie-dev
