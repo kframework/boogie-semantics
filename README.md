@@ -66,10 +66,12 @@ and execute the Boogie semantics.
 
 [kframework-github]: https://github.com/kframework/k
 
+Running `./docker-dev` will also build a Docker image with all dependencies installed.
+
 Organization
 ============
 
-The majority of the source code for this project is in two files \[boogie.md\]
+The majority of the source code for this project is in two files [boogie.md]
 and [syntax.md]. The code within these two files are organized to mirror that
 of the [This is boogie 2] paper. Being published in 2008, we expect that
 document to be both out of date and incomplete. We try to mention divergences
