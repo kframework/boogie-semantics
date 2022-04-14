@@ -323,7 +323,7 @@ type.
 Non-deterministically transition to all labels
 
 ```k
-    rule <k> (goto L, Ls ; ~> _) => (#pause ~> Stmts) </k>
+    rule <k> (goto L, Ls ; ~> _) => (Stmts) </k>
          <labels> L |-> Stmts ... </labels>
     rule <k> goto L, Ls ; => goto Ls ; ... </k>
       requires Ls =/=K .IdList
@@ -337,13 +337,6 @@ Non-deterministically transition to all labels
     rule <k> (if (true)  { Ss:StmtList } else { _           }):KItem => Ss:StmtList ... </k>
     rule <k> (if (false) { _           } else { Ss:StmtList }):KItem => Ss:StmtList ... </k>
 ```
-
-`#pause` is a hack used to reduce RAM usage by taking only one branch at a time (see driver.md)
-
-```k
-    syntax KItem ::= "#pause" [symbol, klabel(pause)]
-```
-
 
 ### Extension: Cutpoints
 

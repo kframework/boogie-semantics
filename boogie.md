@@ -193,8 +193,7 @@ In the case of the verification semantics, we verify all procedures:
 
 ```verification
     rule <k> #start
-          => #pause
-          ~> makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
+          => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
           ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
           ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)] ;
           ~> #collectLabels(StmtList)
