@@ -98,6 +98,7 @@ TODO: Signature should allow "returns" syntax
                   | Expr AndOp   Expr [left]
                   > Expr ImplOp  Expr [left]
                   > Expr EquivOp Expr [left]
+                  > "*"
     syntax LambdaExpr ::= "(" "lambda" IdsTypeList "::" Expr ")"
     syntax MapOp ::= "[" ExprList "]"             // Lookup
                    | "[" ExprList ":=" Expr "]"   // Update
@@ -191,6 +192,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
                   | LhsList ":=" AssignRhs ";"
                   | "call" CallLhs Id "(" ExprList ")" ";"
                   | "call" Id "(" ExprList ")" ";"
+                  | "if" "(" Expr ")" "{" StmtList "}" "else" "{" StmtList "}"
     syntax AssignRhs ::= ExprList
     syntax Lhs ::= Id | Lhs "[" ExprList "]"
     syntax LhsList ::= List{Lhs, ","} [klabel(LhsList)]

@@ -49,6 +49,9 @@ module BOOGIE-RUNTIME
       requires notBool(isMapValue(LHS)      orBool isMapValue(RHS)
                    orBool isLambdaExpr(LHS) orBool isLambdaExpr(RHS))
 
+    rule <k> *:Expr => true  ... </k>
+    rule <k> *:Expr => false ... </k>
+
     rule <k> LHS <  RHS => LHS  <Int RHS ... </k>
     rule <k> LHS >  RHS => LHS  >Int RHS ... </k>
     rule <k> LHS <= RHS => LHS <=Int RHS ... </k>
@@ -324,6 +327,15 @@ Non-deterministically transition to all labels
          <labels> L |-> Stmts ... </labels>
     rule <k> goto L, Ls ; => goto Ls ; ... </k>
       requires Ls =/=K .IdList
+```
+
+```k
+    context  if (HOLE)  { _:StmtList } else { _:StmtList }:Stmt
+    // TODO: the LHS of the rewrite arrow was parsed as a StmtList,
+    // so needed the KItem to force the correct disabiguation.
+    // test2/BadLineNumber.bpl failed.
+    rule <k> (if (true)  { Ss:StmtList } else { _           }):KItem => Ss:StmtList ... </k>
+    rule <k> (if (false) { _           } else { Ss:StmtList }):KItem => Ss:StmtList ... </k>
 ```
 
 `#pause` is a hack used to reduce RAM usage by taking only one branch at a time (see driver.md)
