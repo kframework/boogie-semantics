@@ -277,7 +277,7 @@ module K-FRONTEND
     rule koreExec(Configuration) => koreExecFile(writeTempFile(unparsePattern(Configuration)))
     rule koreExecFile(File)
       => parse( system("kore-exec .build/defn/verification/boogie-kompiled/definition.kore" +String
-                           " --module BOOGIE" +String
+                           " --module BOOGIE-QUANTIFIERS" +String
                            " --pattern " +String File
                       )
               )

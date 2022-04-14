@@ -24,9 +24,9 @@ def build(alias):
     selector = 'k | objectk | ' + alias
     return proj.definition( alias         = alias
                           , main          = 'boogie.md'
-                          , other         = ['syntax.md', 'nothing.md', 'procedures.md', 'helpers.md', 'runtime.md', 'quantification.md']
+                          , other         = ['syntax.md', 'helpers.md', 'quantification.md']
                           , backend       = 'haskell'
-                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --main-module BOOGIE --md-selector "%s"' % selector
+                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --main-module BOOGIE-QUANTIFIERS --md-selector "%s"' % selector
                           )
 
 verification = build('verification')
