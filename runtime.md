@@ -549,7 +549,7 @@ When returning, we first `assert` that the post condition holds:
 
 ```verification
     context call X:IdList := ProcedureName:Id(HOLE) ;
-    rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;
+    rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;:KItem
           => assert { :code "BP5002" } { :source "???", 0 }
                (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
           ~> freshen(X ++IdList Mods)
