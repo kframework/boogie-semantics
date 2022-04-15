@@ -27,7 +27,6 @@ def parse_args(args):
 
 def preprocess(input_lines, filename):
     """ Annotate `assert` statements with line numbers"""
-
     out = ''
     assertExpr = re.compile(r'\bassert\b')
     for num, line in enumerate(input_lines):

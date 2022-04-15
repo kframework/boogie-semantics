@@ -525,11 +525,11 @@ We rearrange the generated `assume`s to work with cutpoints.
 ```k
     syntax Id ::= "inferred" [token]
     rule <k> #collectLabels(_Id, _L, _S1s,
-                             ( ( assert { :inferred .AttrArgList } Inferred ;
+                             ( ( assert { :source _ } { :code _ } { :inferred .AttrArgList } Inferred ;
                                  assert _:AttributeList Invariant ;
                                  S2s:StmtList
                                )
-                            => ( assert { :code "Inferred" } { :source "???", 0 } Inferred; // This should never fail
+                            => ( assert { :code "Inferred" } Inferred; // This should never fail
                                  assert { :code "BP5004" } { :source "???", 0 } Invariant;
                                  cutpoint(!_:Int) ;
                                  assume .AttributeList Inferred;
@@ -540,7 +540,7 @@ We rearrange the generated `assume`s to work with cutpoints.
          </k> [priority(48)]
 
     rule <k> #collectLabels(_Id, _L, _S1s,
-               assert { :inferred .AttrArgList } Inferred;
+               assert { :source _ } { :code _ } { :inferred .AttrArgList } Inferred;
                ( (S2 S2s:StmtList)
               => ( assert .AttributeList true ;
                    S2 S2s:StmtList

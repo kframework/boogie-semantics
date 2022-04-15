@@ -8,7 +8,7 @@ procedure Test()
     i := 0;
     goto block850;
 
-  block850:
+  block850: assert {:inferred} true;
     assert i == 0;
     havoc i;
     goto block850;
@@ -18,7 +18,7 @@ procedure Test()
 // The following procedure once exhibited a bug in Boogie's DAG manipulations
 procedure TightLoop0()
 {
-  L:
+  L: assert {:inferred} true;
     assert !true;  // error
     goto L;
 }
@@ -30,13 +30,15 @@ procedure TightLoop1()
 }
 procedure TightLoop2()
 {
-  L:
+  L: assert {:inferred} true;
     assert true;  // cool
     goto L;
 }
 procedure TightLoop3(b: bool)
 {
-  L:
+  L: assert {:inferred} true;
     assert b;  // error
     goto L;
 }
+
+type a;

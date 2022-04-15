@@ -10,7 +10,7 @@ procedure Test()
    entry:
       goto loophead, exit;
 
-   loophead:
+   loophead: assert {:inferred} true;
       assume x >= 0;
       x := 0;
       goto loophead, exit; 

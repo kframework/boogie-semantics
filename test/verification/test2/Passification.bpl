@@ -48,7 +48,7 @@ A:
 
 procedure Loop()
 {
-start:
+start: assert {:inferred} true;
   goto start;
 }
 
@@ -66,7 +66,7 @@ procedure Loop0() returns (z: int)
   ensures 10 <= z;
 {
 var x: int;
-A:
+A: assert {:inferred} true;
   goto B, C;
 B:
   assume x < 10;

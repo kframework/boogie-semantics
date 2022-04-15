@@ -75,15 +75,7 @@ def kboogie(input):
     return ret
 
 all_tests     = glob('test/verification/*/*.bpl')
-test_infer = [ 'test/verification/test2/CutBackEdge.bpl',
-               'test/verification/test2/InvariantVerifiedUnder0.bpl',
-               'test/verification/test2/LoopInvAssume.bpl',
-               'test/verification/test2/Passification.bpl',
-               'test/verification/test2/Rlimitouts0.bpl',
-               'test/verification/test2/Structured.bpl',
-               'test/verification/test2/Timeouts0.bpl',
-               'test/verification/test2/Where.bpl',
-             ]
+test_infer = []
 failing_tests = readlines('test/failing.verification')
 passing_tests = filter_out(all_tests, failing_tests)
 
