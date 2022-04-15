@@ -510,13 +510,13 @@ Collect statements into blocks until we encounter the next label:
              ...
          </k>
          <implId> Id </implId>
-         <labels> (.Map => L1 |-> S1s ++StmtList return;) Labels </labels>
+         <labels> (.Map => L1 |-> S1s ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0)) Labels </labels>
     rule <k> #collectLabels(Id, L, S1s, .StmtList)
           => .K
              ...
          </k>
          <implId> Id </implId>
-         <labels> (.Map => L |-> S1s ++StmtList return;) Labels </labels>
+         <labels> (.Map => L |-> S1s ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0)) Labels </labels>
 ```
 
 We use `boogie` to infer invaraints and cutpoints.
@@ -525,12 +525,12 @@ We rearrange the generated `assume`s to work with cutpoints.
 ```k
     syntax Id ::= "inferred" [token]
     rule <k> #collectLabels(_Id, _L, _S1s,
-                             ( ( assert { :source _ } { :code _ } { :inferred .AttrArgList } Inferred ;
-                                 assert _:AttributeList Invariant ;
+                             ( ( #location(assert { :inferred .AttrArgList } Inferred  ;, File1, Line1, Col1, _, _)
+                                 #location(assert _:AttributeList            Invariant ;, File2, Line2, Col2, _, _)
                                  S2s:StmtList
                                )
-                            => ( assert { :code "Inferred" } Inferred; // This should never fail
-                                 assert { :code "BP5004" } { :source "???", 0 } Invariant;
+                            => ( #assert(File1, Line1, Col1, "BAD INVARIANT INFERRED!") Inferred; // This should never fail
+                                 #assert(File2, Line2, Col2, "This loop invariant might not hold") Invariant;
                                  cutpoint(!_:Int) ;
                                  assume .AttributeList Inferred;
                                  assume .AttributeList Invariant;
@@ -538,9 +538,13 @@ We rearrange the generated `assume`s to work with cutpoints.
                            ) ) )
              ...
          </k> [priority(48)]
+```
 
+If an invariant is not specified, we take it to be `true`:
+
+```k
     rule <k> #collectLabels(_Id, _L, _S1s,
-               assert { :source _ } { :code _ } { :inferred .AttrArgList } Inferred;
+               assert { :inferred .AttrArgList } Inferred;
                ( (S2 S2s:StmtList)
               => ( assert .AttributeList true ;
                    S2 S2s:StmtList
@@ -627,25 +631,30 @@ In the case of the verification semantics, we verify all procedures:
 9.2 Assertions and assumptions
 ------------------------------
 
+We annotate assertions with location and type information.
+The location information is placed using K's `[locations]` annotation.
+(Note: We use a hack in [driver/driver] to get this to work with the Haskell backend)
+
 ```k
-    syntax KItem ::= "#failure" "(" String ")" [klabel(#failure), symbol]
-    syntax KItem ::= "#failure" "(" AttributeList "," String ")"
-    syntax Id ::= "source" [token] | "code"   [token] | "procedure" [token]
-    rule #failure(.AttributeList, Message)
-      => #failure(Message)
-    rule #failure({ :source File, Line, .AttrArgList } Attrs, Message)
-      => #failure(Attrs, File +String "(" +String Int2String(Line) +String ",00): " +String Message)
-    rule #failure({ :code Code, .AttrArgList } Attrs, Message)
-      => #failure(Attrs, Message +String "Error " +String Code +String ": ")
-    rule #failure({ :procedure Procedure, Implementation, .AttrArgList } Attrs, Message)
-      => #failure(Attrs, Message +String " " +String Id2String(Procedure) +String Int2String(Implementation))
+    rule <k> #location(assert _ Expr; , File, StartLine, StartCol, _EndLine, _EndCol):KItem
+          => #assert(File, StartLine, StartCol, "Error BP5001: This assertion might not hold.") Expr ;
+             ...
+         </k>
+    rule <k> #location(Stmt, File, StartLine, StartCol, _EndLine, _EndCol):KItem
+          => Stmt
+             ...
+         </k> [owise]
 ```
 
 ```k
-    context assert Attributes HOLE ;
-    rule <k> assert Attributes true ; => .K ... </k>
-    rule <k> (.K => #failure(Attributes, ""))
-          ~> assert Attributes false;
+    syntax Stmt ::= #location(Stmt, String, Int, Int, Int, Int) [symbol]
+    syntax KItem ::= "#failure" "(" String ")" [klabel(#failure), symbol]
+    syntax Stmt ::= "#assert" "("file: String "," line: Int "," col: Int "," message: String ")" Expr  ";"
+    context  #assert(_, _, _, _) HOLE ;
+    rule <k> #assert(_, _, _, _) true ; => .K ... </k>
+    rule <k> #assert(File, Line, Col, Message) false ;
+          => #failure(File +String "(" +String Int2String(Line) +String
+                                   "," +String Int2String(Col) +String "): " +String Message)
              ...
          </k>
 ```
@@ -910,13 +919,14 @@ procedure P()
 When returning, we first `assert` that the post condition holds:
 
 ```k
-    syntax KItem ::= "#return" ExprList
-    rule <k> return ; ~> _
-          => assert { :code "BP5003" } { :source "???", 0 } { :procedure CurrentProc, CurrentImpl }
-                     (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
-                          :: Ensures
-                     ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
-          ~> #return IdsTypeWhereListToExprList(IRets)
+    syntax Stmt ::= "#return" ExprList ";"
+    rule <k> #location(return ;, File, Line, Col, _, _):KItem
+          => #assert (File, Line, Col, "Error BP5003: A postcondition might not hold on this return path.")
+                   (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
+                        :: Ensures
+                   ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
+             #return IdsTypeWhereListToExprList(IRets) ;
+             ...
          </k>
          <currentImpl> CurrentImpl </currentImpl>
          <procName> CurrentProc </procName>
@@ -929,7 +939,7 @@ When returning, we first `assert` that the post condition holds:
 ```
 
 ```verification
-    rule <k> (#return Rets ~> K:K) => .K </k>
+    rule <k> (#return Rets ; ~> K:K) => .K </k>
 ```
 
 9.7 If statements
@@ -942,16 +952,17 @@ When returning, we first `assert` that the post condition holds:
 -------------------
 
 ```k
-    rule <k> call ProcedureName:Id(ArgVals) ;
-          => call .IdList := ProcedureName:Id(ArgVals) ;
+    rule <k> #location( call ProcedureName:Id(ArgVals) ;
+                     => call .IdList := ProcedureName:Id(ArgVals) ;
+                      , _, _, _, _, _):KItem
              ...
          </k>
 ```
 
 ```verification
-    context call X:IdList := ProcedureName:Id(HOLE) ;
-    rule <k> call X:IdList := ProcedureName:Id(ArgVals) ;:KItem
-          => assert { :code "BP5002" } { :source "???", 0 }
+    context #location(call X:IdList := ProcedureName:Id(HOLE) ;, _, _, _, _, _)
+    rule <k> #location(call X:IdList := ProcedureName:Id(ArgVals) ;, File, Line, Col, _, _):KItem
+          => #assert(File, Line, Col, "Error BP5002: A precondition for this call might not hold.")
                (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
           ~> freshen(X ++IdList Mods)
           ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)

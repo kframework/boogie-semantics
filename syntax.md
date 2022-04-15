@@ -1,5 +1,5 @@
 Boogie Syntax
-================
+=============
 
 ```k
 module BOOGIE-COMMON-SYNTAX
@@ -97,7 +97,7 @@ TODO: Signature should allow "returns" syntax
                   > Expr AddOp   Expr [left]
                   > Expr RelOp   Expr [left]
                   > Expr OrOp    Expr [left]
-                  | Expr AndOp   Expr [left]
+                  > Expr AndOp   Expr [left]
                   > Expr ImplOp  Expr [left]
                   > Expr EquivOp Expr [left]
                   > "*"
@@ -186,6 +186,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
 ```
 
 ```k
+    syntax Stmt [locations]
     syntax Stmt ::= "goto" IdList ";"
                   | "return" ";"
                   | "assert" AttributeList Expr ";"

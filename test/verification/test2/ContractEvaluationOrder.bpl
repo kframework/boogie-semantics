@@ -7,7 +7,7 @@ procedure P() returns (x, y: int)
                    // indeed evaluated in this order, which they are supposed to be)
 {
   x := y;
-}
+return;}
 
 procedure Q() returns (x, y: int)
 {
