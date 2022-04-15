@@ -34,7 +34,6 @@ module BOOGIE
                       <locals> .Map </locals>
                       <globals> .Map </globals>
                       <olds> .Map </olds>
-                      <labels> .Map </labels>
                       <cutpoints> .List </cutpoints>
                       <currentImpl multiplicity="?"> -1 </currentImpl>
                       <freshVars> .K </freshVars>
@@ -50,9 +49,10 @@ module BOOGIE
                         <impls>
                           <impl multiplicity="*" type="Map">
                             <implId> -1 </implId>
-                            <body> { .LocalVarDeclList .StmtList } </body>
+                            <labels> .Map </labels>
                             <iargs> .IdsTypeWhereList </iargs>
                             <irets> .IdsTypeWhereList </irets>
+                            <vars>  .LocalVarDeclList </vars>
                           </impl>
                         </impls>
                       </proc>
@@ -463,21 +463,91 @@ Split procedures with a body into a procedure and an implementation:
 ```
 
 ```k
-    rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) Body
-          => .K
+    rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) { VarDeclList StmtList }
+          => #collectLabels(N, StmtList)
              ...
          </k>
          <procName> ProcedureName </procName>
          <impls> .Bag
               => <impl>
                    <implId> N </implId>
-                   <body> Body </body>
                    <iargs> IArgs </iargs>
                    <irets> IRets </irets>
+                   <vars> VarDeclList </vars>
+                   <labels> .Map </labels>
                  </impl>
                  ...
          </impls>
          <freshCounter> N => N +Int 1 </freshCounter>
+```
+
+`#collectLabels` splits implementation bodies into labeled blocks, and populates the
+`<labels>` cell with a map from labels to their bodies.
+
+```k
+    syntax KItem ::= #collectLabels(implId: Int, StmtList)
+    syntax KItem ::= #collectLabels(implId: Int, currLabel: Id, block: StmtList, rest: StmtList)
+```
+
+Ensure that the label `$start` is the initial label.
+
+```k
+    syntax Id ::= "$start" [token]
+    rule <k> #collectLabels(Id, (Label : _) #as StmtList) => #collectLabels(Id, $start, goto Label; .StmtList , StmtList) ... </k>
+    rule <k> #collectLabels(Id, (_:Stmt _)  #as StmtList) => #collectLabels(Id, $start,             .StmtList,  StmtList) ... </k>
+    rule <k> #collectLabels(Id, (.StmtList) #as StmtList) => #collectLabels(Id, $start,             .StmtList,  StmtList) ... </k>
+```
+
+Collect statements into blocks until we encounter the next label:
+
+```k
+    rule <k> #collectLabels(Id, L, S1s, S2:Stmt S2s:StmtList)
+          => #collectLabels(Id, L, S1s ++StmtList S2 .StmtList, S2s)
+             ...
+         </k>
+    rule <k> #collectLabels(Id, L1, S1s,       L2: S2s:StmtList)
+          => #collectLabels(Id, L2, .StmtList, S2s:StmtList)
+             ...
+         </k>
+         <implId> Id </implId>
+         <labels> (.Map => L1 |-> S1s ++StmtList return;) Labels </labels>
+    rule <k> #collectLabels(Id, L, S1s, .StmtList)
+          => .K
+             ...
+         </k>
+         <implId> Id </implId>
+         <labels> (.Map => L |-> S1s ++StmtList return;) Labels </labels>
+```
+
+We use `boogie` to infer invaraints and cutpoints.
+We rearrange the generated `assume`s to work with cutpoints.
+
+```k
+    syntax Id ::= "inferred" [token]
+    rule <k> #collectLabels(_Id, _L, _S1s,
+                             ( ( assert { :inferred .AttrArgList } Inferred ;
+                                 assert _:AttributeList Invariant ;
+                                 S2s:StmtList
+                               )
+                            => ( assert { :code "Inferred" } { :source "???", 0 } Inferred; // This should never fail
+                                 assert { :code "BP5004" } { :source "???", 0 } Invariant;
+                                 cutpoint(!_:Int) ;
+                                 assume .AttributeList Inferred;
+                                 assume .AttributeList Invariant;
+                                 S2s:StmtList
+                           ) ) )
+             ...
+         </k> [priority(48)]
+
+    rule <k> #collectLabels(_Id, _L, _S1s,
+               assert { :inferred .AttrArgList } Inferred;
+               ( (S2 S2s:StmtList)
+              => ( assert .AttributeList true ;
+                   S2 S2s:StmtList
+             ) ) )
+             ...
+         </k>
+      requires assert _:AttributeList _ ; :/=K  S2 [priority(48)]
 ```
 
 9 Statements
@@ -502,7 +572,7 @@ In the case of the verification semantics, we verify all procedures:
           => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
           ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
           ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)] ;
-          ~> #collectLabels(StmtList)
+          ~> goto $start;
          </k>
          (.CurrentImplCell => <currentImpl> N </currentImpl>)
          <globals> Globals </globals>
@@ -515,72 +585,11 @@ In the case of the verification semantics, we verify all procedures:
             <implId> N </implId>
             <iargs> IArgs </iargs>
             <irets> IRets </irets>
-            <body> { VarDeclList StmtList } </body>
+            <vars> VarDeclList </vars>
+            ...
          </impl>
 ```
 
-`#collectLabels` splits procedure bodies into labeled blocks, and populates the
-`<labels>` cell with a map from labels to their bodies.
-
-```k
-    syntax KItem ::= #collectLabels(StmtList)
-    syntax Id ::= "$start" [token]
-    rule <k> #collectLabels((_:Stmt _)  #as StmtList) => #collectLabels($start : StmtList) ... </k>
-    rule <k> #collectLabels((.StmtList) #as StmtList) => #collectLabels($start : StmtList) ... </k>
-
-    rule <k> #collectLabels(StartLabel:Id : StmtList)
-          => #collectLabels(StartLabel, .StmtList, StmtList)
-          ~> goto StartLabel;
-             ...
-         </k>
-
-    syntax KItem ::= #collectLabels(currLabel: Id, block: StmtList, rest: StmtList)
-    rule <k> #collectLabels(L, S1s, S2:Stmt S2s:StmtList)
-          => #collectLabels(L, S1s ++StmtList S2 .StmtList, S2s)
-             ...
-         </k>
-    rule <k> #collectLabels(L1, S1s,       L2: S2s:StmtList)
-          => #collectLabels(L2, .StmtList, S2s:StmtList)
-             ...
-         </k>
-         <labels> (.Map => L1 |-> S1s ++StmtList return;) Labels </labels>
-    rule <k> #collectLabels(L, S1s, .StmtList)
-          => .K
-             ...
-         </k>
-         <labels> (.Map => L |-> S1s ++StmtList return;) Labels </labels>
-```
-
-We use `boogie` to infer invaraints and cutpoints.
-We rearrange the generated `assume`s to work with cutpoints.
-
-```k
-    syntax Id ::= "inferred" [token]
-    rule <k> #collectLabels(_L, _S1s,
-                             ( ( assert { :inferred .AttrArgList } Inferred ;
-                                 assert _:AttributeList Invariant ;
-                                 S2s:StmtList
-                               )
-                            => ( assert { :code "Inferred" } { :source "???", 0 } Inferred; // This should never fail
-                                 assert { :code "BP5004" } { :source "???", 0 } Invariant;
-                                 cutpoint(!_:Int) ;
-                                 assume .AttributeList Inferred;
-                                 assume .AttributeList Invariant;
-                                 S2s:StmtList
-                           ) ) )
-             ...
-         </k> [priority(48)]
-
-    rule <k> #collectLabels(_L, _S1s,
-               assert { :inferred .AttrArgList } Inferred;
-               ( (S2 S2s:StmtList)
-              => ( assert .AttributeList true ;
-                   S2 S2s:StmtList
-             ) ) )
-             ...
-         </k>
-      requires assert _:AttributeList _ ; :/=K  S2 [priority(48)]
-```
 
 ```k
    rule <k> .LocalVarDeclList => .K ... </k>
@@ -715,6 +724,8 @@ Non-deterministically transition to all labels
 ```k
     rule <k> (goto L, Ls ; ~> _) => (Stmts) </k>
          <labels> L |-> Stmts ... </labels>
+         <currentImpl> Impl </currentImpl>
+         <implId>      Impl </implId>
     rule <k> goto L, Ls ; => goto Ls ; ... </k>
       requires Ls =/=K .IdList
 ```
