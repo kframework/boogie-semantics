@@ -1,59 +1,12 @@
-#!/usr/bin/env python3
-# Usage: $0  <boogie-output> <k-output>
-#
-# Compares KBoogie's output with boogies
+#!/usr/bin/env bash
+# Usage: $0  <expected> <k-output>
 
-import sys
-import re
-import difflib
-from collections import namedtuple, Counter
+boogie_expected=$1; shift
+actual=$1; shift
+[[ $# -eq 0 ]] || { echo 'Too many arguments'; exit 1 ; }
 
-sys.argv.pop(0)
-expected = sys.argv.pop(0)
-actual   = sys.argv.pop(0)
-
-Error = namedtuple('Error', ['code', 'file', 'line', 'column', 'message'])
-
-def parse_errors(line):
-    match = re.search(r'^([^\(]*)\((\d*),(\d*)\): Error ([\w\d]*): (.*)$', line)
-    if not match: return None
-    return Error( file = match.group(1)
-                , line = match.group(2)
-                , column = match.group(3)
-                , code = match.group(4)
-                , message = match.group(5)
-                )
-
-def erase_unchecked_information(error):
-    global fresh_counter
-    file = error.file
-    line = error.line
-    code = error.code
-
-    # We only support line numbers for error code BP5001
-    if error.code != 'BP5001':
-        file = 'FILE'
-        # Keep errors from different implicit returns/calls unique. Ideally we want unique module source information, but K doesn't let us do that.
-        # So we may get more error messages than we'd like
-        line = 'LINE' + str(fresh_counter)
-        fresh_counter += 1
-    if error.code == 'BP5004' or error.code == 'BP5005':
-        code = 'BP500{4,5}' # KBoogie does not distinguish between maintaining the invariant vs invariant holding at the head
-    return file + '(' + line + ',COLUMN): Error ' + code + ':'
-
-def read_errors(lines):
-    errors = lines
-    errors = map(parse_errors, errors)
-    errors = filter(None, errors)
-    errors = map(erase_unchecked_information, sorted(errors))
-    return sorted(set(errors))
-
-fresh_counter=1
-expected_errors = read_errors(open(expected).readlines())
-fresh_counter=1
-actual_errors   = read_errors(open(actual).readlines())
-
-diff = list(difflib.unified_diff(expected_errors, actual_errors, fromfile = 'expected', tofile = 'actual'))
-if diff:
-    print('\n'.join(diff))
-    sys.exit(1)
+diff --color <(grep Error $boogie_expected | grep -v '#failure'  | sed -e 's/^[a-zA-Z0-9\/]*\.bpl//g' | sort) \
+             <(grep Error $actual                                | sed -e 's/^[a-zA-Z0-9\/]*\.bpl//g' \
+                                                                       -e 's/hold on entry.//g' \
+                                                                       -e 's/be maintained by the loop.//g' \
+                                                                 | sort)

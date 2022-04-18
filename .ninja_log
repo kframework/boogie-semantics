@@ -1,0 +1,25 @@
+# ninja log v5
+1	17967	1650066348580251654	.build/defn/driver/driver-kompiled/interpreter	b660b95473745939
+0	24811	1650066354703584531	.build/defn/verification/boogie-kompiled/definition.kore	4fac9c2633f1978f
+24814	41829	1650066372450249876	.build/test/verification/test2/BadLineNumber.bpl.verification	cd476bf4c05528bd
+41830	41868	0	.build/test/verification/test2/BadLineNumber.bpl.verification.diff	2c248014e2512a0e
+24811	44782	1650066375413582989	.build/test/verification/test2/False.bpl.verification	97414ba56d5c3223
+44783	44833	0	.build/test/verification/test2/False.bpl.verification.diff	358029b3070f6a61
+24813	54246	1650066384876915617	.build/test/verification/test2/TypeEncodingM.bpl.verification	4cdef681191f4e0a
+54246	54300	0	.build/test/verification/test2/TypeEncodingM.bpl.verification.diff	435c1f106640c0f
+24812	60792	1650066391460248460	.build/test/verification/test2/ContractEvaluationOrder.bpl.verification	6d4cdfbbff0edae1
+60793	60824	0	.build/test/verification/test2/ContractEvaluationOrder.bpl.verification.diff	2d8fa0c4fd7705d8
+24812	72965	1650066403626914220	.build/test/verification/test2/FormulaTerm2.bpl.verification	72a218db1950b13e
+72969	72989	0	.build/test/verification/test2/FormulaTerm2.bpl.verification.diff	c668f9025bb616
+24812	75690	1650066406360247349	.build/test/verification/test2/Axioms.bpl.verification	b5496d9e89a64ddf
+75690	75708	0	.build/test/verification/test2/Axioms.bpl.verification.diff	31017f83ab11976c
+24812	75798	1650066406470247341	.build/test/verification/test2/IfThenElse1.bpl.verification	4376e8c2c780a6c5
+75798	75807	0	.build/test/verification/test2/IfThenElse1.bpl.verification.diff	69095cbe122036f7
+24812	86634	1650066417303579867	.build/test/verification/test2/B.bpl.verification	ea910e195bace7e3
+86634	86641	0	.build/test/verification/test2/B.bpl.verification.diff	4a209e829b363a57
+24812	88056	1650066418726913095	.build/test/verification/test2/Call.bpl.verification	d8929f8630c90e47
+88056	88061	0	.build/test/verification/test2/Call.bpl.verification.diff	facddff2e54980d0
+41868	236222	1650066566883568723	.build/test/verification/test2/FormulaTerm.bpl.verification	a56876d264b92d90
+236222	236228	0	.build/test/verification/test2/FormulaTerm.bpl.verification.diff	67abc56ca125dc63
+24811	303332	1650066634000230389	.build/test/verification/test2/Old.bpl.verification	c55dc652bcd7f50d
+303332	303337	0	.build/test/verification/test2/Old.bpl.verification.diff	a652cd1061012d66

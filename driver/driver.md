@@ -171,16 +171,6 @@ For each constrained configuration, we triage according to the content of the `<
          </k>
 ```
 
-#### Pause
-
-```metak
-    syntax KVar ::= "Lblpause" [token]
-    rule <k> triage(kseq{ .Sorts } ( Lblpause { .Sorts } ( .Patterns ), Rest) , Pgm)
-          => koreExec(setKCell(Pgm, Rest))
-             ...
-         </k>
-```
-
 #### Stuck?
 
 ```metak

@@ -24,9 +24,9 @@ def build(alias):
     selector = 'k | objectk | ' + alias
     return proj.definition( alias         = alias
                           , main          = 'boogie.md'
-                          , other         = ['syntax.md', 'nothing.md', 'procedures.md', 'helpers.md', 'runtime.md', 'quantification.md']
+                          , other         = ['syntax.md', 'helpers.md', 'quantification.md']
                           , backend       = 'haskell'
-                          , flags         = '--syntax-module BOOGIE-PROGRAM-SYNTAX --main-module BOOGIE --md-selector "%s" --gen-glr-bison-parser' % selector
+                          , flags         = '--gen-bison-parser --syntax-module BOOGIE-PROGRAM-SYNTAX --main-module BOOGIE-QUANTIFIERS --md-selector "%s"' % selector
                           )
 
 verification = build('verification')
@@ -41,45 +41,27 @@ driver = proj.definition( alias         = 'driver'
                         , flags         = '--md-selector "k | metak" -ccopt -g -ccopt -O0 --gen-bison-parser --syntax-module KORE-SYNTAX'
                         )
 
-infer_rule = proj.rule( 'infer'
-                      , description = 'infer $in'
-                      , command = 'bin/boogie-infer $flags $in > "$out"'
-                      , ext = 'infered.bpl'
-                      )
-
-kboogie_rule = proj.rule( 'kboogie'
-                        , description = 'kboogie $definition: $in'
-                        , command = './driver/driver "$definition_dir" "$in" | tee "$out"'
-                        , ext = verification._alias
-                        )
-
-kboogie_rule = kboogie_rule.variable('definition_dir', verification._directory)
-kboogie_rule = kboogie_rule.variable('verification', verification._alias)
+kboogie_rule      = proj.rule( 'kboogie'
+                             , description = 'kboogie: $in'
+                             , command = './driver/driver "$in" > "$out"'
+                             , ext = verification._alias
+                             )
+kboogie_diff_rule = proj.rule( 'diff-kboogie'
+                             , description = 'diff-kboogie: $in'
+                             , command = 'bin/diff-kboogie $in $expected'
+                             , ext = 'diff'
+                             )
 
 def kboogie(input):
-    if input in test_no_infer:
-        infered = proj.source(input).then(infer_rule.variable('flags', '--no-infer'))
-    else:
-        infered = proj.source(input).then(infer_rule)
-
-    implicit_deps = [verification.target, driver.target , proj.source('bin/boogie-infer'), *glob('driver/*')]
-    kboogie_out = infered.then(kboogie_rule.implicit(implicit_deps))
-
-    kboogie_diff_rule = proj.rule( 'diff-kboogie'
-                                 , description = 'diff-kboogie: $in'
-                                 , command = 'bin/diff-kboogie $in $expected'
-                                 , ext = 'diff'
-                                 )
-    kboogie_diff_rule = kboogie_diff_rule.variable('expected', input + '.expect')
-    ret = kboogie_out.then(kboogie_diff_rule)
+    implicit_deps = [verification.target, driver.target , *glob('driver/*')]
+    kboogie_out = proj.source(input).then(kboogie_rule.implicit(list(implicit_deps)))
+    ret = kboogie_out.then(kboogie_diff_rule.variable('expected', input + '.expect'))
     proj.alias(input + '.' + verification._alias, [ret])
     return ret
 
-all_tests     = glob('test/verification/*/*.bpl')
-test_no_infer = [ 'test/verification/test2/LambdaLifting.bpl', 'test/verification/test2/Lambda.bpl' ]
-failing_tests = readlines('test/failing.verification')
-passing_tests = filter_out(all_tests, failing_tests)
-
+all_tests       = glob('test/verification/*/*.bpl')
+failing_tests   = readlines('test/failing.verification')
+passing_tests   = filter_out(all_tests, failing_tests)
 proj.suite('test-verification',         passing_tests, kboogie)
 proj.suite('test-verification-failing', failing_tests, kboogie, default = False)
 

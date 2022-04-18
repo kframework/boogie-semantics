@@ -32,14 +32,14 @@ TODO: Prove that with these assumptions, the semantics above matches the semanti
 Since K does not support this kind of reasoning within a semantics, we approximate it for Boogie using a meta definition.
 In this file, we interleave two K definitions:
 
-one, a meta-definition (code-blocks tagged with `metak`),
+the other at the object level (code-blocks tagged with `object`):
 
 ```objectk
-module BOOGIE-QUANTIFIERS-OBJECT
-    imports BOOGIE-RUNTIME
+module BOOGIE-QUANTIFIERS
+    imports BOOGIE
 ```
 
-the other at the object level (code-blocks tagged with `object`):
+one, a meta-definition (code-blocks tagged with `metak`),
 
 ```metak
 module BOOGIE-QUANTIFIERS-META

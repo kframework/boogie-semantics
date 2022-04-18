@@ -1,13 +1,11 @@
 Boogie Syntax
-================
+=============
 
 ```k
-requires "nothing.md"
-
 module BOOGIE-COMMON-SYNTAX
     imports BOOL-SYNTAX
     imports ID-SYNTAX
-    imports INT-SYNTAX
+    imports UNSIGNED-INT-SYNTAX
     imports STRING-SYNTAX
     imports NOTHING-COMMON-SYNTAX
 ```
@@ -36,7 +34,7 @@ module BOOGIE-COMMON-SYNTAX
 ```k
     syntax TypeDecl ::= TypeConstructor
                       | TypeSynonym
-    syntax TypeConstructor ::= "type" AttributeList Id ";"
+    syntax TypeConstructor ::= "type" AttributeList IdList ";"
     syntax TypeSynonym ::= "type" AttributeList Id "=" Type ";"
 ```
 
@@ -72,6 +70,10 @@ TODO: Signature should allow "returns" syntax
                           | "function" AttributeList Id FSig "{" Expr "}"
     syntax FSig ::= "(" IdsTypeList ")" ":" Type [avoid]
                   | "(" TypeList ")" ":" Type
+                  | "(" IdsTypeList ")" "returns" "(" Type ")" [avoid, macro]
+                  | "(" TypeList ")"    "returns" "(" Type ")" [macro]
+    rule ((Args:IdsTypeList) returns(Type)):FSig => (Args) : Type
+    rule ((Args:TypeList)    returns(Type)):FSig => (Args) : Type
 ```
 
 4 Expressions
@@ -95,9 +97,10 @@ TODO: Signature should allow "returns" syntax
                   > Expr AddOp   Expr [left]
                   > Expr RelOp   Expr [left]
                   > Expr OrOp    Expr [left]
-                  | Expr AndOp   Expr [left]
+                  > Expr AndOp   Expr [left]
                   > Expr ImplOp  Expr [left]
                   > Expr EquivOp Expr [left]
+                  > "*"
     syntax LambdaExpr ::= "(" "lambda" IdsTypeList "::" Expr ")"
     syntax MapOp ::= "[" ExprList "]"             // Lookup
                    | "[" ExprList ":=" Expr "]"   // Update
@@ -183,15 +186,16 @@ This allows us to parse more restrictively, and still have more freedom in the s
 ```
 
 ```k
-    syntax Stmt ::= SimpleStmt
-                  | "goto" IdList ";"
+    syntax Stmt [locations]
+    syntax Stmt ::= "goto" IdList ";"
                   | "return" ";"
-    syntax SimpleStmt ::= "assert" AttributeList Expr ";"
-                        | "assume" AttributeList Expr ";"
-                        | "havoc" IdList ";"
-                        | LhsList ":=" AssignRhs ";"
-                        | "call" CallLhs Id "(" ExprList ")" ";"
-                        | "call" Id "(" ExprList ")" ";"
+                  | "assert" AttributeList Expr ";"
+                  | "assume" AttributeList Expr ";"
+                  | "havoc" IdList ";"
+                  | LhsList ":=" AssignRhs ";"
+                  | "call" CallLhs Id "(" ExprList ")" ";"
+                  | "call" Id "(" ExprList ")" ";"
+                  | "if" "(" Expr ")" "{" StmtList "}" "else" "{" StmtList "}"
     syntax AssignRhs ::= ExprList
     syntax Lhs ::= Id | Lhs "[" ExprList "]"
     syntax LhsList ::= List{Lhs, ","} [klabel(LhsList)]
