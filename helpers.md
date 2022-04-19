@@ -27,7 +27,6 @@ Other Helpers
 ```k
 module BOOGIE-HELPERS
     imports BOOGIE-RULE-SYNTAX
-    imports DEFAULT-CONFIGURATION
     imports BOOL
     imports INT
     imports K-EQUAL
