@@ -459,13 +459,13 @@ Split procedures with a body into a procedure and an implementation:
 
 ```k
     rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) { VarDeclList StmtList }
-          => #preprocess(N, StmtList)
+          => #preprocess(StmtList)
              ...
          </k>
          <procName> ProcedureName </procName>
          <impls> .Bag
               => <impl>
-                   <implId> N </implId>
+                   <implId> !N:Int </implId>
                    <iargs> IArgs </iargs>
                    <irets> IRets </irets>
                    <vars> VarDeclList </vars>
@@ -473,24 +473,24 @@ Split procedures with a body into a procedure and an implementation:
                  </impl>
                  ...
          </impls>
-         <freshCounter> N => N +Int 1 </freshCounter>
+         (.CurrentImplCell => <currentImpl> !N:Int </currentImpl>)
 ```
 
 `#preprocess` splits implementation bodies into labeled blocks, and populates the
 `<labels>` cell with a map from labels to their bodies.
 
 ```k
-    syntax KItem ::= #preprocess(implId: Int, StmtList)
-    syntax KItem ::= #preprocess(implId: Int, currLabel: Id, block: StmtList, rest: StmtList)
+    syntax KItem ::= #preprocess(StmtList)
+    syntax KItem ::= #preprocess(currLabel: Id, block: StmtList, rest: StmtList)
 ```
 
 Ensure that the label `$start` is the initial label.
 
 ```k
     syntax Id ::= "$start" [token]
-    rule <k> #preprocess(Id, (Label : _) #as StmtList) => #preprocess(Id, $start, goto Label; .StmtList , StmtList) ... </k>
-    rule <k> #preprocess(Id, (_:Stmt _)  #as StmtList) => #preprocess(Id, $start,             .StmtList,  StmtList) ... </k>
-    rule <k> #preprocess(Id, (.StmtList) #as StmtList) => #preprocess(Id, $start,             .StmtList,  StmtList) ... </k>
+    rule <k> #preprocess((Label : _) #as StmtList) => #preprocess($start, goto Label; .StmtList , StmtList) ... </k>
+    rule <k> #preprocess((_:Stmt _)  #as StmtList) => #preprocess($start,             .StmtList,  StmtList) ... </k>
+    rule <k> #preprocess((.StmtList) #as StmtList) => #preprocess($start,             .StmtList,  StmtList) ... </k>
 ```
 
 We use `boogie` to infer invaraints and cutpoints.
@@ -498,7 +498,7 @@ We use `boogie` to infer invaraints and cutpoints.
 ```k
     syntax Stmt ::= "#cutpoint" "(" Int ")" LocationExprList ";"
     syntax Id ::= "inferred" [token]
-    rule <k> #preprocess(_Id, _L, _S1s,
+    rule <k> #preprocess(_L, _S1s,
                           ( #location(assert { :inferred .AttrArgList } Inferred  ;, File, Line, Col, _, _)
                          => #cutpoint(!_:Int) { File, Line, Col } Inferred ;
                           )
@@ -511,7 +511,7 @@ We use `boogie` to infer invaraints and cutpoints.
 Assertions immediately after a cutpoint are considered part of the invariant:
 
 ```k
-    rule <k> #preprocess(_Id, _L, _S1s,
+    rule <k> #preprocess(_L, _S1s,
                           ( ( #cutpoint (Id) Invariants ;
                               #location(assert _ Expr ;, File, Line, Col, _, _)
                               S2s
@@ -526,18 +526,20 @@ Assertions immediately after a cutpoint are considered part of the invariant:
 If no further preprocessing is needed, we collect statements into blocks until we encounter the next label:
 
 ```k
-    rule <k> #preprocess(Id, L, S1s, S2:Stmt S2s:StmtList)
-          => #preprocess(Id, L, S1s ++StmtList S2 .StmtList, S2s)
+    rule <k> #preprocess(L, S1s, S2:Stmt S2s:StmtList)
+          => #preprocess(L, S1s ++StmtList S2 .StmtList, S2s)
              ...
          </k> [owise]
-    rule <k> #preprocess(Id, L1, S1s,       L2: S2s:StmtList)
-          => #preprocess(Id, L2, .StmtList, S2s:StmtList)
+    rule <k> #preprocess(L1, S1s,       L2: S2s:StmtList)
+          => #preprocess(L2, .StmtList, S2s:StmtList)
              ...
          </k>
-         <implId> Id </implId>
+         (<currentImpl> Impl </currentImpl> => .CurrentImplCell)
+         <implId> Impl </implId>
          <labels> (.Map => L1 |-> S1s ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0)) Labels </labels>
-    rule <k> #preprocess(Id, L, S1s, .StmtList) => .K ... </k>
-         <implId> Id </implId>
+    rule <k> #preprocess(L, S1s, .StmtList) => .K ... </k>
+         (<currentImpl> Impl </currentImpl> => .CurrentImplCell)
+         <implId> Impl </implId>
          <labels> (.Map => L |-> S1s ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0)) Labels </labels>
 ```
 
