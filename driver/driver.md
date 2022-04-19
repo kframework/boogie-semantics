@@ -157,7 +157,7 @@ For each constrained configuration, we triage according to the content of the `<
 
 ```metak
     rule <k> triage(kseq{ .Sorts } ( Lbl'Hash'failure { .Sorts } ( \dv { SortString { } } ( Message ) ), _) , Pgm)
-          => print("==== failure\n") ~> print(Message) ~> print("\n") ~> prettyPrint(Pgm) ~> print("\n")
+          => print("==== failure: ") ~> print(Message) ~> print("\n") ~> prettyPrint(Pgm) ~> print("\n")
              ...
          </k>
 ```

@@ -530,7 +530,7 @@ We rearrange the generated `assume`s to work with cutpoints.
                                  S2s:StmtList
                                )
                             => ( #assert(File1, Line1, Col1, "BAD INVARIANT INFERRED!") Inferred; // This should never fail
-                                 #assert(File2, Line2, Col2, "This loop invariant might not hold") Invariant;
+                                 #assert(File2, Line2, Col2, "Error BP500{4,5}: This loop invariant might not hold.") Invariant;
                                  cutpoint(!_:Int) ;
                                  assume .AttributeList Inferred;
                                  assume .AttributeList Invariant;

@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Usage: $0  <expected> <k-output>
 
-boogie_expected=$1; shift
 actual=$1; shift
+expected=$1; shift
 [[ $# -eq 0 ]] || { echo 'Too many arguments'; exit 1 ; }
 
-diff --color <(grep Error $boogie_expected | grep -v '#failure'  | sed -e 's/^[a-zA-Z0-9\/]*\.bpl//g' | sort) \
-             <(grep Error $actual                                | sed -e 's/^[a-zA-Z0-9\/]*\.bpl//g' \
-                                                                       -e 's/hold on entry.//g' \
-                                                                       -e 's/be maintained by the loop.//g' \
-                                                                 | sort)
+diff --color <(grep '==== failure' $actual | sed -e 's/^==== failure: [a-zA-Z0-9\/]*\.bpl//g' \
+                                           | sort) \
+             <(grep Error $expected        | sed -e 's/^[a-zA-Z0-9\/]*\.bpl//g' \
+                                                 -e 's/BP5004/BP500{4,5}/g' -e 's/hold on entry./hold./g' \
+                                                 -e 's/BP5005/BP500{4,5}/g' -e 's/be maintained by the loop./hold./g' \
+                                           | sort)
