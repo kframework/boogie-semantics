@@ -464,7 +464,7 @@ Split procedures with a body into a procedure and an implementation:
 
 ```k
     rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) { VarDeclList StmtList }
-          => #collectLabels(N, StmtList)
+          => #preprocess(N, StmtList)
              ...
          </k>
          <procName> ProcedureName </procName>
@@ -481,37 +481,37 @@ Split procedures with a body into a procedure and an implementation:
          <freshCounter> N => N +Int 1 </freshCounter>
 ```
 
-`#collectLabels` splits implementation bodies into labeled blocks, and populates the
+`#preprocess` splits implementation bodies into labeled blocks, and populates the
 `<labels>` cell with a map from labels to their bodies.
 
 ```k
-    syntax KItem ::= #collectLabels(implId: Int, StmtList)
-    syntax KItem ::= #collectLabels(implId: Int, currLabel: Id, block: StmtList, rest: StmtList)
+    syntax KItem ::= #preprocess(implId: Int, StmtList)
+    syntax KItem ::= #preprocess(implId: Int, currLabel: Id, block: StmtList, rest: StmtList)
 ```
 
 Ensure that the label `$start` is the initial label.
 
 ```k
     syntax Id ::= "$start" [token]
-    rule <k> #collectLabels(Id, (Label : _) #as StmtList) => #collectLabels(Id, $start, goto Label; .StmtList , StmtList) ... </k>
-    rule <k> #collectLabels(Id, (_:Stmt _)  #as StmtList) => #collectLabels(Id, $start,             .StmtList,  StmtList) ... </k>
-    rule <k> #collectLabels(Id, (.StmtList) #as StmtList) => #collectLabels(Id, $start,             .StmtList,  StmtList) ... </k>
+    rule <k> #preprocess(Id, (Label : _) #as StmtList) => #preprocess(Id, $start, goto Label; .StmtList , StmtList) ... </k>
+    rule <k> #preprocess(Id, (_:Stmt _)  #as StmtList) => #preprocess(Id, $start,             .StmtList,  StmtList) ... </k>
+    rule <k> #preprocess(Id, (.StmtList) #as StmtList) => #preprocess(Id, $start,             .StmtList,  StmtList) ... </k>
 ```
 
 Collect statements into blocks until we encounter the next label:
 
 ```k
-    rule <k> #collectLabels(Id, L, S1s, S2:Stmt S2s:StmtList)
-          => #collectLabels(Id, L, S1s ++StmtList S2 .StmtList, S2s)
+    rule <k> #preprocess(Id, L, S1s, S2:Stmt S2s:StmtList)
+          => #preprocess(Id, L, S1s ++StmtList S2 .StmtList, S2s)
              ...
          </k>
-    rule <k> #collectLabels(Id, L1, S1s,       L2: S2s:StmtList)
-          => #collectLabels(Id, L2, .StmtList, S2s:StmtList)
+    rule <k> #preprocess(Id, L1, S1s,       L2: S2s:StmtList)
+          => #preprocess(Id, L2, .StmtList, S2s:StmtList)
              ...
          </k>
          <implId> Id </implId>
          <labels> (.Map => L1 |-> S1s ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0)) Labels </labels>
-    rule <k> #collectLabels(Id, L, S1s, .StmtList)
+    rule <k> #preprocess(Id, L, S1s, .StmtList)
           => .K
              ...
          </k>
@@ -524,18 +524,18 @@ We rearrange the generated `assume`s to work with cutpoints.
 
 ```k
     syntax Id ::= "inferred" [token]
-    rule <k> #collectLabels(_Id, _L, _S1s,
-                             ( ( #location(assert { :inferred .AttrArgList } Inferred  ;, File1, Line1, Col1, _, _)
-                                 #location(assert _:AttributeList            Invariant ;, File2, Line2, Col2, _, _)
-                                 S2s:StmtList
-                               )
-                            => ( #assert(File1, Line1, Col1, "BAD INVARIANT INFERRED!") Inferred; // This should never fail
-                                 #assert(File2, Line2, Col2, "Error BP500{4,5}: This loop invariant might not hold.") Invariant;
-                                 cutpoint(!_:Int) ;
-                                 assume .AttributeList Inferred;
-                                 assume .AttributeList Invariant;
-                                 S2s:StmtList
-                           ) ) )
+    rule <k> #preprocess(_Id, _L, _S1s,
+                          ( ( #location(assert { :inferred .AttrArgList } Inferred  ;, File1, Line1, Col1, _, _)
+                              #location(assert _:AttributeList            Invariant ;, File2, Line2, Col2, _, _)
+                              S2s:StmtList
+                            )
+                         => ( #assert(File1, Line1, Col1, "BAD INVARIANT INFERRED!") Inferred; // This should never fail
+                              #assert(File2, Line2, Col2, "Error BP500{4,5}: This loop invariant might not hold.") Invariant;
+                              cutpoint(!_:Int) ;
+                              assume .AttributeList Inferred;
+                              assume .AttributeList Invariant;
+                              S2s:StmtList
+                        ) ) )
              ...
          </k> [priority(48)]
 ```
@@ -543,7 +543,7 @@ We rearrange the generated `assume`s to work with cutpoints.
 If an invariant is not specified, we take it to be `true`:
 
 ```k
-    rule <k> #collectLabels(_Id, _L, _S1s,
+    rule <k> #preprocess(_Id, _L, _S1s,
                #location(assert { :inferred .AttrArgList } Inferred  ;, File, SLine, SCol, ELine, ECol)
                ( (S2 S2s:StmtList)
               => ( #location(assert .AttributeList true ;, File, SLine, SCol, ELine, ECol)
