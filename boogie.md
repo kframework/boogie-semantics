@@ -389,10 +389,6 @@ Coersions are ignored for now:
 8 Procedures and implementations
 --------------------------------
 
-```k
-
-```
-
 Split procedures with a body into a procedure and an implementation:
 
 ```k
