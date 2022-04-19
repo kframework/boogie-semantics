@@ -1,11 +1,6 @@
-# restoreLocals rule gets stuck, not sure why.
+# Stuck because of unsatisfiable side condition in initial configuration (bug in K)
 test/verification/test2/Ensures.bpl
-
-# Failing due to possible bug in K
-# K gets stuck on branch with sidecondition `#Not(#Not(#Not(true #Equals true)))`
 test/verification/test2/Arrays.bpl
-
-test/verification/test2/Passification.bpl
 
 # Unimplemented
 # -------------
