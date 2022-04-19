@@ -544,14 +544,14 @@ If an invariant is not specified, we take it to be `true`:
 
 ```k
     rule <k> #collectLabels(_Id, _L, _S1s,
-               assert { :inferred .AttrArgList } Inferred;
+               #location(assert { :inferred .AttrArgList } Inferred  ;, File, SLine, SCol, ELine, ECol)
                ( (S2 S2s:StmtList)
-              => ( assert .AttributeList true ;
+              => ( #location(assert .AttributeList true ;, File, SLine, SCol, ELine, ECol)
                    S2 S2s:StmtList
              ) ) )
              ...
          </k>
-      requires assert _:AttributeList _ ; :/=K  S2 [priority(48)]
+      requires #location(assert _:AttributeList _ ;, _, _, _, _, _) :/=K  S2 [priority(48)]
 ```
 
 9 Statements
