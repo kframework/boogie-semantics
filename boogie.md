@@ -143,7 +143,23 @@ must be unique, multiple entries aren't created for each type.
        requires notBool(X in_keys(Rho))
 ```
 
-Functions are lambdas:
+If a constant is marked "unique" it is assumed distinct from all other constants of that type:
+
+```k
+    rule <k> const AttributeList (unique => .Nothing)  X:Id : T ;
+          ~> (.K => assume .AttributeList #distinct(X, Uniques) ;)
+             ...
+         </k>
+         <typeName> T </typeName>
+         <uniques> Uniques => X, Uniques </uniques>
+    syntax Expr ::= #distinct(Id, IdList)
+    // TODO: Should be `#distinct(Expr, ExprList)`; blocked on https://github.com/kframework/kore/issues/1817
+    rule <k> #distinct(L, (R, Rs)) => L != R && #distinct(L, Rs) ... </k>
+    rule <k> #distinct(L, .IdList) => true ... </k>
+```
+
+
+Functions desugar to lambdas:
 
 ```k
     rule <k> function Attrs F (IdsTypeList) : TR { Expr }
@@ -165,27 +181,6 @@ Function application is map lookup:
 
 ```k
     rule <k> (F:Id (Args:ExprList) => F[Args]):Expr ... </k>
-```
-
-### `unique`
-
-The `<uniques>` cell maintains a list of `unique` constants that are `assumed`
-distinct.
-
-```k
-    rule <k> const AttributeList (unique => .Nothing)  X:Id : T ;
-          ~> (.K => assume .AttributeList #distinct(X, Uniques) ;)
-             ...
-         </k>
-         <typeName> T </typeName>
-         <uniques> Uniques => X, Uniques </uniques>
-```
-
-```k
-    syntax Expr ::= #distinct(Id, IdList)
-    // TODO: Should be `#distinct(Expr, ExprList)`; blocked on https://github.com/kframework/kore/issues/1817
-    rule <k> #distinct(L, (R, Rs)) => L != R && #distinct(L, Rs) ... </k>
-    rule <k> #distinct(L, .IdList) => true ... </k>
 ```
 
 4 Expressions
