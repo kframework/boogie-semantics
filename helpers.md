@@ -154,5 +154,11 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax LocationExprList ::= LocationExprList "++LocationExprList" LocationExprList [function, functional, left, avoid]
+    rule (E1, E1s) ++LocationExprList E2s => E1, (E1s ++LocationExprList E2s)
+    rule .LocationExprList ++LocationExprList E2s => E2s
+```
+
+```k
 endmodule
 ```

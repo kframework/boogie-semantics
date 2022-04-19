@@ -8,6 +8,4 @@ expected=$1; shift
 diff --color <(grep '==== failure' $actual | sed -e 's/^==== failure: [a-zA-Z0-9\/]*\.bpl//g' \
                                            | sort) \
              <(grep Error $expected        | sed -e 's/^[a-zA-Z0-9\/]*\.bpl//g' \
-                                                 -e 's/BP5004/BP500{4,5}/g' -e 's/hold on entry./hold./g' \
-                                                 -e 's/BP5005/BP500{4,5}/g' -e 's/be maintained by the loop./hold./g' \
                                            | sort)

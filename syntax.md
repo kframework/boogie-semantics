@@ -259,5 +259,8 @@ endmodule
 module BOOGIE-RULE-SYNTAX
     imports BOOGIE-COMMON-SYNTAX
     imports NOTHING-RULE-SYNTAX
+
+    syntax LocationExprList ::= List{LocationExpr, ","} [klabel(LocationExprList)]
+    syntax LocationExpr ::= "{" String "," Int "," Int "}" Expr
 endmodule
 ```

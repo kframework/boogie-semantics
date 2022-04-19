@@ -498,61 +498,54 @@ Ensure that the label `$start` is the initial label.
     rule <k> #preprocess(Id, (.StmtList) #as StmtList) => #preprocess(Id, $start,             .StmtList,  StmtList) ... </k>
 ```
 
-Collect statements into blocks until we encounter the next label:
+We use `boogie` to infer invaraints and cutpoints.
+
+```k
+    syntax Stmt ::= "#cutpoint" "(" Int ")" LocationExprList ";"
+    syntax Id ::= "inferred" [token]
+    rule <k> #preprocess(_Id, _L, _S1s,
+                          ( #location(assert { :inferred .AttrArgList } Inferred  ;, File, Line, Col, _, _)
+                         => #cutpoint(!_:Int) { File, Line, Col } Inferred ;
+                          )
+                          S2s:StmtList
+                        )
+             ...
+         </k>
+```
+
+Assertions immediately after a cutpoint are considered part of the invariant:
+
+```k
+    rule <k> #preprocess(_Id, _L, _S1s,
+                          ( ( #cutpoint (Id) Invariants ;
+                              #location(assert _ Expr ;, File, Line, Col, _, _)
+                              S2s
+                            ) =>
+                            ( #cutpoint (Id) Invariants ++LocationExprList { File, Line, Col } Expr ;
+                              S2s
+                        ) ) )
+             ...
+         </k>
+```
+
+If no further preprocessing is needed, we collect statements into blocks until we encounter the next label:
 
 ```k
     rule <k> #preprocess(Id, L, S1s, S2:Stmt S2s:StmtList)
           => #preprocess(Id, L, S1s ++StmtList S2 .StmtList, S2s)
              ...
-         </k>
+         </k> [owise]
     rule <k> #preprocess(Id, L1, S1s,       L2: S2s:StmtList)
           => #preprocess(Id, L2, .StmtList, S2s:StmtList)
              ...
          </k>
          <implId> Id </implId>
          <labels> (.Map => L1 |-> S1s ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0)) Labels </labels>
-    rule <k> #preprocess(Id, L, S1s, .StmtList)
-          => .K
-             ...
-         </k>
+    rule <k> #preprocess(Id, L, S1s, .StmtList) => .K ... </k>
          <implId> Id </implId>
          <labels> (.Map => L |-> S1s ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0)) Labels </labels>
 ```
 
-We use `boogie` to infer invaraints and cutpoints.
-We rearrange the generated `assume`s to work with cutpoints.
-
-```k
-    syntax Id ::= "inferred" [token]
-    rule <k> #preprocess(_Id, _L, _S1s,
-                          ( ( #location(assert { :inferred .AttrArgList } Inferred  ;, File1, Line1, Col1, _, _)
-                              #location(assert _:AttributeList            Invariant ;, File2, Line2, Col2, _, _)
-                              S2s:StmtList
-                            )
-                         => ( #assert(File1, Line1, Col1, "BAD INVARIANT INFERRED!") Inferred; // This should never fail
-                              #assert(File2, Line2, Col2, "Error BP500{4,5}: This loop invariant might not hold.") Invariant;
-                              cutpoint(!_:Int) ;
-                              assume .AttributeList Inferred;
-                              assume .AttributeList Invariant;
-                              S2s:StmtList
-                        ) ) )
-             ...
-         </k> [priority(48)]
-```
-
-If an invariant is not specified, we take it to be `true`:
-
-```k
-    rule <k> #preprocess(_Id, _L, _S1s,
-               #location(assert { :inferred .AttrArgList } Inferred  ;, File, SLine, SCol, ELine, ECol)
-               ( (S2 S2s:StmtList)
-              => ( #location(assert .AttributeList true ;, File, SLine, SCol, ELine, ECol)
-                   S2 S2s:StmtList
-             ) ) )
-             ...
-         </k>
-      requires #location(assert _:AttributeList _ ;, _, _, _, _, _) :/=K  S2 [priority(48)]
-```
 
 9 Statements
 ------------
@@ -748,20 +741,31 @@ Non-deterministically transition to all labels
     rule <k> (if (false) { _           } else { Ss:StmtList }):KItem => Ss:StmtList ... </k>
 ```
 
-### Extension: Cutpoints
+Invariants
+----------
 
+A cutpoint's invariants must evaluate to true before it is reached.
+We may also assume they hold after.
 
-See [note below](#where-cutpoint-interactions) about the interaction between `where` clauses and loops.
+```verification
+    syntax String ::= makeAssertionMessage(Bool) [function]
+    rule makeAssertionMessage(true)   => "Error BP5005: This loop invariant might not be maintained by the loop."
+    rule makeAssertionMessage(false)  => "Error BP5004: This loop invariant might not hold on entry."
+
+    rule <k> #cutpoint(I) { File, Line, Col } Inv, LocExprs ;:KItem
+          => #assert(File, Line, Col, makeAssertionMessage(I in Cutpoints)) Inv ;
+             #cutpoint(I)                          LocExprs ;
+             assume .AttributeList Inv ;
+             ...
+         </k>
+         <cutpoints> Cutpoints </cutpoints>
+```
 
 When we reach a particular cutpoint the first time, we treat it as an abstraction point
 and replace modifiable variables with fresh symbolic values.
 
 ```k
-    syntax Stmt ::= "cutpoint" "(" Int ")" ";"
-```
-
-```verification
-    rule <k> cutpoint(I) ; => #generalize(envToIds(Rho) ++IdList Modifiable) ... </k>
+    rule <k> #cutpoint(I) .LocationExprList ; => #generalize(envToIds(Rho) ++IdList Modifiable) ... </k>
          <locals> Rho </locals>
          <mods> Modifiable </mods>
          <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
@@ -774,7 +778,7 @@ the states when we first encountered the cutpoint (modulo `free invariant`s and
 `where` clauses.)
 
 ```verification
-    rule <k> cutpoint(I) ; => assume .AttributeList (false); ... </k>
+    rule <k> #cutpoint(I) .LocationExprList ; => assume .AttributeList (false); ... </k>
          <cutpoints> Cutpoints </cutpoints>
       requires I in Cutpoints
 ```
