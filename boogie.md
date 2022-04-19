@@ -335,7 +335,7 @@ Coersions are ignored for now:
           => makeDecls(IdsTypeListToIdsTypeWhereList(Bound))
           ~> makeAssignments(IdsTypeListToIdList(Bound), Vals)
           ~> Exp
-          ~> restoreLocals(Locals)
+          ~> #restoreLocals(Locals)
              ...
          </k>
          <locals> Locals </locals>
@@ -343,20 +343,20 @@ Coersions are ignored for now:
 ```
 
 ```k
-    syntax KItem ::= restoreLocals(Map)
-    rule <k> (V:ValueExpr ~> restoreLocals(Locals)) => V ... </k>
+    syntax KItem ::= "#restoreLocals" "(" Map ")"
+    rule <k> V:ValueExpr ~> (#restoreLocals(Locals) => .K) ... </k>
          <locals> _ => Locals </locals>
 ```
 
 ### 4.3 Old expressions
 
 ```k
-    rule <k> old(E) => E ~> restoreGlobals(Globals) ... </k>
+    rule <k> old(E) => E ~> #restoreGlobals(Globals) ... </k>
          <globals> Globals => Olds </globals>
          <olds> Olds </olds>
 
-    syntax KItem ::= restoreGlobals(Map)
-    rule <k> E:ValueExpr ~> (restoreGlobals(Globals) => .K) ... </k>
+    syntax KItem ::= "#restoreGlobals" "(" Map ")"
+    rule <k> E:ValueExpr ~> (#restoreGlobals(Globals) => .K) ... </k>
          <globals> _ => Globals </globals>
 ```
 
