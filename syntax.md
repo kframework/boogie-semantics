@@ -181,8 +181,8 @@ This allows us to parse more restrictively, and still have more freedom in the s
 
 ```k
     syntax StmtList ::= List{LabelOrStmt, ""} [klabel(StmtList)]
-    syntax LabelOrStmt ::= Stmt | Label
-    syntax Label ::= Id ":"
+    syntax LabelOrStmt ::= Stmt | Label ":"
+    syntax Label ::= Id
 ```
 
 ```k
@@ -259,8 +259,5 @@ endmodule
 module BOOGIE-RULE-SYNTAX
     imports BOOGIE-COMMON-SYNTAX
     imports NOTHING-RULE-SYNTAX
-
-    syntax LocationExprList ::= List{LocationExpr, ","} [klabel(LocationExprList)]
-    syntax LocationExpr ::= "{" String "," Int "," Int "}" Expr
 endmodule
 ```

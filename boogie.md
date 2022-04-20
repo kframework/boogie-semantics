@@ -23,6 +23,11 @@ module BOOGIE
 
     configuration <boogie>
                     <k> #initTypes ~> $PGM:Program ~> .DeclList ~> #start </k>
+                    <preprocess multiplicity="?">
+                        <pp> .K </pp>
+                        <currLabel> .Nothing:OptionalLabel </currLabel>
+                        <currBlock> .StmtList </currBlock>
+                    </preprocess>
                     <types>
                       <type multiplicity="*" type="Map">
                           <typeName> #token("TypeName", "Id"):Type </typeName>
@@ -35,7 +40,7 @@ module BOOGIE
                       <globals> .Map </globals>
                       <olds> .Map </olds>
                       <cutpoints> .List </cutpoints>
-                      <currentImpl multiplicity="?"> -1 </currentImpl>
+                      <currImpl multiplicity="?"> -1 </currImpl>
                       <freshVars> .K </freshVars>
                     </runtime>
                     <procs>
@@ -455,7 +460,7 @@ Split procedures with a body into a procedure and an implementation:
 
 ```k
     rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) { VarDeclList StmtList }
-          => #preprocess(StmtList)
+          => #preprocess
              ...
          </k>
          <procName> ProcedureName </procName>
@@ -469,24 +474,37 @@ Split procedures with a body into a procedure and an implementation:
                  </impl>
                  ...
          </impls>
-         (.CurrentImplCell => <currentImpl> !N:Int </currentImpl>)
+          (.CurrImplCell => <currImpl> !N:Int </currImpl>)
+          (.PreprocessCell => <preprocess> <pp> #addStartLabel(StmtList) </pp> ... </preprocess> )
 ```
 
-`#preprocess` splits implementation bodies into labeled blocks, and populates the
-`<labels>` cell with a map from labels to their bodies.
+`#preprocess` splits an implementation body into labeled blocks,
+populates the `<labels>` cell with a map from labels to their bodies.
+It also desugars `while` loops and `if` statements into `goto` statements
+and combines invariants into a cutpoints.
 
 ```k
-    syntax KItem ::= #preprocess(StmtList)
-    syntax KItem ::= #preprocess(currLabel: Id, block: StmtList, rest: StmtList)
+    syntax KItem ::= "#preprocess"
 ```
 
 Ensure that the label `$start` is the initial label.
 
 ```k
     syntax Id ::= "$start" [token]
-    rule <k> #preprocess((Label : _) #as StmtList) => #preprocess($start, goto Label; .StmtList , StmtList) ... </k>
-    rule <k> #preprocess((_:Stmt _)  #as StmtList) => #preprocess($start,             .StmtList,  StmtList) ... </k>
-    rule <k> #preprocess((.StmtList) #as StmtList) => #preprocess($start,             .StmtList,  StmtList) ... </k>
+    syntax StmtList ::= #addStartLabel(StmtList) [function, functional]
+    rule #addStartLabel((Label : _):StmtList #as Ss) => $start: goto Label; Ss
+    rule #addStartLabel((_:Stmt _):StmtList  #as Ss) => $start:             Ss
+    rule #addStartLabel((.StmtList):StmtList #as Ss) => $start:             Ss
+```
+
+We preprocess each statement one at a time, and finish preprocessing once all statements have been processed.
+
+```k
+    rule <pp> Stmt Stmts:StmtList => Stmt ~> Stmts ... </pp>
+    rule <pp> .StmtList => .K ... </pp>
+    rule (<preprocess> <pp> .K </pp> <currLabel> .Nothing </currLabel> ... </preprocess> => .PreprocessCell)
+         (<currImpl> Impl </currImpl> => .CurrImplCell)
+         <k> #preprocess => .K ... </k>
 ```
 
 We use `boogie` to infer invaraints and cutpoints.
@@ -494,49 +512,44 @@ We use `boogie` to infer invaraints and cutpoints.
 ```k
     syntax Stmt ::= "#cutpoint" "(" Int ")" LocationExprList ";"
     syntax Id ::= "inferred" [token]
-    rule <k> #preprocess(_L, _S1s,
-                          ( #location(assert { :inferred .AttrArgList } Inferred  ;, File, Line, Col, _, _)
-                         => #cutpoint(!_:Int) { File, Line, Col } Inferred ;
-                          )
-                          S2s:StmtList
-                        )
-             ...
-         </k>
+    rule <pp> #location(assert { :inferred .AttrArgList } Inferred  ;, File, Line, Col, _, _)
+           => #cutpoint(!_:Int) { File, Line, Col } Inferred ;
+              ...
+         </pp>
 ```
 
 Assertions immediately after a cutpoint are considered part of the invariant:
 
 ```k
-    rule <k> #preprocess(_L, _S1s,
-                          ( ( #cutpoint (Id) Invariants ;
-                              #location(assert _ Expr ;, File, Line, Col, _, _)
-                              S2s
-                            ) =>
-                            ( #cutpoint (Id) Invariants ++LocationExprList { File, Line, Col } Expr ;
-                              S2s
-                        ) ) )
+    rule <pp> #cutpoint (Id) (Invariants => Invariants ++LocationExprList { File, Line, Col } Expr) ;
+           ~> (#location(assert _ Expr ;, File, Line, Col, _, _) S2s => S2s)
              ...
-         </k>
+         </pp>
 ```
 
-If no further preprocessing is needed, we collect statements into blocks until we encounter the next label:
+If no further preprocessing is needed, we accumulate the statements in `<currBlock>`:
 
 ```k
-    rule <k> #preprocess(L, S1s, S2:Stmt S2s:StmtList)
-          => #preprocess(L, S1s ++StmtList S2 .StmtList, S2s)
-             ...
-         </k> [owise]
-    rule <k> #preprocess(L1, S1s,       L2: S2s:StmtList)
-          => #preprocess(L2, .StmtList, S2s:StmtList)
-             ...
-         </k>
-         (<currentImpl> Impl </currentImpl> => .CurrentImplCell)
-         <implId> Impl </implId>
-         <labels> (.Map => L1 |-> S1s ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0)) Labels </labels>
-    rule <k> #preprocess(L, S1s, .StmtList) => .K ... </k>
-         (<currentImpl> Impl </currentImpl> => .CurrentImplCell)
-         <implId> Impl </implId>
-         <labels> (.Map => L |-> S1s ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0)) Labels </labels>
+    rule <pp> S:Stmt => .K ... </pp>
+         <currBlock> Ss => Ss ++StmtList S </currBlock> [owise]
+```
+
+```k
+    rule <pp> Label : => .K ... </pp>
+         <currLabel> .Nothing => Label </currLabel>
+         <currBlock> _ => .StmtList </currBlock>
+
+    syntax KItem ::= "#finalizeBlock"
+    rule <pp> (.K => #finalizeBlock) ~>  L1: ... </pp> <currLabel> _:Label </currLabel>
+    rule <pp> (.K => #finalizeBlock)             </pp> <currLabel> _:Label </currLabel>
+    rule <pp> #finalizeBlock => .K ... </pp>
+         <currLabel> CurrLabel => .Nothing </currLabel>
+         <currBlock> CurrBlock </currBlock>
+         <currImpl> ImplId </currImpl>
+         <implId> ImplId </implId>
+         <labels> (.Map => CurrLabel |-> CurrBlock ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0))
+                  Labels
+         </labels>
 ```
 
 
@@ -548,7 +561,7 @@ If no further preprocessing is needed, we collect statements into blocks until w
    rule <k> .StmtList => .K ... </k>
 ```
 
-9.0 Implementation Body
+9.0 Implementation Bod y
 -----------------------
 
 ```k
@@ -564,7 +577,7 @@ In the case of the verification semantics, we verify all procedures:
           ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)] ;
           ~> goto $start;
          </k>
-         (.CurrentImplCell => <currentImpl> N </currentImpl>)
+         (.CurrImplCell => <currImpl> N </currImpl>)
          <globals> Globals </globals>
          <olds> .Map => Globals </olds>
          <procName> ProcedureName </procName>
@@ -673,7 +686,7 @@ The location information is placed using K's `[locations]` annotation.
     rule <k> X, .LhsList := V:ValueExpr, .ExprList ; => .K ... </k>
          <locals> Env </locals>
          <globals> X |-> value(... value: _ => V) ... </globals>
-         <currentImpl> CurrentImpl </currentImpl>
+         <currImpl> CurrentImpl </currImpl>
          <implId> CurrentImpl </implId>
          <mods> Modifies </mods>
       requires notBool X in_keys(Env)
@@ -719,7 +732,7 @@ Non-deterministically transition to all labels
 ```k
     rule <k> (goto L, Ls ; ~> _) => (Stmts) </k>
          <labels> L |-> Stmts ... </labels>
-         <currentImpl> Impl </currentImpl>
+         <currImpl> Impl </currImpl>
          <implId>      Impl </implId>
     rule <k> goto L, Ls ; => goto Ls ; ... </k>
       requires Ls =/=K .IdList
@@ -925,7 +938,7 @@ When returning, we first `assert` that the post condition holds:
              #return IdsTypeWhereListToExprList(IRets) ;
              ...
          </k>
-         <currentImpl> CurrentImpl </currentImpl>
+         <currImpl> CurrentImpl </currImpl>
          <procName> CurrentProc </procName>
          <iargs> IArgs </iargs>
          <irets> IRets </irets>
