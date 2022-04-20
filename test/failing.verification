@@ -1,4 +1,5 @@
 # Stuck because of unsatisfiable side condition in initial configuration (bug in K)
+# See: https://github.com/runtimeverification/haskell-backend/issues/3041
 test/verification/test2/Ensures.bpl
 test/verification/test2/Arrays.bpl
 
