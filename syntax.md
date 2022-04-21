@@ -85,9 +85,9 @@ TODO: Signature should allow "returns" syntax
                   | Id "(" ExprList ")" // function application
                   | "(" Expr ")" [bracket]
                   | old(Expr)
-                  | "(" "forall" IdsTypeList "::" Expr ")"
-                  | "(" "exists" IdsTypeList "::" Expr ")"
-                  | "(" "forall" IdsTypeList "::" TriggerList Expr ")" [avoid]
+                  | "(" "forall" IdsTypeList "::" Expr ")" [macro-rec]
+                  | "(" "exists" IdsTypeList "::" Expr ")" [macro]
+                  | "(" "forall" IdsTypeList "::" TriggerList Expr ")" [avoid, macro]
                   | "(" "#forall" Id ":" Type "::" Expr ")" [klabel(forall), symbol] // TODO: This shouldn't be public
                   | LambdaExpr
                   | "if" Expr "then" Expr "else" Expr // TODO: deal with ambiguities for nested ITEs
@@ -220,18 +220,18 @@ Quantifiers
 We treat `forall`s with multiple bindings as multiple foralls with single bindings, and ignore triggers for now.
 
 ```k
-    rule ( forall IdsTypeList :: _:Trigger Expr ) => ( forall IdsTypeList :: Expr ) [macro]
+    rule ( forall IdsTypeList :: _:Trigger Expr ) => ( forall IdsTypeList :: Expr )
 
-    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) ) [macro-rec]
-    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) ) [macro-rec]
-    rule ( forall .IdList : T, IdsTypeList :: Expr ) => ( forall IdsTypeList :: Expr ) [macro-rec]
-    rule ( forall             .IdsTypeList :: Expr ) => Expr [macro-rec]
+    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) )
+    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) )
+    rule ( forall .IdList : T, IdsTypeList :: Expr ) => ( forall IdsTypeList :: Expr )
+    rule ( forall             .IdsTypeList :: Expr ) => Expr
 ```
 
-Exists are desugared for forall. We cannot implement simply use K's `!` variables, because of quantifier alternation.
+Exists are desugared for forall. We cannot implement simply using K's `!` variables, because of quantifier alternation.
 
 ```k
-    rule ( exists IdsTypeList :: Trigger Expr ) => ! ( forall IdsTypeList :: Trigger ! Expr ) [macro]
+    rule ( exists IdsTypeList :: Trigger Expr ) => ! ( forall IdsTypeList :: Trigger ! Expr )
 ````
 
 ```k
