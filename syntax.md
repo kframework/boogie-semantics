@@ -224,7 +224,7 @@ We treat `forall`s with multiple bindings as multiple foralls with single bindin
 
     rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) )
     rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) )
-    rule ( forall .IdList : T, IdsTypeList :: Expr ) => ( forall IdsTypeList :: Expr )
+    rule ( forall .IdList : _, IdsTypeList :: Expr ) => ( forall IdsTypeList :: Expr )
     rule ( forall             .IdsTypeList :: Expr ) => Expr
 ```
 

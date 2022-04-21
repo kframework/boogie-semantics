@@ -125,7 +125,7 @@ We may sometimes need to alpha-rename the bound variable to enable this.
 We bring each branch to the front to allow them to be triaged.
 
 ```metak
-    rule <k> (forallResult(_, _) #as Curr) ~> (P:Pattern    #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
+    rule <k> (forallResult(_, _) #as Curr) ~> (_:Pattern    #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
     rule <k> (forallResult(_, _) #as Curr) ~> (koreExec(_)  #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
 ```
 

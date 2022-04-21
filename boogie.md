@@ -151,7 +151,7 @@ must be unique, multiple entries aren't created for each type.
 If a constant is marked "unique" it is assumed distinct from all other constants of that type:
 
 ```k
-    rule <k> const AttributeList (unique => .Nothing)  X:Id : T ;
+    rule <k> const _:AttributeList (unique => .Nothing)  X:Id : T ;
           ~> (.K => assume .AttributeList #distinct(X, Uniques) ;)
              ...
          </k>
@@ -160,7 +160,7 @@ If a constant is marked "unique" it is assumed distinct from all other constants
     syntax Expr ::= #distinct(Id, IdList)
     // TODO: Should be `#distinct(Expr, ExprList)`; blocked on https://github.com/kframework/kore/issues/1817
     rule <k> #distinct(L, (R, Rs)) => L != R && #distinct(L, Rs) ... </k>
-    rule <k> #distinct(L, .IdList) => true ... </k>
+    rule <k> #distinct(_, .IdList) => true ... </k>
 ```
 
 
@@ -293,14 +293,14 @@ Coersions are ignored for now:
     context (_:MapValue [ HOLE ]):Expr
 
     rule <k> (Map:MapValue [ Key ]):Expr => select(Key, Map) ...  </k> requires isKResult(Key)
-    rule <k> select(S, update(Key, Val, Map)) => Val ...            </k> requires Key  ==K S
-    rule <k> select(S, update(Key, _, Map))   => select(S, Map) ... </k> requires Key =/=K S
+    rule <k> select(S, update(Key, Val, _Map)) => Val ...            </k> requires Key  ==K S
+    rule <k> select(S, update(Key, _, Map))    => select(S, Map) ... </k> requires Key =/=K S
 
-    rule <k> select(.ExprList,     map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap0(Id))                                              ... </k>
-    rule <k> select(S,             map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap1(Id, TToInt(S)))                                   ... </k>
-    rule <k> select((S1,S2),       map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap2(Id, TToInt(S1),TToInt(S2)))                       ... </k>
-    rule <k> select((S1,S2,S3),    map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap3(Id, TToInt(S1),TToInt(S2),TToInt(S3)))            ... </k>
-    rule <k> select((S1,S2,S3,S4), map(Id, [ArgT]RetT)) => intToT(RetT, lookupMap4(Id, TToInt(S1),TToInt(S2),TToInt(S3),TToInt(S4))) ... </k>
+    rule <k> select(.ExprList,     map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap0(Id))                                              ... </k>
+    rule <k> select(S,             map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap1(Id, TToInt(S)))                                   ... </k>
+    rule <k> select((S1,S2),       map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap2(Id, TToInt(S1),TToInt(S2)))                       ... </k>
+    rule <k> select((S1,S2,S3),    map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap3(Id, TToInt(S1),TToInt(S2),TToInt(S3)))            ... </k>
+    rule <k> select((S1,S2,S3,S4), map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap4(Id, TToInt(S1),TToInt(S2),TToInt(S3),TToInt(S4))) ... </k>
 
     // Uninterpreted function
     syntax Int ::= lookupMap0(mapId: Int)                            [function, functional, smtlib(lookupMap0), no-evaluators]
@@ -316,8 +316,8 @@ Coersions are ignored for now:
     rule <k> X:Id [ Key ], .LhsList := Value, .ExprList ; => X := X [ Key := Value ], .ExprList ; ... </k>
 
     context HOLE [ _ := _ ]
-    context Map:MapValue [ HOLE := _Value ]
-    context Map:MapValue [ Key := HOLE ] requires isKResult(Key)
+    context _Map:MapValue [ HOLE := _Value ]
+    context _Map:MapValue [ Key := HOLE ] requires isKResult(Key)
     rule <k> Map:MapValue [ Key := Value ] => update(Key, Value, Map) ... </k> requires isKResult(Key)
 ```
 
@@ -344,7 +344,7 @@ Coersions are ignored for now:
 
 ```k
     syntax KItem ::= "#restoreLocals" "(" Map ")"
-    rule <k> V:ValueExpr ~> (#restoreLocals(Locals) => .K) ... </k>
+    rule <k> _:ValueExpr ~> (#restoreLocals(Locals) => .K) ... </k>
          <locals> _ => Locals </locals>
 ```
 
@@ -356,7 +356,7 @@ Coersions are ignored for now:
          <olds> Olds </olds>
 
     syntax KItem ::= "#restoreGlobals" "(" Map ")"
-    rule <k> E:ValueExpr ~> (#restoreGlobals(Globals) => .K) ... </k>
+    rule <k> _:ValueExpr ~> (#restoreGlobals(Globals) => .K) ... </k>
          <globals> _ => Globals </globals>
 ```
 
@@ -459,7 +459,7 @@ Split procedures with a body into a procedure and an implementation:
 ```
 
 ```k
-    rule <k> implementation Attrs:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) { VarDeclList StmtList }
+    rule <k> implementation _:AttributeList ProcedureName .Nothing ( IArgs ) returns ( IRets ) { VarDeclList StmtList }
           => #preprocess
              ...
          </k>
@@ -503,7 +503,7 @@ We preprocess each statement one at a time, and finish preprocessing once all st
     rule <pp> Stmt Stmts:StmtList => Stmt ~> Stmts ... </pp>
     rule <pp> .StmtList => .K ... </pp>
     rule (<preprocess> <pp> .K </pp> <currLabel> .Nothing </currLabel> ... </preprocess> => .PreprocessCell)
-         (<currImpl> Impl </currImpl> => .CurrImplCell)
+         (<currImpl> _ </currImpl> => .CurrImplCell)
          <k> #preprocess => .K ... </k>
 ```
 
@@ -521,7 +521,7 @@ We use `boogie` to infer invaraints and cutpoints.
 Assertions immediately after a cutpoint are considered part of the invariant:
 
 ```k
-    rule <pp> #cutpoint (Id) (Invariants => Invariants ++LocationExprList { File, Line, Col } Expr) ;
+    rule <pp> #cutpoint (_) (Invariants => Invariants ++LocationExprList { File, Line, Col } Expr) ;
            ~> (#location(assert _ Expr ;, File, Line, Col, _, _) S2s => S2s)
              ...
          </pp>
@@ -540,7 +540,7 @@ If no further preprocessing is needed, we accumulate the statements in `<currBlo
          <currBlock> _ => .StmtList </currBlock>
 
     syntax KItem ::= "#finalizeBlock"
-    rule <pp> (.K => #finalizeBlock) ~>  L1: ... </pp> <currLabel> _:Label </currLabel>
+    rule <pp> (.K => #finalizeBlock) ~>  _Label : ... </pp> <currLabel> _:Label </currLabel>
     rule <pp> (.K => #finalizeBlock)             </pp> <currLabel> _:Label </currLabel>
     rule <pp> #finalizeBlock => .K ... </pp>
          <currLabel> CurrLabel => .Nothing </currLabel>
@@ -548,7 +548,7 @@ If no further preprocessing is needed, we accumulate the statements in `<currBlo
          <currImpl> ImplId </currImpl>
          <implId> ImplId </implId>
          <labels> (.Map => CurrLabel |-> CurrBlock ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0))
-                  Labels
+                  _Labels
          </labels>
 ```
 
@@ -580,9 +580,7 @@ In the case of the verification semantics, we verify all procedures:
          (.CurrImplCell => <currImpl> N </currImpl>)
          <globals> Globals </globals>
          <olds> .Map => Globals </olds>
-         <procName> ProcedureName </procName>
          <args> PArgs </args>
-         <rets> PRets </rets>
          <pres> Requires </pres>
          <impl>
             <implId> N </implId>
@@ -621,7 +619,7 @@ In the case of the verification semantics, we verify all procedures:
         </k>
         <locals> X |-> (_ => value("undefined", T, Where)) ... </locals>
 
-   rule <k> var .AttributeList .IdList : T where Where; Vs:LocalVarDeclList
+   rule <k> var .AttributeList .IdList : _T where _Where; Vs:LocalVarDeclList
          => Vs
             ...
         </k>
@@ -639,7 +637,7 @@ The location information is placed using K's `[locations]` annotation.
           => #assert(File, StartLine, StartCol, "Error BP5001: This assertion might not hold.") Expr ;
              ...
          </k>
-    rule <k> #location(Stmt, File, StartLine, StartCol, _EndLine, _EndCol):KItem
+    rule <k> #location(Stmt, _File, _StartLine, _StartCol, _EndLine, _EndCol):KItem
           => Stmt
              ...
          </k> [owise]
@@ -662,7 +660,7 @@ The location information is placed using K's `[locations]` annotation.
     context assume _ HOLE ;
     rule <k> assume _ true ; => .K      ... </k>
 //    rule <k> assume _ false; => #Bottom ... </k>
-    rule <k> assume _ false; ~> K => .K </k>
+    rule <k> assume _ false; ~> _:K => .K </k>
          <locals> _ => .Map </locals>
 ```
 
@@ -730,11 +728,11 @@ type.
 Non-deterministically transition to all labels
 
 ```k
-    rule <k> (goto L, Ls ; ~> _) => (Stmts) </k>
+    rule <k> (goto L, _Ls ; ~> _) => (Stmts) </k>
          <labels> L |-> Stmts ... </labels>
          <currImpl> Impl </currImpl>
          <implId>      Impl </implId>
-    rule <k> goto L, Ls ; => goto Ls ; ... </k>
+    rule <k> goto _L, Ls ; => goto Ls ; ... </k>
       requires Ls =/=K .IdList
 ```
 
@@ -800,7 +798,7 @@ When executing concretely, cutpoints are simply a no-op.
 ```k
     syntax IdList ::= envToIds(Map) [function]
     rule envToIds(.Map) => .IdList
-    rule envToIds(X:Id |-> Val Rho) => (X, envToIds(Rho))
+    rule envToIds(X:Id |-> _ Rho) => (X, envToIds(Rho))
 ```
 
 #### `where`-cutpoint interactions
@@ -939,7 +937,6 @@ When returning, we first `assert` that the post condition holds:
              ...
          </k>
          <currImpl> CurrentImpl </currImpl>
-         <procName> CurrentProc </procName>
          <iargs> IArgs </iargs>
          <irets> IRets </irets>
          <implId> CurrentImpl </implId>
@@ -949,7 +946,7 @@ When returning, we first `assert` that the post condition holds:
 ```
 
 ```verification
-    rule <k> (#return Rets ; ~> K:K) => .K </k>
+    rule <k> (#return _ ; ~> _:K) => .K </k>
 ```
 
 9.7 If statements
@@ -970,7 +967,7 @@ When returning, we first `assert` that the post condition holds:
 ```
 
 ```verification
-    context #location(call X:IdList := ProcedureName:Id(HOLE) ;, _, _, _, _, _)
+    context #location(call _:IdList := _ProcedureName:Id(HOLE) ;, _, _, _, _, _)
     rule <k> #location(call X:IdList := ProcedureName:Id(ArgVals) ;, File, Line, Col, _, _):KItem
           => #assert(File, Line, Col, "Error BP5002: A precondition for this call might not hold.")
                (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];

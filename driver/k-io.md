@@ -241,7 +241,7 @@ module KORE-UTILITIES
     rule findSubTermsByConstructor(  _ , \exists{ _ } (_, _) ) => .Patterns
     rule findSubTermsByConstructor(  _ , \top{ _ } () ) => .Patterns
     rule findSubTermsByConstructor(  _ , \equals{ _, _ } (_ , _ ) ) => .Patterns
-    rule findSubTermsByConstructor(  _ , \not{ _ } (P) ) => .Patterns
+    rule findSubTermsByConstructor(  _ , \not{ _ } (_) ) => .Patterns
 
     syntax Patterns ::= findSubTermsByConstructorPs(KVar, Patterns) [function, functional]
     rule findSubTermsByConstructorPs(Ctor, P, Ps) => findSubTermsByConstructor(Ctor, P) +Patterns findSubTermsByConstructorPs(Ctor, Ps)
