@@ -27,6 +27,7 @@ module BOOGIE
                         <pp> .K </pp>
                         <currLabel> .Nothing:OptionalLabel </currLabel>
                         <currBlock> .StmtList </currBlock>
+                        <loopStack> .ExprList </loopStack>
                     </preprocess>
                     <types>
                       <type multiplicity="*" type="Map">
@@ -210,9 +211,6 @@ Function application is map lookup:
     rule <k> LHS:ValueExpr != RHS:ValueExpr => LHS =/=K RHS ... </k>
       requires notBool(isMapValue(LHS)      orBool isMapValue(RHS)
                    orBool isLambdaExpr(LHS) orBool isLambdaExpr(RHS))
-
-    rule <k> *:Expr => true  ... </k>
-    rule <k> *:Expr => false ... </k>
 
     rule <k> LHS <  RHS => LHS  <Int RHS ... </k>
     rule <k> LHS >  RHS => LHS  >Int RHS ... </k>
@@ -527,6 +525,69 @@ Assertions immediately after a cutpoint are considered part of the invariant:
          </pp>
 ```
 
+```k
+    syntax Label ::= done(Int)
+    syntax Label ::= condTrue(Int) | condFalse(Int)
+    rule if (_) _ (.Nothing => else { .StmtList }) [anywhere]
+    rule if (_) _ else (if (_) _ _ #as Else => { Else .StmtList }) [anywhere]
+    rule <pp> if (*) { BlockTrue } else { BlockFalse }
+           => goto condTrue(!I:Int), condFalse(!I:Int);
+              condTrue (!I): BlockTrue  ~> goto done(!I);
+              condFalse(!I): BlockFalse ~> goto done(!I);
+              done(!I) :
+              .StmtList
+             ...
+         </pp>
+         <loopStack> Stack => !I, Stack </loopStack>
+
+    rule <pp> if (Cond) { BlockTrue } else { BlockFalse }
+           => goto condTrue(!I:Int), condFalse(!I:Int);
+              condTrue (!I): assume .AttributeList   Cond; BlockTrue  ~> goto done(!I);
+              condFalse(!I): assume .AttributeList ! Cond; BlockFalse ~> goto done(!I);
+              done(!I) :
+              .StmtList
+             ...
+         </pp>
+         <loopStack> Stack => !I, Stack </loopStack>
+```
+
+```k
+    syntax Label ::= loopHead(Int) | loopBody(Int) | guardedDone(Int)
+    rule <pp> while (*) Invariants Body
+           => goto loopHead(!I:Int);
+              loopHead(!I): ~>
+                LoopInvariantListToStmtList(Invariants) ~>
+                goto loopBody(!I), done(!I); ~>
+              loopBody(!I): ~>
+                Body ~> goto loopHead(!I);
+              done(!I) :
+             ...
+         </pp>
+         <loopStack> Stack => !I, Stack </loopStack>
+    rule <pp> while (Cond) Invariants Body
+           => goto loopHead(!I:Int);
+              loopHead(!I): ~>
+                LoopInvariantListToStmtList(Invariants) ~>
+                goto loopBody(!I), guardedDone(!I); ~>
+              loopBody(!I): ~>
+                assume .AttributeList Cond ; ~>
+                Body ~> goto loopHead(!I);
+              guardedDone(!I):
+                assume .AttributeList ! Cond ; goto done(!I); ~>
+              done(!I) :
+              .StmtList
+             ...
+         </pp>
+         <loopStack> Stack => !I, Stack </loopStack>
+```
+
+```k
+    rule <pp> break ; => goto done(I); ... </pp>
+         <loopStack> I, _Stack </loopStack>
+    rule <pp> done(I) : ... </pp>
+         <loopStack> I, Stack => Stack </loopStack>
+```
+
 If no further preprocessing is needed, we accumulate the statements in `<currBlock>`:
 
 ```k
@@ -733,16 +794,7 @@ Non-deterministically transition to all labels
          <currImpl> Impl </currImpl>
          <implId>      Impl </implId>
     rule <k> goto _L, Ls ; => goto Ls ; ... </k>
-      requires Ls =/=K .IdList
-```
-
-```k
-    context  if (HOLE)  { _:StmtList } else { _:StmtList }:Stmt
-    // TODO: the LHS of the rewrite arrow was parsed as a StmtList,
-    // so needed the KItem to force the correct disabiguation.
-    // test2/BadLineNumber.bpl failed.
-    rule <k> (if (true)  { Ss:StmtList } else { _           }):KItem => Ss:StmtList ... </k>
-    rule <k> (if (false) { _           } else { Ss:StmtList }):KItem => Ss:StmtList ... </k>
+      requires Ls =/=K .LabelList
 ```
 
 Invariants

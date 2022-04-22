@@ -100,7 +100,6 @@ TODO: Signature should allow "returns" syntax
                   > Expr AndOp   Expr [left]
                   > Expr ImplOp  Expr [left]
                   > Expr EquivOp Expr [left]
-                  > "*"
     syntax LambdaExpr ::= "(" "lambda" IdsTypeList "::" Expr ")"
     syntax MapOp ::= "[" ExprList "]"             // Lookup
                    | "[" ExprList ":=" Expr "]"   // Update
@@ -183,11 +182,14 @@ This allows us to parse more restrictively, and still have more freedom in the s
     syntax StmtList ::= List{LabelOrStmt, ""} [klabel(StmtList)]
     syntax LabelOrStmt ::= Stmt | Label ":"
     syntax Label ::= Id
+    syntax LabelList ::= List{Label, ","} [klabel(LabelList)]
 ```
 
 ```k
     syntax Stmt [locations]
-    syntax Stmt ::= "goto" IdList ";"
+    syntax Stmt ::= "goto" LabelList ";"
+                  | "break" Id ";"
+                  | "break" ";"
                   | "return" ";"
                   | "assert" AttributeList Expr ";"
                   | "assume" AttributeList Expr ";"
@@ -195,7 +197,17 @@ This allows us to parse more restrictively, and still have more freedom in the s
                   | LhsList ":=" AssignRhs ";"
                   | "call" CallLhs Id "(" ExprList ")" ";"
                   | "call" Id "(" ExprList ")" ";"
-                  | "if" "(" Expr ")" "{" StmtList "}" "else" "{" StmtList "}"
+                  | IfStmt
+                  | "while" "(" WildcardExpr ")" LoopInvariantList BlockStmt
+
+    syntax WildcardExpr ::= "*" | Expr
+    syntax IfStmt       ::= "if" "(" WildcardExpr ")" BlockStmt OptionalElse
+    syntax OptionalElse ::= Nothing | "else" Else
+    syntax Else         ::= BlockStmt | IfStmt
+
+    syntax LoopInvariant ::= OptionalFree "invariant" AttributeList Expr ";"
+    syntax LoopInvariantList ::= List{LoopInvariant, ""} [klabel(LoopInvariantList)]
+
     syntax AssignRhs ::= ExprList
     syntax Lhs ::= Id | Lhs "[" ExprList "]"
     syntax LhsList ::= List{Lhs, ","} [klabel(LhsList)]

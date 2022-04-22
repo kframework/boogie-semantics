@@ -167,5 +167,12 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax Stmt ::= LoopInvariant
+    syntax StmtList ::= LoopInvariantListToStmtList(LoopInvariantList) [function, functional]
+    rule LoopInvariantListToStmtList(.LoopInvariantList) => .StmtList
+    rule LoopInvariantListToStmtList(Invariant Rest) => Invariant LoopInvariantListToStmtList(Rest)
+```
+
+```k
 endmodule
 ```
