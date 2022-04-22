@@ -50,7 +50,9 @@ module BOOGIE
                         <args> .IdsTypeWhereList </args>
                         <returns> .IdsTypeWhereList </returns>
                         <requires> true:Expr </requires>
+                        <freeRequires> true:Expr </freeRequires>
                         <ensures> true:Expr </ensures>
+                        <freeEnsures> true:Expr </freeEnsures>
                         <modifies> .IdList </modifies>
                         <impls>
                           <impl multiplicity="*" type="Map">
@@ -428,10 +430,16 @@ Split procedures with a body into a procedure and an implementation:
     rule <k> #populateProcedure(ProcedureName, .Nothing requires NewReq ; SpecList => SpecList) ... </k>
          <procName> ProcedureName </procName>
          <requires> Reqs => Reqs && NewReq </requires>
+    rule <k> #populateProcedure(ProcedureName, free requires NewRequires ; SpecList => SpecList) ... </k>
+         <procName> ProcedureName </procName>
+         <freeRequires> Requires => Requires && NewRequires </freeRequires>
 
     rule <k> #populateProcedure(ProcedureName, .Nothing ensures NewEnsures ; SpecList => SpecList) ... </k>
          <procName> ProcedureName </procName>
          <ensures> Ensures => Ensures && NewEnsures </ensures>
+    rule <k> #populateProcedure(ProcedureName, free ensures NewEnsures ; SpecList => SpecList) ... </k>
+         <procName> ProcedureName </procName>
+         <freeEnsures> Ensures => Ensures && NewEnsures </freeEnsures>
 
     rule <k> #populateProcedure(ProcedureName,  modifies Modifies ; SpecList => SpecList) ... </k>
          <procName> ProcedureName </procName>
@@ -619,7 +627,7 @@ In the case of the verification semantics, we verify all procedures:
     rule <k> #start
           => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
           ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
-          ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires)[IdsTypeWhereListToExprList(IArgs)] ;
+          ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires && FreeRequires)[IdsTypeWhereListToExprList(IArgs)] ;
           ~> goto $start;
          </k>
          (.CurrImplCell => <currImpl> N </currImpl>)
@@ -627,6 +635,7 @@ In the case of the verification semantics, we verify all procedures:
          <olds> .Map => Globals </olds>
          <args> PArgs </args>
          <requires> Requires </requires>
+         <freeRequires> FreeRequires </freeRequires>
          <impl>
             <implId> N </implId>
             <iargs> IArgs </iargs>
@@ -1009,7 +1018,7 @@ When returning, we first `assert` that the post condition holds:
                (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
           ~> freshen(X ++IdList Mods)
           ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
-                                         :: Ensures )
+                                         :: Ensures && FreeEnsures )
                                    [ ArgVals ++ExprList IdListToExprList(X) ] ;
              ...
          </k>
@@ -1018,6 +1027,7 @@ When returning, we first `assert` that the post condition holds:
          <returns> Rets </returns>
          <requires> Requires </requires>
          <ensures> Ensures </ensures>
+         <freeEnsures> FreeEnsures </freeEnsures>
          <modifies> Mods </modifies>
       requires isKResult(ArgVals)
 ```

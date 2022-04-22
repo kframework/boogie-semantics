@@ -1,7 +1,7 @@
 # Stuck because of unsatisfiable side condition in initial configuration (bug in K)
-# See: https://github.com/runtimeverification/haskell-backend/issues/3041
 test/verification/test2/Ensures.bpl
 test/verification/test2/Arrays.bpl
+test/verification/test2/Structured.bpl
 
 # Unimplemented
 # -------------
@@ -15,10 +15,8 @@ test/verification/test2/LambdaLifting.bpl
 # forall/exists/functions
 test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
 test/verification/test2/Quantifiers.bpl                      # Triggers
-test/verification/test2/Structured.bpl
 
 # free
-test/verification/test2/AssumeEnsures.bpl
 test/verification/test2/FreeCall.bpl
 
 test/verification/test2/LambdaOldExpressions.bpl             # Syntax for qunatifiers does not allow attributes
