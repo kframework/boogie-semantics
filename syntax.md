@@ -101,6 +101,9 @@ TODO: Signature should allow "returns" syntax
                   > Expr ImplOp  Expr [left]
                   > Expr EquivOp Expr [left]
     syntax LambdaExpr ::= "(" "lambda" IdsTypeList "::" Expr ")"
+                        | "(" "lambda" IdsTypeList "::" AttributeList Expr ")" [macro]
+    rule (lambda IdsTypeList :: _:AttributeList Expr ) => (lambda IdsTypeList :: Expr )
+
     syntax MapOp ::= "[" ExprList "]"             // Lookup
                    | "[" ExprList ":=" Expr "]"   // Update
 
