@@ -412,11 +412,9 @@ Split procedures with a body into a procedure and an implementation:
 ```
 
 ```k
-    syntax KItem ::= "#populateProcedure"
-    rule <k> (.K => #populateProcedure)
-          ~> procedure _:AttributeList ProcedureName _TypeArgs ( Args ) returns ( Rets ) ; _SpecList
-             ...
-         </k>
+    syntax KItem ::= "#populateProcedure" "(" Id "," SpecList ")"
+    rule <k> procedure _:AttributeList ProcedureName _TypeArgs ( Args ) returns ( Rets ) ; SpecList
+          => #populateProcedure(ProcedureName, SpecList) ... </k>
          <procs> .Bag =>
            <proc>
              <procName> ProcedureName </procName>
@@ -427,33 +425,19 @@ Split procedures with a body into a procedure and an implementation:
            ...
          </procs>
 
-    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
-             ; (.Nothing requires NewReq ; SpecList => SpecList)
-             ...
-         </k>
+    rule <k> #populateProcedure(ProcedureName, .Nothing requires NewReq ; SpecList => SpecList) ... </k>
          <procName> ProcedureName </procName>
          <requires> Reqs => Reqs && NewReq </requires>
 
-    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
-             ; (.Nothing ensures NewEnsures ; SpecList => SpecList)
-             ...
-         </k>
+    rule <k> #populateProcedure(ProcedureName, .Nothing ensures NewEnsures ; SpecList => SpecList) ... </k>
          <procName> ProcedureName </procName>
          <ensures> Ensures => Ensures && NewEnsures </ensures>
 
-    rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
-             ; (modifies Modifies ; SpecList => SpecList)
-             ...
-         </k>
+    rule <k> #populateProcedure(ProcedureName,  modifies Modifies ; SpecList => SpecList) ... </k>
          <procName> ProcedureName </procName>
          <modifies> .IdList => Modifies </modifies>
 
-    rule <k> ( #populateProcedure ~> procedure _:AttributeList _ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
-               ; .SpecList
-             )
-          => .K
-             ...
-         </k>
+    rule <k> #populateProcedure(_, .SpecList) => .K ... </k>
 ```
 
 ```k
