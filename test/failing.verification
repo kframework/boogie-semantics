@@ -19,8 +19,6 @@ test/verification/test2/Quantifiers.bpl                      # Triggers
 # free
 test/verification/test2/FreeCall.bpl
 
-test/verification/test2/LambdaOldExpressions.bpl             # Syntax for qunatifiers does not allow attributes
-
 # polymorphism
 test/verification/test2/BoundedTypeParameterQuantifier.bpl
 test/verification/test2/UpdateExpr.bpl

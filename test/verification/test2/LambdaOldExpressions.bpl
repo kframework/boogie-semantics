@@ -26,7 +26,7 @@ implementation p1()
 {
     b := !b;
     assert !(lambda x: bool :: old(b))[true];
-}
+return;}
 
 
 procedure p2();
