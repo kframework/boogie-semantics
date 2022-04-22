@@ -145,8 +145,8 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
                                                       , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
                      )                                )
           ~> koreExec( WorkingDir +String "/" +String Int2String(!J) +String "-false.kore"
-                       \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
-                                                      , \not {SortGeneratedTopCell{}} (\not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))))
+                     , \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
+                                                      , \exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))
                      )                                )
              ...
          </k>
