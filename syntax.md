@@ -198,6 +198,8 @@ This allows us to parse more restrictively, and still have more freedom in the s
                   | "assume" AttributeList Expr ";"
                   | "havoc" IdList ";"
                   | LhsList ":=" AssignRhs ";"
+                  | "free" "call" CallLhs Id "(" ExprList ")" ";"   // Note: We don't use OptionalFree here because that messes with line numbers
+                  | "free" "call" Id "(" ExprList ")" ";"           // Note: We don't use OptionalFree here because that messes with line numbers
                   | "call" CallLhs Id "(" ExprList ")" ";"
                   | "call" Id "(" ExprList ")" ";"
                   | IfStmt

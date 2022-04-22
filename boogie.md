@@ -1004,11 +1004,8 @@ When returning, we first `assert` that the post condition holds:
 -------------------
 
 ```k
-    rule <k> #location( call ProcedureName:Id(ArgVals) ;
-                     => call .IdList := ProcedureName:Id(ArgVals) ;
-                      , _, _, _, _, _):KItem
-             ...
-         </k>
+    rule <k> #location(     call ProcedureName:Id(ArgVals); =>      call .IdList := ProcedureName:Id(ArgVals) ; , _, _, _, _, _):KItem ... </k>
+    rule <k> #location(free call ProcedureName:Id(ArgVals); => free call .IdList := ProcedureName:Id(ArgVals) ; , _, _, _, _, _):KItem ... </k>
 ```
 
 ```verification
@@ -1026,6 +1023,27 @@ When returning, we first `assert` that the post condition holds:
          <args> Args </args>
          <returns> Rets </returns>
          <requires> Requires </requires>
+         <ensures> Ensures </ensures>
+         <freeEnsures> FreeEnsures </freeEnsures>
+         <modifies> Mods </modifies>
+      requires isKResult(ArgVals)
+```
+
+TODO: Can we remove this repetition?
+We don't use OptionalFree in the syntax of Call because parsing the empty token messes up the line numbering.
+
+```verification
+    context #location(free call _:IdList := _ProcedureName:Id(HOLE) ;, _, _, _, _, _)
+    rule <k> #location(free call X:IdList := ProcedureName:Id(ArgVals) ;, _, _, _, _, _):KItem
+          => freshen(X ++IdList Mods)
+          ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
+                                         :: Ensures && FreeEnsures )
+                                   [ ArgVals ++ExprList IdListToExprList(X) ] ;
+             ...
+         </k>
+         <procName> ProcedureName </procName>
+         <args> Args </args>
+         <returns> Rets </returns>
          <ensures> Ensures </ensures>
          <freeEnsures> FreeEnsures </freeEnsures>
          <modifies> Mods </modifies>

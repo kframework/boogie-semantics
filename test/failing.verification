@@ -12,14 +12,11 @@ test/verification/test2/Lambda.bpl
 # Equality (modulo alpha-renaming, contexts) between lambda
 test/verification/test2/LambdaLifting.bpl
 
-# forall/exists/functions
-test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
-test/verification/test2/Quantifiers.bpl                      # Triggers
-
-# free
-test/verification/test2/FreeCall.bpl
+# Triggers
+test/verification/test2/Quantifiers.bpl
 
 # polymorphism
+test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
 test/verification/test2/BoundedTypeParameterQuantifier.bpl
 test/verification/test2/UpdateExpr.bpl
 test/verification/test2/LambdaExt.bpl                        # Also, existentiality
