@@ -243,7 +243,7 @@ We treat `forall`s with multiple bindings as multiple foralls with single bindin
 Exists are desugared for forall. We cannot implement simply using K's `!` variables, because of quantifier alternation.
 
 ```k
-    rule ( exists IdsTypeList :: Trigger Expr ) => ! ( forall IdsTypeList :: Trigger ! Expr )
+    rule ( exists IdsTypeList :: Expr ) => ! ( forall IdsTypeList :: ! Expr )
 ````
 
 ```k
