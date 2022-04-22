@@ -48,16 +48,16 @@ module BOOGIE
                       <proc multiplicity="*" type="Map">
                         <procName> #token("ProcedureName", "Id") </procName>
                         <args> .IdsTypeWhereList </args>
-                        <rets> .IdsTypeWhereList </rets>
-                        <pres> true:Expr </pres>   // requires
-                        <posts> true:Expr </posts> // ensures
-                        <mods> .IdList </mods>   // modifies
+                        <returns> .IdsTypeWhereList </returns>
+                        <requires> true:Expr </requires>
+                        <ensures> true:Expr </ensures>
+                        <modifies> .IdList </modifies>
                         <impls>
                           <impl multiplicity="*" type="Map">
                             <implId> -1 </implId>
                             <labels> .Map </labels>
                             <iargs> .IdsTypeWhereList </iargs>
-                            <irets> .IdsTypeWhereList </irets>
+                            <ireturns> .IdsTypeWhereList </ireturns>
                             <vars>  .LocalVarDeclList </vars>
                           </impl>
                         </impls>
@@ -421,7 +421,7 @@ Split procedures with a body into a procedure and an implementation:
            <proc>
              <procName> ProcedureName </procName>
              <args> Args </args>
-             <rets> Rets </rets>
+             <returns> Rets </returns>
              ...
            </proc>
            ...
@@ -432,21 +432,21 @@ Split procedures with a body into a procedure and an implementation:
              ...
          </k>
          <procName> ProcedureName </procName>
-         <pres> Reqs => Reqs && NewReq </pres>
+         <requires> Reqs => Reqs && NewReq </requires>
 
     rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
              ; (.Nothing ensures NewEnsures ; SpecList => SpecList)
              ...
          </k>
          <procName> ProcedureName </procName>
-         <posts> Ensures => Ensures && NewEnsures </posts>
+         <ensures> Ensures => Ensures && NewEnsures </ensures>
 
     rule <k> #populateProcedure ~> procedure _:AttributeList ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
              ; (modifies Modifies ; SpecList => SpecList)
              ...
          </k>
          <procName> ProcedureName </procName>
-         <mods> .IdList => Modifies </mods>
+         <modifies> .IdList => Modifies </modifies>
 
     rule <k> ( #populateProcedure ~> procedure _:AttributeList _ProcedureName _TypeArgs ( _Args ) returns ( _Rets )
                ; .SpecList
@@ -466,7 +466,7 @@ Split procedures with a body into a procedure and an implementation:
               => <impl>
                    <implId> !N:Int </implId>
                    <iargs> IArgs </iargs>
-                   <irets> IRets </irets>
+                   <ireturns> IRets </ireturns>
                    <vars> VarDeclList </vars>
                    <labels> .Map </labels>
                  </impl>
@@ -642,11 +642,11 @@ In the case of the verification semantics, we verify all procedures:
          <globals> Globals </globals>
          <olds> .Map => Globals </olds>
          <args> PArgs </args>
-         <pres> Requires </pres>
+         <requires> Requires </requires>
          <impl>
             <implId> N </implId>
             <iargs> IArgs </iargs>
-            <irets> IRets </irets>
+            <ireturns> IRets </ireturns>
             <vars> VarDeclList </vars>
             ...
          </impl>
@@ -747,7 +747,7 @@ The location information is placed using K's `[locations]` annotation.
          <globals> X |-> value(... value: _ => V) ... </globals>
          <currImpl> CurrentImpl </currImpl>
          <implId> CurrentImpl </implId>
-         <mods> Modifies </mods>
+         <modifies> Modifies </modifies>
       requires notBool X in_keys(Env)
        andBool         X in Modifies
 
@@ -823,7 +823,7 @@ and replace modifiable variables with fresh symbolic values.
 ```k
     rule <k> #cutpoint(I) .LocationExprList ; => #generalize(envToIds(Rho) ++IdList Modifiable) ... </k>
          <locals> Rho </locals>
-         <mods> Modifiable </mods>
+         <modifies> Modifiable </modifies>
          <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
       requires notBool I in Cutpoints
 ```
@@ -990,11 +990,11 @@ When returning, we first `assert` that the post condition holds:
          </k>
          <currImpl> CurrentImpl </currImpl>
          <iargs> IArgs </iargs>
-         <irets> IRets </irets>
+         <ireturns> IRets </ireturns>
          <implId> CurrentImpl </implId>
-         <posts> Ensures </posts>
+         <ensures> Ensures </ensures>
          <args> PArgs </args>
-         <rets> PRets </rets>
+         <returns> PRets </returns>
 ```
 
 ```verification
@@ -1031,10 +1031,10 @@ When returning, we first `assert` that the post condition holds:
          </k>
          <procName> ProcedureName </procName>
          <args> Args </args>
-         <rets> Rets </rets>
-         <pres> Requires </pres>
-         <posts> Ensures </posts>
-         <mods> Mods </mods>
+         <returns> Rets </returns>
+         <requires> Requires </requires>
+         <ensures> Ensures </ensures>
+         <modifies> Mods </modifies>
       requires isKResult(ArgVals)
 ```
 
