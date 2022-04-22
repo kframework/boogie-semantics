@@ -125,8 +125,8 @@ We may sometimes need to alpha-rename the bound variable to enable this.
 We bring each branch to the front to allow them to be triaged.
 
 ```metak
-    rule <k> (forallResult(_, _) #as Curr) ~> (_:Pattern    #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
-    rule <k> (forallResult(_, _) #as Curr) ~> (koreExec(_)  #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
+    rule <k> (forallResult(_, _) #as Curr) ~> (_:Pattern       #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
+    rule <k> (forallResult(_, _) #as Curr) ~> (koreExec(_, _)  #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
 ```
 
 Finally, when all branch branches are fully reduced, we cool the result back into the original context,
@@ -140,15 +140,18 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
     syntax KItem ::= forallFreezer(kcellRest: Pattern, config: Pattern)
     rule <k> forallResult(V : QSort, E)
           ~> forallFreezer(Rest, Pgm)
-          => koreExec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
-                                                     , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
-                     )                               )
-          ~> koreExec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
-                                                     , \not {SortGeneratedTopCell{}} (\not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))))
-                     )                               )
+          => koreExec( WorkingDir +String "/" +String Int2String(!I) +String "-true.kore"
+                     , \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
+                                                      , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
+                     )                                )
+          ~> koreExec( WorkingDir +String "/" +String Int2String(!J) +String "-false.kore"
+                       \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
+                                                      , \not {SortGeneratedTopCell{}} (\not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))))
+                     )                                )
              ...
          </k>
          <freshVars> _:Patterns => .K ... </freshVars>
+         <workingDir> WorkingDir </workingDir>
 ```
 
 ```objectk

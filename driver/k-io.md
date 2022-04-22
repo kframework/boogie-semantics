@@ -20,6 +20,7 @@ module IO-NONFUNCTIONAL
     syntax KResult // Unused: TODO: Bug report
     syntax PreString ::= String
     syntax PreInt    ::= Int
+    syntax PreIOInt  ::= PreInt | IOInt
 ```
 
 ### `open`
@@ -52,7 +53,7 @@ Returns `.K` on success
 Returns `.K` or fails with `IOError`.
 
 ```k
-    syntax KItem ::= write(fd: IOInt, contents: String)
+    syntax KItem ::= write(fd: PreIOInt, contents: String) [seqstrict(1), result(Int)]
     rule write(Fd, Content) => #write(Fd, Content)
 ```
 
@@ -273,8 +274,10 @@ module K-FRONTEND
 
 ```k
     syntax PrePattern ::= koreExec(config: PrePattern)  [seqstrict(1), result(Pattern)]
+                        | koreExec(filename: String, config: PrePattern) [seqstrict(2), result(Pattern)] /* Write PrePattern to filename */
                         | koreExecFile(file: PreString) [seqstrict(1), result(String)]
     rule koreExec(Configuration) => koreExecFile(writeTempFile(unparsePattern(Configuration)))
+    rule koreExec(File, Configuration) => write(open(File, "w"), unparsePattern(Configuration)) ~> koreExecFile(File)
     rule koreExecFile(File)
       => parse( system("kore-exec .build/defn/verification/boogie-kompiled/definition.kore" +String
                            " --module BOOGIE-QUANTIFIERS" +String
