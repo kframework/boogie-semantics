@@ -583,12 +583,14 @@ Assertions immediately after a cutpoint are considered part of the invariant:
          <loopStack> Stack => !I, Stack </loopStack>
 ```
 
+Loops are similarly desugared to `goto`s, with the invariants desugared to cutpoints:
+
 ```k
     syntax Label ::= loopHead(Int) | loopBody(Int) | guardedDone(Int)
-    rule <pp> while (*) Invariants Body
+    rule <pp> while (*) Invariants { Body }
            => goto loopHead(!I:Int);
               loopHead(!I): ~>
-                LoopInvariantListToStmtList(Invariants) ~>
+                #cutpoint(!I) LoopInvariantListToCutpointExprs(Invariants) ; ~>
                 goto loopBody(!I), done(!I); ~>
               loopBody(!I): ~>
                 Body ~> goto loopHead(!I);
@@ -596,10 +598,10 @@ Assertions immediately after a cutpoint are considered part of the invariant:
              ...
          </pp>
          <loopStack> Stack => !I, Stack </loopStack>
-    rule <pp> while (Cond) Invariants Body
+    rule <pp> while (Cond) Invariants { Body }
            => goto loopHead(!I:Int);
               loopHead(!I): ~>
-                LoopInvariantListToStmtList(Invariants) ~>
+                #cutpoint(!I) LoopInvariantListToCutpointExprs(Invariants) ; ~>
                 goto loopBody(!I), guardedDone(!I); ~>
               loopBody(!I): ~>
                 assume .AttributeList Cond ; ~>
@@ -612,6 +614,23 @@ Assertions immediately after a cutpoint are considered part of the invariant:
          </pp>
          <loopStack> Stack => !I, Stack </loopStack>
 ```
+
+```k
+    syntax LoopInvariant ::= #loopLocation(LoopInvariant, String, Int, Int, Int, Int) [klabel(#loopLocation), symbol]
+    syntax LocationExprList ::= LoopInvariantListToCutpointExprs(LoopInvariantList) [function]
+    rule LoopInvariantListToCutpointExprs(.LoopInvariantList) => .LocationExprList
+    rule LoopInvariantListToCutpointExprs(#loopLocation(invariant _ Expr;, File, Line, Col, _, _) Rest)
+      => {File, Line, Col} Expr, LoopInvariantListToCutpointExprs(Rest)
+    rule LoopInvariantListToCutpointExprs(free invariant _ _; Rest) => LoopInvariantListToCutpointExprs(Rest)
+
+    syntax StmtList ::= LoopInvariantListToFreeAssumes(LoopInvariantList) [function]
+    rule LoopInvariantListToFreeAssumes(#loopLocation(invariant _ _;, _, _, _, _, _) Rest)
+      => LoopInvariantListToFreeAssumes(Rest)
+    rule LoopInvariantListToFreeAssumes(free invariant _ Expr; Rest)
+      => assume .AttributeList Expr; LoopInvariantListToFreeAssumes(Rest)
+
+```
+
 
 ```k
     rule <pp> break ; => goto done(I); ... </pp>
@@ -1024,12 +1043,6 @@ When returning, we first `assert` that the post condition holds:
          <args> PArgs </args>
          <returns> PRets </returns>
 ```
-
-9.7 If statements
------------------
-
-9.8 While loops
----------------
 
 9.9 Call statements
 -------------------

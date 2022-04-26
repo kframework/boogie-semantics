@@ -5,7 +5,6 @@ actual=$1; shift
 expected=$1; shift
 [[ $# -eq 0 ]] || { echo 'Too many arguments'; exit 1 ; }
 
-diff --color <(grep '==== failure' $actual | sed -e 's/^==== failure: [a-zA-Z0-9\/]*\.bpl//g' \
-                                           | sort) \
-             <(grep Error $expected        | sed -e 's/^[a-zA-Z0-9\/]*\.bpl//g' \
-                                           | sort)
+filename_regex='[a-zA-Z0-9\/-]*'
+diff --color <(grep '==== failure' $actual | sed -e "s/^==== failure: $filename_regex\.bpl//g" | sort) \
+             <(grep Error $expected        | sed -e "s/^$filename_regex\.bpl//g"               | sort)

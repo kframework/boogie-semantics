@@ -210,7 +210,9 @@ This allows us to parse more restrictively, and still have more freedom in the s
     syntax OptionalElse ::= Nothing | "else" Else
     syntax Else         ::= BlockStmt | IfStmt
 
-    syntax LoopInvariant ::= OptionalFree "invariant" AttributeList Expr ";"
+    syntax LoopInvariant [locations]
+    syntax LoopInvariant ::= "invariant" AttributeList Expr ";"
+                           | "free" "invariant" AttributeList Expr ";"
     syntax LoopInvariantList ::= List{LoopInvariant, ""} [klabel(LoopInvariantList)]
 
     syntax AssignRhs ::= ExprList
