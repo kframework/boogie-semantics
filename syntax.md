@@ -199,9 +199,9 @@ This allows us to parse more restrictively, and still have more freedom in the s
                   | "havoc" IdList ";"
                   | LhsList ":=" AssignRhs ";"
                   | "free" "call" CallLhs Id "(" ExprList ")" ";"   // Note: We don't use OptionalFree here because that messes with line numbers
-                  | "free" "call" Id "(" ExprList ")" ";"           // Note: We don't use OptionalFree here because that messes with line numbers
-                  | "call" CallLhs Id "(" ExprList ")" ";"
-                  | "call" Id "(" ExprList ")" ";"
+                  |        "call" CallLhs Id "(" ExprList ")" ";"
+                  | "free" "call"         Id "(" ExprList ")" ";"
+                  |        "call"         Id "(" ExprList ")" ";"
                   | IfStmt
                   | "while" "(" WildcardExpr ")" LoopInvariantList BlockStmt
 
@@ -218,6 +218,7 @@ This allows us to parse more restrictively, and still have more freedom in the s
     syntax LhsList ::= List{Lhs, ","} [klabel(LhsList)]
     syntax BlockStmt ::= "{" StmtList "}"
     syntax CallLhs ::= IdList ":="
+    syntax OptionalCallLhs ::= Nothing | CallLhs
 ```
 
 11 Tool directives

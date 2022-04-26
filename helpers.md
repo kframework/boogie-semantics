@@ -155,7 +155,8 @@ module BOOGIE-HELPERS
 
 ```k
     syntax LocationExprList ::= List{LocationExpr, ","} [klabel(LocationExprList)]
-    syntax LocationExpr ::= "{" String "," Int "," Int "}" Expr
+    syntax Location ::= "{" String "," Int "," Int "}"
+    syntax LocationExpr ::= Location Expr
 
     syntax LocationExprList ::= LocationExprList "++LocationExprList" LocationExprList [function, functional, left, avoid]
     rule (E1, E1s) ++LocationExprList E2s => E1, (E1s ++LocationExprList E2s)

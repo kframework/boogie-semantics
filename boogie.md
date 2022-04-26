@@ -468,6 +468,50 @@ Split procedures with a body into a procedure and an implementation:
           (.PreprocessCell => <preprocess> <pp> #addStartLabel(StmtList) </pp> ... </preprocess> )
 ```
 
+Preprocessing
+-------------
+
+### Location Information
+
+```k
+    syntax Stmt ::= #location(Stmt, String, Int, Int, Int, Int) [symbol, function]
+```
+
+```k
+    syntax Id ::= "inferred" [token]
+    syntax Stmt ::= "#cutpoint" LocationExprList ";"
+    rule #location(assert { :inferred .AttrArgList } Inferred  ;, File, Line, Col, _, _)
+      => #cutpoint { File, Line, Col } Inferred ;
+```
+
+Other assertions are simply annotated with their location information:
+
+```k
+    rule #location(assert _ Expr  ;, File, Line, Col, _, _)
+      => #assert {File, Line, Col} Expr ; [priority(51)]
+```
+
+Using `OptionalFree` at the begining of a production in the main syntax messes up line numbering.
+
+```k
+    rule #location(     call CallLhs ProcId(Args);, File, Line, Col, _, _) => #call {File,Line,Col} .Nothing CallLhs  ProcId(Args);
+    rule #location(free call CallLhs ProcId(Args);, File, Line, Col, _, _) => #call {File,Line,Col} free     CallLhs  ProcId(Args);
+    rule #location(     call         ProcId(Args);, File, Line, Col, _, _) => #call {File,Line,Col} .Nothing .Nothing ProcId(Args);
+    rule #location(free call         ProcId(Args);, File, Line, Col, _, _) => #call {File,Line,Col} free     .Nothing ProcId(Args);
+```
+
+```k
+    rule #location(return ;, File, Line, Col, _, _) => #return {File, Line, Col} ;
+```
+
+Other statements don't need location information:
+
+```k
+    rule #location(Stmt, _File, _StartLine, _StartCol, _EndLine, _EndCol) => Stmt [priority(52)]
+```
+
+### Converting complex control structures to `goto`s
+
 `#preprocess` splits an implementation body into labeled blocks,
 populates the `<labels>` cell with a map from labels to their bodies.
 It also desugars `while` loops and `if` statements into `goto` statements
@@ -497,22 +541,18 @@ We preprocess each statement one at a time, and finish preprocessing once all st
          <k> #preprocess => .K ... </k>
 ```
 
-We use `boogie` to infer invaraints and cutpoints.
+Each cutpoint statement is given an numeric identifier allowing us to distinguish them.
 
 ```k
     syntax Stmt ::= "#cutpoint" "(" Int ")" LocationExprList ";"
-    syntax Id ::= "inferred" [token]
-    rule <pp> #location(assert { :inferred .AttrArgList } Inferred  ;, File, Line, Col, _, _)
-           => #cutpoint(!_:Int) { File, Line, Col } Inferred ;
-              ...
-         </pp>
+    rule <pp> #cutpoint Invariants ; => #cutpoint(!_:Int) Invariants ; ... </pp>
 ```
 
 Assertions immediately after a cutpoint are considered part of the invariant:
 
 ```k
-    rule <pp> #cutpoint (_) (Invariants => Invariants ++LocationExprList { File, Line, Col } Expr) ;
-           ~> (#location(assert _ Expr ;, File, Line, Col, _, _) S2s => S2s)
+    rule <pp> #cutpoint (_) ( Invariants => Invariants ++LocationExprList { File, Line, Col } Expr ) ;
+           ~> (#assert{File, Line, Col} Expr ; S2s => S2s)
              ...
          </pp>
 ```
@@ -682,32 +722,28 @@ In the case of the verification semantics, we verify all procedures:
 9.2 Assertions and assumptions
 ------------------------------
 
-We annotate assertions with location and type information.
-The location information is placed using K's `[locations]` annotation.
-(Note: We use a hack in [driver/driver] to get this to work with the Haskell backend)
-
 ```k
-    rule <k> #location(assert _ Expr; , File, StartLine, StartCol, _EndLine, _EndCol):KItem
-          => #assert(File, StartLine, StartCol, "Error BP5001: This assertion might not hold.") Expr ;
-             ...
-         </k>
-    rule <k> #location(Stmt, _File, _StartLine, _StartCol, _EndLine, _EndCol):KItem
-          => Stmt
-             ...
-         </k> [owise]
+    syntax Stmt ::= "#assert" Location Expr ";"
+                  | "#assert" message: String Expr ";"
 ```
 
 ```k
-    syntax Stmt ::= #location(Stmt, String, Int, Int, Int, Int) [symbol]
-    syntax KItem ::= "#failure" "(" String ")" [klabel(#failure), symbol]
-    syntax Stmt ::= "#assert" "("file: String "," line: Int "," col: Int "," message: String ")" Expr  ";"
-    context  #assert(_, _, _, _) HOLE ;
-    rule <k> #assert(_, _, _, _) true ; => .K ... </k>
-    rule <k> #assert(File, Line, Col, Message) false ;
-          => #failure(File +String "(" +String Int2String(Line) +String
-                                   "," +String Int2String(Col) +String "): " +String Message)
+    syntax String ::= #makeAssertionMessage(Location, errorCode: String, errorMessage: String) [function, functional]
+    rule #makeAssertionMessage({File, Line, Column}, Code, Message)
+      => File +String "(" +String Int2String(Line) +String "," +String Int2String(Column) +String "): "
+         +String "Error " +String Code +String ": " +String Message
+```
+
+```k
+    rule <k> #assert Location Expr; =>
+             #assert #makeAssertionMessage(Location, "BP5001", "This assertion might not hold.") Expr;
              ...
          </k>
+
+    syntax KItem ::= "#failure" "(" String ")" [klabel(#failure), symbol]
+    context  #assert _:String HOLE ;
+    rule <k> #assert _:String true ; => .K ... </k>
+    rule <k> #assert Message false ; => #failure(Message) ... </k>
 ```
 
 ```k
@@ -797,13 +833,13 @@ A cutpoint's invariants must evaluate to true before it is reached.
 We may also assume they hold after.
 
 ```verification
-    syntax String ::= makeAssertionMessage(Bool) [function]
-    rule makeAssertionMessage(true)   => "Error BP5005: This loop invariant might not be maintained by the loop."
-    rule makeAssertionMessage(false)  => "Error BP5004: This loop invariant might not hold on entry."
-
-    rule <k> #cutpoint(I) { File, Line, Col } Inv, LocExprs ;:KItem
-          => #assert(File, Line, Col, makeAssertionMessage(I in Cutpoints)) Inv ;
-             #cutpoint(I)                          LocExprs ;
+    rule <k> #cutpoint(I) Location Inv, LocExprs ;:KItem
+          => #assert #if I in Cutpoints
+                     #then #makeAssertionMessage(Location, "BP5005", "This loop invariant might not be maintained by the loop.")
+                     #else #makeAssertionMessage(Location, "BP5004", "This loop invariant might not hold on entry.")
+                     #fi
+                     Inv ;
+             #cutpoint(I) LocExprs ;
              assume .AttributeList Inv ;
              ...
          </k>
@@ -972,13 +1008,12 @@ procedure P()
 When returning, we first `assert` that the post condition holds:
 
 ```k
-    syntax Stmt ::= "#return" ExprList ";"
-    rule <k> #location(return ;, File, Line, Col, _, _):KItem
-          => #assert (File, Line, Col, "Error BP5003: A postcondition might not hold on this return path.")
-                   (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
-                        :: Ensures
-                   ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
-             #return IdsTypeWhereListToExprList(IRets) ;
+    syntax Stmt ::= "#return" Location ";"
+    rule <k> #return Location ;:KItem
+          => #assert #makeAssertionMessage(Location, "BP5003", "A postcondition might not hold on this return path.")
+                     (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
+                          :: Ensures
+                     ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
              ...
          </k>
          <currImpl> CurrentImpl </currImpl>
@@ -988,10 +1023,6 @@ When returning, we first `assert` that the post condition holds:
          <ensures> Ensures </ensures>
          <args> PArgs </args>
          <returns> PRets </returns>
-```
-
-```verification
-    rule <k> (#return _ ; ~> _:K) => .K </k>
 ```
 
 9.7 If statements
@@ -1004,15 +1035,18 @@ When returning, we first `assert` that the post condition holds:
 -------------------
 
 ```k
-    rule <k> #location(     call ProcedureName:Id(ArgVals); =>      call .IdList := ProcedureName:Id(ArgVals) ; , _, _, _, _, _):KItem ... </k>
-    rule <k> #location(free call ProcedureName:Id(ArgVals); => free call .IdList := ProcedureName:Id(ArgVals) ; , _, _, _, _, _):KItem ... </k>
+    syntax Stmt ::= "#call" Location OptionalFree OptionalCallLhs Id "(" ExprList ")" ";"
+    rule <k> #call _:Location _:OptionalFree (.Nothing => .IdList :=) _:Id(_:ExprList) ; ... </k>
 ```
 
 ```verification
-    context #location(call _:IdList := _ProcedureName:Id(HOLE) ;, _, _, _, _, _)
-    rule <k> #location(call X:IdList := ProcedureName:Id(ArgVals) ;, File, Line, Col, _, _):KItem
-          => #assert(File, Line, Col, "Error BP5002: A precondition for this call might not hold.")
-               (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
+    context #call _Loc _OptFree _:IdList := _ProcedureName:Id(HOLE) ;
+    rule <k> #call Location OptFree X:IdList := ProcedureName:Id(ArgVals);:KItem
+          => #if OptFree ==K .Nothing
+             #then #assert #makeAssertionMessage(Location, "BP5002", "A precondition for this call might not hold.")
+                           (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
+             #else .K
+             #fi
           ~> freshen(X ++IdList Mods)
           ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
                                          :: Ensures && FreeEnsures )
@@ -1023,27 +1057,6 @@ When returning, we first `assert` that the post condition holds:
          <args> Args </args>
          <returns> Rets </returns>
          <requires> Requires </requires>
-         <ensures> Ensures </ensures>
-         <freeEnsures> FreeEnsures </freeEnsures>
-         <modifies> Mods </modifies>
-      requires isKResult(ArgVals)
-```
-
-TODO: Can we remove this repetition?
-We don't use OptionalFree in the syntax of Call because parsing the empty token messes up the line numbering.
-
-```verification
-    context #location(free call _:IdList := _ProcedureName:Id(HOLE) ;, _, _, _, _, _)
-    rule <k> #location(free call X:IdList := ProcedureName:Id(ArgVals) ;, _, _, _, _, _):KItem
-          => freshen(X ++IdList Mods)
-          ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
-                                         :: Ensures && FreeEnsures )
-                                   [ ArgVals ++ExprList IdListToExprList(X) ] ;
-             ...
-         </k>
-         <procName> ProcedureName </procName>
-         <args> Args </args>
-         <returns> Rets </returns>
          <ensures> Ensures </ensures>
          <freeEnsures> FreeEnsures </freeEnsures>
          <modifies> Mods </modifies>
