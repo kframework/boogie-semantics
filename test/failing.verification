@@ -1,4 +1,5 @@
 # Stuck because of unsatisfiable side condition in initial configuration (bug in K)
+# See: https://github.com/runtimeverification/haskell-backend/issues/3041
 test/verification/test2/Ensures.bpl
 test/verification/test2/Arrays.bpl
 test/verification/test2/Structured.bpl
@@ -12,11 +13,11 @@ test/verification/test2/Lambda.bpl
 # Equality (modulo alpha-renaming, contexts) between lambda
 test/verification/test2/LambdaLifting.bpl
 
-# Triggers
-test/verification/test2/Quantifiers.bpl
+# forall/exists/functions
+test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
+test/verification/test2/Quantifiers.bpl                      # Triggers
 
 # polymorphism
-test/verification/test2/NullaryMaps.bpl                      # Also, polymorphism
 test/verification/test2/BoundedTypeParameterQuantifier.bpl
 test/verification/test2/UpdateExpr.bpl
 test/verification/test2/LambdaExt.bpl                        # Also, existentiality
