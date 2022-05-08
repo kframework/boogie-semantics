@@ -65,7 +65,7 @@ i.e. a `forall` encountered along one program path must be evaulated separately 
 ```metak
     rule <k> triage(kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinder  { .Sorts } ( V, E )), Rest) , Pgm)
           => koreExec(setKCell(Pgm, kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated  { .Sorts } ( V, E )), dotk { .Sorts }(.Patterns))))
-          ~> forallFreezer(Rest, Pgm)
+          ~> forallContext(Rest, Pgm)
              ...
          </k>
          <freshVars> .K => getFreshVars(Pgm) ... </freshVars>
@@ -137,9 +137,9 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
 ```
 
 ```metak
-    syntax KItem ::= forallFreezer(kcellRest: Pattern, config: Pattern)
+    syntax KItem ::= forallContext(kcellRest: Pattern, config: Pattern)
     rule <k> forallResult(V : QSort, E)
-          ~> forallFreezer(Rest, Pgm)
+          ~> forallContext(Rest, Pgm)
           => koreExec( WorkingDir +String "/" +String Int2String(!_I) +String "-true.kore"
                      , \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
                                                       , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
