@@ -140,11 +140,11 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
     syntax KItem ::= forallFreezer(kcellRest: Pattern, config: Pattern)
     rule <k> forallResult(V : QSort, E)
           ~> forallFreezer(Rest, Pgm)
-          => koreExec( WorkingDir +String "/" +String Int2String(!I) +String "-true.kore"
+          => koreExec( WorkingDir +String "/" +String Int2String(!_I) +String "-true.kore"
                      , \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
                                                       , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
                      )                                )
-          ~> koreExec( WorkingDir +String "/" +String Int2String(!J) +String "-false.kore"
+          ~> koreExec( WorkingDir +String "/" +String Int2String(!_J) +String "-false.kore"
                      , \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
                                                       , \exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))
                      )                                )
