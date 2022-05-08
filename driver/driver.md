@@ -1,5 +1,6 @@
 ```metak
 requires "k-io.md"
+requires "kore.md"
 requires "../quantification.md"
 requires "substitution.md"
 ```
