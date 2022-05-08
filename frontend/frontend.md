@@ -9,7 +9,7 @@ Plumbing
 ========
 
 ```metak
-module DRIVER-HELPERS
+module BOOGIE-FRONTEND-HELPERS
     imports KORE
     imports KORE-UNPARSE
     imports KORE-UTILITIES
@@ -101,8 +101,8 @@ endmodule
 ```
 
 ```metak
-module DRIVER
-    imports DRIVER-HELPERS
+module BOOGIE-FRONTEND
+    imports BOOGIE-FRONTEND-HELPERS
     imports BOOGIE-QUANTIFIERS-META
     imports K-FRONTEND
 ```

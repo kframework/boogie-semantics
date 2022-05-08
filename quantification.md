@@ -43,7 +43,7 @@ one, a meta-definition (code-blocks tagged with `metak`),
 
 ```metak
 module BOOGIE-QUANTIFIERS-META
-    imports DRIVER-HELPERS
+    imports BOOGIE-FRONTEND-HELPERS
     imports K-FRONTEND
 ```
 

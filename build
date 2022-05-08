@@ -34,16 +34,16 @@ verification = build('verification')
 # Tests
 # =====
  
-driver = proj.definition( alias         = 'driver'
-                        , main          = 'driver/driver.md'
-                        , other         = ['driver/k-io.md', 'driver/kore.md', 'quantification.md']
-                        , backend       = 'llvm'
-                        , flags         = '--md-selector "k | metak" -ccopt -g -ccopt -O0 --gen-bison-parser --syntax-module KORE-SYNTAX'
-                        )
+frontend = proj.definition( alias         = 'frontend'
+                          , main          = 'frontend/frontend.md'
+                          , other         = ['frontend/k-io.md', 'frontend/kore.md', 'quantification.md']
+                          , backend       = 'llvm'
+                          , flags         = '--main-module BOOGIE-FRONTEND --md-selector "k | metak" -ccopt -g -ccopt -O0 --gen-bison-parser --syntax-module KORE-SYNTAX'
+                          )
 
 kboogie_rule      = proj.rule( 'kboogie'
                              , description = 'kboogie: $in'
-                             , command = './driver/driver "$in" > "$out"'
+                             , command = './frontend/frontend "$in" > "$out"'
                              , ext = verification._alias
                              )
 kboogie_diff_rule = proj.rule( 'diff-kboogie'
@@ -53,7 +53,7 @@ kboogie_diff_rule = proj.rule( 'diff-kboogie'
                              )
 
 def kboogie(input):
-    implicit_deps = [verification.target, driver.target , *glob('driver/*')]
+    implicit_deps = [verification.target, frontend.target , *glob('frontend/*')]
     kboogie_out = proj.source(input).then(kboogie_rule.implicit(list(implicit_deps)))
     ret = kboogie_out.then(kboogie_diff_rule.variable('expected', input + '.expect'))
     proj.alias(input + '.' + verification._alias, [ret])
