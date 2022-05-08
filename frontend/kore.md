@@ -165,7 +165,7 @@ module K-FRONTEND
 
 ```k
     syntax PrePattern ::= parse(input: PreString)
-    rule parse(Input) =>  parse(Input, ".build/defn//driver/driver-kompiled/parser_Pattern_KORE-SYNTAX")
+    rule parse(Input) =>  parse(Input, ".build/defn/frontend/frontend-kompiled/parser_Pattern_KORE-SYNTAX")
 ```
 
 `kore-exec`
