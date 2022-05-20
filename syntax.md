@@ -85,9 +85,9 @@ TODO: Signature should allow "returns" syntax
                   | Id "(" ExprList ")" // function application
                   | "(" Expr ")" [bracket]
                   | old(Expr)
-                  | "(" "forall" IdsTypeList "::" Expr ")"
-                  | "(" "exists" IdsTypeList "::" Expr ")"
-                  | "(" "forall" IdsTypeList "::" TriggerList Expr ")" [avoid]
+                  | "(" "forall" IdsTypeList "::" Expr ")" [macro-rec]
+                  | "(" "exists" IdsTypeList "::" Expr ")" [macro]
+                  | "(" "forall" IdsTypeList "::" TriggerList Expr ")" [avoid, macro]
                   | "(" "#forall" Id ":" Type "::" Expr ")" [klabel(forall), symbol] // TODO: This shouldn't be public
                   | LambdaExpr
                   | "if" Expr "then" Expr "else" Expr // TODO: deal with ambiguities for nested ITEs
@@ -100,8 +100,10 @@ TODO: Signature should allow "returns" syntax
                   > Expr AndOp   Expr [left]
                   > Expr ImplOp  Expr [left]
                   > Expr EquivOp Expr [left]
-                  > "*"
     syntax LambdaExpr ::= "(" "lambda" IdsTypeList "::" Expr ")"
+                        | "(" "lambda" IdsTypeList "::" AttributeList Expr ")" [macro]
+    rule (lambda IdsTypeList :: _:AttributeList Expr ) => (lambda IdsTypeList :: Expr )
+
     syntax MapOp ::= "[" ExprList "]"             // Lookup
                    | "[" ExprList ":=" Expr "]"   // Update
 
@@ -181,26 +183,44 @@ This allows us to parse more restrictively, and still have more freedom in the s
 
 ```k
     syntax StmtList ::= List{LabelOrStmt, ""} [klabel(StmtList)]
-    syntax LabelOrStmt ::= Stmt | Label
-    syntax Label ::= Id ":"
+    syntax LabelOrStmt ::= Stmt | Label ":"
+    syntax Label ::= Id
+    syntax LabelList ::= List{Label, ","} [klabel(LabelList)]
 ```
 
 ```k
     syntax Stmt [locations]
-    syntax Stmt ::= "goto" IdList ";"
+    syntax Stmt ::= "goto" LabelList ";"
+                  | "break" Id ";"
+                  | "break" ";"
                   | "return" ";"
                   | "assert" AttributeList Expr ";"
                   | "assume" AttributeList Expr ";"
                   | "havoc" IdList ";"
                   | LhsList ":=" AssignRhs ";"
-                  | "call" CallLhs Id "(" ExprList ")" ";"
-                  | "call" Id "(" ExprList ")" ";"
-                  | "if" "(" Expr ")" "{" StmtList "}" "else" "{" StmtList "}"
+                  | "free" "call" CallLhs Id "(" ExprList ")" ";"   // Note: We don't use OptionalFree here because that messes with line numbers
+                  |        "call" CallLhs Id "(" ExprList ")" ";"
+                  | "free" "call"         Id "(" ExprList ")" ";"
+                  |        "call"         Id "(" ExprList ")" ";"
+                  | IfStmt
+                  | "while" "(" WildcardExpr ")" LoopInvariantList BlockStmt
+
+    syntax WildcardExpr ::= "*" | Expr
+    syntax IfStmt       ::= "if" "(" WildcardExpr ")" BlockStmt OptionalElse
+    syntax OptionalElse ::= Nothing | "else" Else
+    syntax Else         ::= BlockStmt | IfStmt
+
+    syntax LoopInvariant [locations]
+    syntax LoopInvariant ::= "invariant" AttributeList Expr ";"
+                           | "free" "invariant" AttributeList Expr ";"
+    syntax LoopInvariantList ::= List{LoopInvariant, ""} [klabel(LoopInvariantList)]
+
     syntax AssignRhs ::= ExprList
     syntax Lhs ::= Id | Lhs "[" ExprList "]"
     syntax LhsList ::= List{Lhs, ","} [klabel(LhsList)]
     syntax BlockStmt ::= "{" StmtList "}"
     syntax CallLhs ::= IdList ":="
+    syntax OptionalCallLhs ::= Nothing | CallLhs
 ```
 
 11 Tool directives
@@ -220,18 +240,18 @@ Quantifiers
 We treat `forall`s with multiple bindings as multiple foralls with single bindings, and ignore triggers for now.
 
 ```k
-    rule ( forall IdsTypeList :: _:Trigger Expr ) => ( forall IdsTypeList :: Expr ) [macro]
+    rule ( forall IdsTypeList :: _:Trigger Expr ) => ( forall IdsTypeList :: Expr )
 
-    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) ) [macro-rec]
-    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) ) [macro-rec]
-    rule ( forall .IdList : T, IdsTypeList :: Expr ) => ( forall IdsTypeList :: Expr ) [macro-rec]
-    rule ( forall             .IdsTypeList :: Expr ) => Expr [macro-rec]
+    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) )
+    rule ( forall X, Xs : T,   IdsTypeList :: Expr ) => ( #forall X : T :: ( forall Xs : T, IdsTypeList :: Expr ) )
+    rule ( forall .IdList : _, IdsTypeList :: Expr ) => ( forall IdsTypeList :: Expr )
+    rule ( forall             .IdsTypeList :: Expr ) => Expr
 ```
 
-Exists are desugared for forall. We cannot implement simply use K's `!` variables, because of quantifier alternation.
+Exists are desugared for forall. We cannot implement simply using K's `!` variables, because of quantifier alternation.
 
 ```k
-    rule ( exists IdsTypeList :: Trigger Expr ) => ! ( forall IdsTypeList :: Trigger ! Expr ) [macro]
+    rule ( exists IdsTypeList :: Expr ) => ! ( forall IdsTypeList :: ! Expr )
 ````
 
 ```k

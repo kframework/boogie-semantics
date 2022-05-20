@@ -8,7 +8,7 @@ We'd like a semantics for `forall` that works as follows:
     rule (forall X : T :: E) => true requires "E reaches true on all paths for all evaluations of `X` in `inhabitants(T)`"
     ```
 
-2.  `(forall-false)`: If the expression reduces to $\false$ on *any* path, the `forall` reduces to $\false$: 
+2.  `(forall-false)`: If the expression reduces to $\false$ on *any* path, the `forall` reduces to $\false$:
 
     in K:
 
@@ -17,7 +17,7 @@ We'd like a semantics for `forall` that works as follows:
     ```
 
 Note that `(forall-true)` and `(forall-false)` are not mutually exclusive.
-Since Reachability Logic claims hold vacuously on infinite traces, they may both hold. 
+Since Reachability Logic claims hold vacuously on infinite traces, they may both hold.
 
 ## Implementation
 
@@ -43,7 +43,7 @@ one, a meta-definition (code-blocks tagged with `metak`),
 
 ```metak
 module BOOGIE-QUANTIFIERS-META
-    imports DRIVER-HELPERS
+    imports BOOGIE-FRONTEND-HELPERS
     imports K-FRONTEND
 ```
 
@@ -64,8 +64,9 @@ i.e. a `forall` encountered along one program path must be evaulated separately 
 
 ```metak
     rule <k> triage(kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinder  { .Sorts } ( V, E )), Rest) , Pgm)
-          => koreExec(setKCell(Pgm, kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated  { .Sorts } ( V, E )), dotk { .Sorts }(.Patterns))))
-          ~> forallFreezer(Rest, Pgm)
+          => print("Evaluating quantifier:") ~> prettyPrint(V) ~> prettyPrint(E)
+          ~> koreExec(setKCell(Pgm, kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated  { .Sorts } ( V, E )), dotk { .Sorts }(.Patterns))))
+          ~> forallContext(Rest, Pgm)
              ...
          </k>
          <freshVars> .K => getFreshVars(Pgm) ... </freshVars>
@@ -75,20 +76,36 @@ The evaluation of the quantified expression results in a disjunction of configur
 
 ```metak
     syntax KItem ::= forallResult(Pattern, Pattern)
-    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { QSort, SortValueExpr{} } ( V : QSort ), inj{SortBool{},SortExpr{}}(E))),dotk { .Sorts }(.Patterns)),\and{_}(C,PathConditions))
-          => forallResult( V : QSort
-                         , \or { SortGeneratedTopCell {}}
-                               ( \not {SortGeneratedTopCell{}}( makePathConditions(PathConditions, FreshVarsOrig, getFreshVars(C)) )
+    rule <k> triage( kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts } (inj { QSort, SortValueExpr{} } ( V : QSort ), inj{SortBool{},SortExpr{}}(E))),dotk { .Sorts }(.Patterns))
+                   , C
+                   )
+          => print("Quantifier result:") ~> prettyPrint(E) ~>  print("for path condition:") ~> prettyPrint(makePathConditions(getConstraint(C), FreshVarsOrig, getFreshVars(C)))
+          ~> forallResult( V : QSort
+                         , \implies { SortGeneratedTopCell {}}
+                               ( makePathConditions(getConstraint(C), FreshVarsOrig, getFreshVars(C))
                                , \equals{SortBool{}, SortGeneratedTopCell{}} (E, \dv {SortBool{}}("true"))
                                )
                          )
              ...
          </k>
          <freshVars> FreshVarsOrig ...</freshVars>
+
+    // Note: This isn't very accurate. We assume that anything that looks like a predicate is a predicate.
+    syntax Pattern ::= getConstraint(Pattern) [function]
+    rule getConstraint(Lbl'-LT-'generatedTop'-GT-' { .Sorts }(_)) => \top{SortGeneratedTopCell{}}()
+    rule getConstraint(\and{S}(L,R)) => \and{S}(getConstraint(L), getConstraint(R))
+    rule getConstraint(\or{S}(L,R))  => \or{S} (getConstraint(L), getConstraint(R))
+    rule getConstraint(\forall{_} (_, _)     #as P) => P
+    rule getConstraint(\exists{_} (_, _)     #as P) => P
+    rule getConstraint(\top{_} ()            #as P) => P
+    rule getConstraint(\equals{_, _}(_, _)   #as P) => P
+    rule getConstraint(\ceil{_, _}  (_)      #as P) => P
+    rule getConstraint(\implies {_} (_, _)   #as P) => P
+    rule getConstraint(\not{_} (_)           #as P) => P
 ```
 
 ```metak
-    syntax Pattern ::= makePathConditions(Pattern, origVars: Patterns, newVars: Patterns) [function] 
+    syntax Pattern ::= makePathConditions(Pattern, origVars: Patterns, newVars: Patterns) [function]
     rule makePathConditions(PC, dotk {.Sorts}(.Patterns), _) => PC
     rule makePathConditions( PC
                            , kseq {.Sorts}(inj{Sort, _}(V1), P1s)
@@ -106,6 +123,11 @@ The evaluation of the quantified expression results in a disjunction of configur
 The results and path-conditions from these branches are combined into an object-level boolean function using object-level logical connectives.
 
 ```metak
+    rule <k> (\bottom{_}() => .K) ~> forallResult(_, _) ... </k>
+    rule <k> (\bottom{_}() => .K) ~> koreExec(_, _) ... </k>
+    rule <k> (\bottom{_}() => .K) ~> \or{_}(_, _) ... </k>
+    rule <k> (\bottom{_}() => .K) ~> \and{_}(_, _) ... </k>
+
     rule <k> forallResult(V : QSort, E1) ~> forallResult(V : QSort, E2)
           => forallResult(V : QSort, \and {SortGeneratedTopCell{}} (E1, E2))
              ...
@@ -125,8 +147,8 @@ We may sometimes need to alpha-rename the bound variable to enable this.
 We bring each branch to the front to allow them to be triaged.
 
 ```metak
-    rule <k> (forallResult(_, _) #as Curr) ~> (P:Pattern    #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
-    rule <k> (forallResult(_, _) #as Curr) ~> (koreExec(_)  #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
+    rule <k> (forallResult(_, _) #as Curr) ~> (_:Pattern       #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
+    rule <k> (forallResult(_, _) #as Curr) ~> (koreExec(_, _)  #as Next) => (Next:KItem ~> Curr:KItem) ... </k>
 ```
 
 Finally, when all branch branches are fully reduced, we cool the result back into the original context,
@@ -137,18 +159,21 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
 ```
 
 ```metak
-    syntax KItem ::= forallFreezer(kcellRest: Pattern, config: Pattern)
+    syntax KItem ::= forallContext(kcellRest: Pattern, config: Pattern)
     rule <k> forallResult(V : QSort, E)
-          ~> forallFreezer(Rest, Pgm)
-          => koreExec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
-                                                     , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
-                     )                               )
-          ~> koreExec(\and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
-                                                     , \not {SortGeneratedTopCell{}} (\not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))))
-                     )                               )
+          ~> forallContext(Rest, Pgm)
+          => koreExec( WorkingDir +String "/" +String Int2String(!_I) +String "-true.kore"
+                     , \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
+                                                      , \forall{SortGeneratedTopCell{}}(V : QSort,E)
+                     )                                )
+          ~> koreExec( WorkingDir +String "/" +String Int2String(!_J) +String "-false.kore"
+                     , \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
+                                                      , \exists{SortGeneratedTopCell{}}(V : QSort, negatePredicate(E))
+                     )                                )
              ...
          </k>
          <freshVars> _:Patterns => .K ... </freshVars>
+         <workingDir> WorkingDir </workingDir>
 ```
 
 ```objectk

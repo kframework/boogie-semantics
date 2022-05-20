@@ -1,0 +1,15 @@
+funky-goto.bpl(5,13): Error BP5001: This assertion might not hold.
+Execution trace:
+    funky-goto.bpl(3,5): anon0
+    funky-goto.bpl(3,5): anon2_LoopDone
+# Note: Boogie returns: funky-goto.bpl(12,9): Error BP5001: This assertion might not hold.
+funky-goto.bpl(12,9): Error BP5004: This loop invariant might not hold on entry.
+Execution trace:
+    funky-goto.bpl(11,5): anon0
+funky-goto.bpl(25,5): Error BP5001: This assertion might not hold.
+Execution trace:
+    funky-goto.bpl(21,7): anon0
+    funky-goto.bpl(24,7): anon3_LoopBody
+    funky-goto.bpl(25,5): anon2
+
+Boogie program verifier finished with 0 verified, 3 errors

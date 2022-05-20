@@ -1,108 +1,8 @@
-In this file, we implement a utility that replaces `krun` for symbolic Michelson
-tests. We use the low-level K plumbing such as `kore-exec` and `llvm-run`
-directly.
+KORE
+====
 
-Rule based IO
-=============
-
-The following module implements a wrapper around `K-IO`.
-It uses strictness to allow convenient sequential composition of variable IO functions implemented there.
-
-```k
-module IO-NONFUNCTIONAL
-    imports K-IO
-    imports STRING
-    imports INT
-    imports BOOL
-```
-
-```k
-    syntax KResult // Unused: TODO: Bug report
-    syntax PreString ::= String
-    syntax PreInt    ::= Int
-```
-
-### `open`
-
-```k
-    syntax PreInt ::= open(filename: PreString, mode: String) [seqstrict, result(String)]
-    rule open(File, Mode) => #open(File, Mode)
-```
-
-### `close`
-
-Returns `.K` on success
-
-```k
-    syntax KItem ::= close(Int)
-    rule close(Fd) => #close(Fd)
-```
-
-### `read`
-
-```k
-    syntax PreString ::= read(filename: PreString)
-                       | read(fd: PreInt, length: Int) [seqstrict, result(Int)]
-    rule read(File) => read(open(File, "r"), 99999) // TODO: read until end of file instead of hard-coding a number
-    rule read(Fd:Int, Length) => #read(Fd, Length)
-```
-
-### `write`
-
-Returns `.K` or fails with `IOError`.
-
-```k
-    syntax KItem ::= write(fd: IOInt, contents: String)
-    rule write(Fd, Content) => #write(Fd, Content)
-```
-
-### `createTempFile`
-
-Returns `#tempFile(fileName, Fd)`
-
-```k
-    syntax PreTempFile ::= IOFile
-    syntax PreTempFile ::= createTempFile(template: String)
-    rule createTempFile(Template) => #mkstemp(Template)
-```
-
-### `writeTempFile`
-
-Creates a temp file, writes contents to it, and returns the filename.
-
-```k
-    syntax PreString ::= writeTempFile(contents: PreString) [seqstrict(1), result(String)]
-                       | writeTempFile(PreTempFile, contents: String) [seqstrict(1), result(IOFile)]
-    rule writeTempFile(Contents) => writeTempFile(createTempFile("/tmp/kmichelson-XXXXXX"), Contents)
-    rule writeTempFile(#tempFile(Filename, Fd), Content)
-      => write(Fd, Content) ~> close(Fd) ~> Filename
-```
-
-### `system`
-
-```k
-    syntax PreString ::= system(command: String)
-    rule system(Command) => #system(Command)
-```
-
-TODO: We'd like `#systemResult` to be of a more specific sort so we could apply
-strictness instead of the following hack:
-
-```k
-    rule #systemResult(0,   StdOut, _) => StdOut
-    rule #systemResult(111, StdOut, _) => StdOut // krun failures indicate that exit code is non-zero
-```
-
-```k
-endmodule
-```
-
-
-`KORE`
-======
-
-This module defines the syntax of kore, a language used for communication
-between the various K utilities.
+This module defines the syntax of kore, a language representing matching logic
+patterns, used by the various K utilities.
 
 ```k
 module KORE
@@ -121,6 +21,7 @@ module KORE
                      | "\\equals" "{" Sort "," Sort "}" "(" Pattern "," Pattern ")" [klabel(\equals)]
                      | "\\and" "{" Sort "}" "(" Pattern "," Pattern ")"             [klabel(\and)]
                      | "\\or" "{" Sort "}" "(" Pattern "," Pattern ")"              [klabel(\or)]
+                     | "\\implies" "{" Sort "}" "(" Pattern "," Pattern ")"         [klabel(\implies)]
                      | "\\top" "{" Sort "}" "(" ")"                                 [klabel(\top)]
                      | "\\bottom" "{" Sort "}" "(" ")"                              [klabel(\bottom)]
                      | "\\forall" "{" Sort "}" "(" Pattern "," Pattern ")"          [klabel(\forall)]
@@ -162,6 +63,8 @@ module KORE-UNPARSE
       => "\\and{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
     rule unparsePattern(\or { S1 } (P1, P2))
       => "\\or{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
+    rule unparsePattern(\implies { S1 } (P1, P2))
+      => "\\implies{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
     rule unparsePattern(\forall  { S1 } (P1, P2)) => "\\forall {" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
     rule unparsePattern(\exists  { S1 } (P1, P2)) => "\\exists {" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
 
@@ -195,7 +98,6 @@ module KORE-PARSE
     imports K-REFLECTION
 
     syntax PrePattern ::= Pattern
-
     syntax PrePattern ::= parse(input: PreString, parser: String)
                         | parseFile(filename: PreString, parser: String) [seqstrict(1), result(String)]
     rule parse(Program, Parser) => parseFile(writeTempFile(Program), Parser)
@@ -226,7 +128,42 @@ module KORE-UTILITIES
     rule (P1, P1s) +Patterns P2s => P1, (P1s +Patterns P2s)
     rule .Patterns +Patterns P2s =>                    P2s
 
-    // Looks for a subterm within constrained term
+    syntax Pattern ::= negatePredicate(Pattern) [function]
+    rule negatePredicate(\top{S} ())          => \bottom{S}()
+    rule negatePredicate(\bottom{S} ())       => \top{S}()
+```
+
+The Haskell backend has difficulty dealing with `\not(\equals)` in some cases, so lets avoid them
+
+```k
+    syntax KVar ::= "SortBool" [token]
+    rule negatePredicate(\equals{S2, S}(P1, \dv{SortBool{}}("true"))) =>  \equals{S2, S}(P1, \dv{SortBool{}}("false"))
+    rule negatePredicate(\equals{S2, S}(P1, \dv{SortBool{}}("false"))) => \equals{S2, S}(P1, \dv{SortBool{}}("true"))
+    rule negatePredicate(\equals{S2, S}(P1, P2)) => \not{S}(\equals{S2, S}(P1, P2)) [owise]
+
+    rule negatePredicate(\ceil{S2, S}  (P)) => \not{S}(\ceil{S2, S}(P))
+    rule negatePredicate(\and{S} (P1, P2)) => \or{S}(negatePredicate(P1), negatePredicate(P2))
+    rule negatePredicate(\or {S} (P1, P2)) => \and{S}(negatePredicate(P1), negatePredicate(P2))
+    rule negatePredicate(\forall{S} (X, P)) => \exists{S} (X, negatePredicate(P))
+    rule negatePredicate(\exists{S} (X, P)) => \forall{S} (X, negatePredicate(P))
+    rule negatePredicate(\implies {S} (P1, P2)) => \and{S}(P1, negatePredicate(P2))
+    rule negatePredicate(\not{_} (P)) => negatePredicate(P)
+
+    syntax Pattern ::= changePredicateSort(Sort, Pattern) [function]
+    rule changePredicateSort(Sort, \forall{_} (X, P) ) => \forall{Sort} (X, changePredicateSort(Sort, P))
+    rule changePredicateSort(Sort, \exists{_} (X, P) ) => \exists{Sort} (X, changePredicateSort(Sort, P))
+    rule changePredicateSort(Sort, \top{_} ())          => \top{Sort}()
+    rule changePredicateSort(Sort, \equals{S2, _}(P1,P2)) => \equals{S2, Sort}(P1, P2)
+    rule changePredicateSort(Sort, \ceil{S2, _}  (P)) => \ceil  {S2, Sort}(P)
+    rule changePredicateSort(Sort, \and{_} (P1, P2) ) => \and{Sort}(changePredicateSort(Sort, P1), changePredicateSort(Sort, P2))
+    rule changePredicateSort(Sort, \or {_} (P1, P2) ) => \or {Sort}(changePredicateSort(Sort, P1), changePredicateSort(Sort, P2))
+    rule changePredicateSort(Sort, \implies {_} (P1, P2) ) => \implies {Sort}(changePredicateSort(Sort, P1), changePredicateSort(Sort, P2))
+    rule changePredicateSort(Sort, \not{_} (P) ) => \not{Sort}(changePredicateSort(Sort, P))
+
+    // Get predicate
+    syntax Patterns ::= findSubTermsByConstructor(KVar, Pattern) [function]
+
+    // Looks for a subterm within the term part constrained term
     syntax Patterns ::= findSubTermsByConstructor(KVar, Pattern) [function]
     rule findSubTermsByConstructor(Ctor, Ctor { .Sorts } ( Arg, .Patterns ) ) => Arg, .Patterns
     rule findSubTermsByConstructor(Ctor, S { _ } ( Args ) ) => findSubTermsByConstructorPs(Ctor, Args) requires S =/=K Ctor
@@ -240,8 +177,10 @@ module KORE-UTILITIES
     rule findSubTermsByConstructor(  _ , \forall{ _ } (_, _) ) => .Patterns
     rule findSubTermsByConstructor(  _ , \exists{ _ } (_, _) ) => .Patterns
     rule findSubTermsByConstructor(  _ , \top{ _ } () ) => .Patterns
+    rule findSubTermsByConstructor(  _ , \bottom{ _ } () ) => .Patterns
     rule findSubTermsByConstructor(  _ , \equals{ _, _ } (_ , _ ) ) => .Patterns
-    rule findSubTermsByConstructor(  _ , \not{ _ } (P) ) => .Patterns
+    rule findSubTermsByConstructor(  _ , \not{ _ } (_) ) => .Patterns
+    rule findSubTermsByConstructor(  _ , \ceil{_, _}  (_)) => .Patterns
 
     syntax Patterns ::= findSubTermsByConstructorPs(KVar, Patterns) [function, functional]
     rule findSubTermsByConstructorPs(Ctor, P, Ps) => findSubTermsByConstructor(Ctor, P) +Patterns findSubTermsByConstructorPs(Ctor, Ps)
@@ -249,8 +188,8 @@ module KORE-UTILITIES
 endmodule
 ```
 
-`DRIVER`
-========
+Tools for developing a frontend
+===============================
 
 ```k
 module K-FRONTEND
@@ -265,7 +204,7 @@ module K-FRONTEND
 
 ```k
     syntax PrePattern ::= parse(input: PreString)
-    rule parse(Input) =>  parse(Input, ".build/defn//driver/driver-kompiled/parser_Pattern_KORE-SYNTAX")
+    rule parse(Input) =>  parse(Input, ".build/defn/frontend/frontend-kompiled/parser_Pattern_KORE-SYNTAX")
 ```
 
 `kore-exec`
@@ -273,8 +212,10 @@ module K-FRONTEND
 
 ```k
     syntax PrePattern ::= koreExec(config: PrePattern)  [seqstrict(1), result(Pattern)]
+                        | koreExec(filename: String, config: PrePattern) [seqstrict(2), result(Pattern)] /* Write PrePattern to filename */
                         | koreExecFile(file: PreString) [seqstrict(1), result(String)]
     rule koreExec(Configuration) => koreExecFile(writeTempFile(unparsePattern(Configuration)))
+    rule koreExec(File, Configuration) => write(open(File, "w"), unparsePattern(Configuration)) ~> koreExecFile(File)
     rule koreExecFile(File)
       => parse( system("kore-exec .build/defn/verification/boogie-kompiled/definition.kore" +String
                            " --module BOOGIE-QUANTIFIERS" +String
@@ -306,3 +247,4 @@ Pretty print
 ```k
 endmodule
 ```
+

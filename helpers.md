@@ -27,7 +27,6 @@ Other Helpers
 ```k
 module BOOGIE-HELPERS
     imports BOOGIE-RULE-SYNTAX
-    imports DEFAULT-CONFIGURATION
     imports BOOL
     imports INT
     imports K-EQUAL
@@ -85,8 +84,8 @@ module BOOGIE-HELPERS
 
 ```k
     syntax Bool ::= Id "in" IdList [function, functional]
-    rule X in .IdList => false
-    rule X in (X, Ys) => true
+    rule _ in .IdList => false
+    rule X in (X,_Ys) => true
     rule X in (Y, Ys) => X in Ys requires Y =/=K X
 ```
 
@@ -99,21 +98,21 @@ module BOOGIE-HELPERS
 ```k
     syntax IdList ::= IdsTypeListToIdList(IdsTypeList) [function, functional]
     rule IdsTypeListToIdList(.IdsTypeList) => .IdList
-    rule IdsTypeListToIdList(Xs : T, Rest) => Xs ++IdList  IdsTypeListToIdList(Rest)
+    rule IdsTypeListToIdList(Xs : _, Rest) => Xs ++IdList  IdsTypeListToIdList(Rest)
 ```
 
 ```k
     syntax TypeList ::= IdsTypeListToTypeList(IdsTypeList) [function, functional]
     rule IdsTypeListToTypeList(.IdsTypeList) => .TypeList
-    rule IdsTypeListToTypeList((X, Xs) : T, Rest) => T, IdsTypeListToTypeList(Xs : T, Rest)
-    rule IdsTypeListToTypeList(.IdList : T, Rest) => IdsTypeListToTypeList(Rest)
+    rule IdsTypeListToTypeList((_, Xs) : T, Rest) => T, IdsTypeListToTypeList(Xs : T, Rest)
+    rule IdsTypeListToTypeList(.IdList : _, Rest) => IdsTypeListToTypeList(Rest)
 ```
 
 ```k
     syntax IdList ::= IdsTypeWhereListToIdList(IdsTypeWhereList) [function, functional]
     rule IdsTypeWhereListToIdList(.IdsTypeWhereList) => .IdList
-    rule IdsTypeWhereListToIdList(Xs:IdList  : T           , Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
-    rule IdsTypeWhereListToIdList((Xs:IdList : T where Exp), Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
+    rule IdsTypeWhereListToIdList(Xs:IdList  : _         , Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
+    rule IdsTypeWhereListToIdList((Xs:IdList : _ where _), Rest) => Xs ++IdList IdsTypeWhereListToIdList(Rest)
 ```
 
 ```k
@@ -125,15 +124,15 @@ module BOOGIE-HELPERS
 ```k
     syntax ExprList ::= IdsTypeWhereListToExprList(IdsTypeWhereList) [function, functional]
     rule IdsTypeWhereListToExprList(.IdsTypeWhereList) => .ExprList
-    rule IdsTypeWhereListToExprList(Xs : T            , Rest) => IdListToExprList(Xs) ++ExprList IdsTypeWhereListToExprList(Rest)
-    rule IdsTypeWhereListToExprList((Xs : T where Exp), Rest) => IdListToExprList(Xs) ++ExprList IdsTypeWhereListToExprList(Rest)
+    rule IdsTypeWhereListToExprList(Xs : _          , Rest) => IdListToExprList(Xs) ++ExprList IdsTypeWhereListToExprList(Rest)
+    rule IdsTypeWhereListToExprList((Xs : _ where _), Rest) => IdListToExprList(Xs) ++ExprList IdsTypeWhereListToExprList(Rest)
 ```
 
 ```k
     syntax IdsTypeList ::= IdsTypeWhereListToIdsTypeList(IdsTypeWhereList) [function, functional]
     rule IdsTypeWhereListToIdsTypeList(.IdsTypeWhereList) => .IdsTypeList
-    rule IdsTypeWhereListToIdsTypeList(Xs : T            , Rest) => Xs : T ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rest)
-    rule IdsTypeWhereListToIdsTypeList((Xs : T where Exp), Rest) => Xs : T ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rest)
+    rule IdsTypeWhereListToIdsTypeList(Xs : T          , Rest) => Xs : T ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rest)
+    rule IdsTypeWhereListToIdsTypeList((Xs : T where _), Rest) => Xs : T ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rest)
 ```
 
 ```k
@@ -152,6 +151,27 @@ module BOOGIE-HELPERS
     syntax LhsList ::= IdListToLhsList(IdList) [function, functional]
     rule IdListToLhsList(.IdList) => .LhsList
     rule IdListToLhsList(X, Rest) => X ++LhsList IdListToLhsList(Rest)
+```
+
+```k
+    syntax LocationExprList ::= List{LocationExpr, ","} [klabel(LocationExprList)]
+    syntax Location ::= "{" String "," Int "," Int "}"
+    syntax LocationExpr ::= Location Expr
+
+    syntax LocationExprList ::= LocationExprList "++LocationExprList" LocationExprList [function, functional, left, avoid]
+    rule (E1, E1s) ++LocationExprList E2s => E1, (E1s ++LocationExprList E2s)
+    rule .LocationExprList ++LocationExprList E2s => E2s
+```
+
+```k
+    syntax OptionalLabel ::= Nothing | Label
+```
+
+```k
+    syntax Stmt ::= LoopInvariant
+    syntax StmtList ::= LoopInvariantListToStmtList(LoopInvariantList) [function, functional]
+    rule LoopInvariantListToStmtList(.LoopInvariantList) => .StmtList
+    rule LoopInvariantListToStmtList(Invariant Rest) => Invariant LoopInvariantListToStmtList(Rest)
 ```
 
 ```k

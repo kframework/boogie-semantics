@@ -46,7 +46,7 @@ The source code of our semantics is organized as follows:
   First, to present the results of verifying a program we must consider
   the result of all possible executions of our program
   (as opposed to a traditional language where we only care about a single execution trace).
-  This is done in [driver/driver.md].
+  This is done in [frontend/frontend.md].
 
   Second, Boogie allows quantification.
   This involves symbolically executing our program, and considering all possible instantiations

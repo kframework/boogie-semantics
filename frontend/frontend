@@ -7,13 +7,14 @@ defn_dir="$basedir/.build/defn"
 program_file=$1; shift
 
 mkdir -p "$(pwd)/.build/tmp/"
-working_dir=$(mktemp -d $(pwd)/.build/tmp/boogie-driver-XXXXXX)
+working_dir=$(mktemp -d $(pwd)/.build/tmp/boogie-frontend-XXXXXX)
 
 kparse --directory $defn_dir/verification/ $program_file \
     | sed "s/Lbl'Hash'location{SortStmt{}}/Lbl'Hash'location{}/g"   \
+    | sed "s/Lbl'Hash'location{SortLoopInvariant{}}/Lbl'Hash'loopLocation{}/g"   \
     > "$working_dir/program-parsed.kore"
 krun --directory $defn_dir/verification/ "$working_dir/program-parsed.kore" \
     --parser cat --output kore \
-    > "$working_dir/config-init.kore"
-krun --directory $defn_dir/driver/ "$working_dir/config-init.kore" -cWorkingDir=\"$working_dir\" "$@"
+   > "$working_dir/config-init.kore"
+krun --directory $defn_dir/frontend/ "$working_dir/config-init.kore" -cWorkingDir=\"$working_dir\" "$@"
 
