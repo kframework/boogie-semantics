@@ -8,7 +8,7 @@ We'd like a semantics for `forall` that works as follows:
     rule (forall X : T :: E) => true requires "E reaches true on all paths for all evaluations of `X` in `inhabitants(T)`"
     ```
 
-2.  `(forall-false)`: If the expression reduces to $\false$ on *any* path, the `forall` reduces to $\false$: 
+2.  `(forall-false)`: If the expression reduces to $\false$ on *any* path, the `forall` reduces to $\false$:
 
     in K:
 
@@ -17,7 +17,7 @@ We'd like a semantics for `forall` that works as follows:
     ```
 
 Note that `(forall-true)` and `(forall-false)` are not mutually exclusive.
-Since Reachability Logic claims hold vacuously on infinite traces, they may both hold. 
+Since Reachability Logic claims hold vacuously on infinite traces, they may both hold.
 
 ## Implementation
 
@@ -64,7 +64,8 @@ i.e. a `forall` encountered along one program path must be evaulated separately 
 
 ```metak
     rule <k> triage(kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinder  { .Sorts } ( V, E )), Rest) , Pgm)
-          => koreExec(setKCell(Pgm, kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated  { .Sorts } ( V, E )), dotk { .Sorts }(.Patterns))))
+          => print("Evaluating quantifier:") ~> prettyPrint(V) ~> prettyPrint(E)
+          ~> koreExec(setKCell(Pgm, kseq { .Sorts } ( inj { SortExpr { }, SortKItem { } } ( Lblforallbinderheated  { .Sorts } ( V, E )), dotk { .Sorts }(.Patterns))))
           ~> forallContext(Rest, Pgm)
              ...
          </k>
