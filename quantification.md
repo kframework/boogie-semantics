@@ -76,20 +76,36 @@ The evaluation of the quantified expression results in a disjunction of configur
 
 ```metak
     syntax KItem ::= forallResult(Pattern, Pattern)
-    rule <k> triage(kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts }(inj { QSort, SortValueExpr{} } ( V : QSort ), inj{SortBool{},SortExpr{}}(E))),dotk { .Sorts }(.Patterns)),\and{_}(C,PathConditions))
-          => forallResult( V : QSort
-                         , \or { SortGeneratedTopCell {}}
-                               ( \not {SortGeneratedTopCell{}}( makePathConditions(PathConditions, FreshVarsOrig, getFreshVars(C)) )
+    rule <k> triage( kseq { .Sorts }(inj{SortExpr{},SortKItem{}}(Lblforallbinderheated { .Sorts } (inj { QSort, SortValueExpr{} } ( V : QSort ), inj{SortBool{},SortExpr{}}(E))),dotk { .Sorts }(.Patterns))
+                   , C
+                   )
+          => print("Quantifier result:") ~> prettyPrint(E) ~>  print("for path condition:") ~> prettyPrint(makePathConditions(getConstraint(C), FreshVarsOrig, getFreshVars(C)))
+          ~> forallResult( V : QSort
+                         , \implies { SortGeneratedTopCell {}}
+                               ( makePathConditions(getConstraint(C), FreshVarsOrig, getFreshVars(C))
                                , \equals{SortBool{}, SortGeneratedTopCell{}} (E, \dv {SortBool{}}("true"))
                                )
                          )
              ...
          </k>
          <freshVars> FreshVarsOrig ...</freshVars>
+
+    // Note: This isn't very accurate. We assume that anything that looks like a predicate is a predicate.
+    syntax Pattern ::= getConstraint(Pattern) [function]
+    rule getConstraint(Lbl'-LT-'generatedTop'-GT-' { .Sorts }(_)) => \top{SortGeneratedTopCell{}}()
+    rule getConstraint(\and{S}(L,R)) => \and{S}(getConstraint(L), getConstraint(R))
+    rule getConstraint(\or{S}(L,R))  => \or{S} (getConstraint(L), getConstraint(R))
+    rule getConstraint(\forall{_} (_, _)     #as P) => P
+    rule getConstraint(\exists{_} (_, _)     #as P) => P
+    rule getConstraint(\top{_} ()            #as P) => P
+    rule getConstraint(\equals{_, _}(_, _)   #as P) => P
+    rule getConstraint(\ceil{_, _}  (_)      #as P) => P
+    rule getConstraint(\implies {_} (_, _)   #as P) => P
+    rule getConstraint(\not{_} (_)           #as P) => P
 ```
 
 ```metak
-    syntax Pattern ::= makePathConditions(Pattern, origVars: Patterns, newVars: Patterns) [function] 
+    syntax Pattern ::= makePathConditions(Pattern, origVars: Patterns, newVars: Patterns) [function]
     rule makePathConditions(PC, dotk {.Sorts}(.Patterns), _) => PC
     rule makePathConditions( PC
                            , kseq {.Sorts}(inj{Sort, _}(V1), P1s)
@@ -107,6 +123,11 @@ The evaluation of the quantified expression results in a disjunction of configur
 The results and path-conditions from these branches are combined into an object-level boolean function using object-level logical connectives.
 
 ```metak
+    rule <k> (\bottom{_}() => .K) ~> forallResult(_, _) ... </k>
+    rule <k> (\bottom{_}() => .K) ~> koreExec(_, _) ... </k>
+    rule <k> (\bottom{_}() => .K) ~> \or{_}(_, _) ... </k>
+    rule <k> (\bottom{_}() => .K) ~> \and{_}(_, _) ... </k>
+
     rule <k> forallResult(V : QSort, E1) ~> forallResult(V : QSort, E2)
           => forallResult(V : QSort, \and {SortGeneratedTopCell{}} (E1, E2))
              ...
@@ -143,11 +164,11 @@ replacing the `forallbinderheated` with `forallbindercooled` to indicate to the 
           ~> forallContext(Rest, Pgm)
           => koreExec( WorkingDir +String "/" +String Int2String(!_I) +String "-true.kore"
                      , \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("true")), Rest))
-                                                      , \not{SortGeneratedTopCell{}}(\exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E)))
+                                                      , \forall{SortGeneratedTopCell{}}(V : QSort,E)
                      )                                )
           ~> koreExec( WorkingDir +String "/" +String Int2String(!_J) +String "-false.kore"
                      , \and { SortGeneratedTopCell{} }( setKCell(Pgm, kseq { .Sorts }( inj{SortBool{},SortKItem{}}(\dv {SortBool{}} ("false")), Rest))
-                                                      , \exists{SortGeneratedTopCell{}}(V : QSort,\not{SortGeneratedTopCell{}}(E))
+                                                      , \exists{SortGeneratedTopCell{}}(V : QSort, negatePredicate(E))
                      )                                )
              ...
          </k>
