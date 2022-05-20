@@ -21,6 +21,7 @@ module KORE
                      | "\\equals" "{" Sort "," Sort "}" "(" Pattern "," Pattern ")" [klabel(\equals)]
                      | "\\and" "{" Sort "}" "(" Pattern "," Pattern ")"             [klabel(\and)]
                      | "\\or" "{" Sort "}" "(" Pattern "," Pattern ")"              [klabel(\or)]
+                     | "\\implies" "{" Sort "}" "(" Pattern "," Pattern ")"         [klabel(\implies)]
                      | "\\top" "{" Sort "}" "(" ")"                                 [klabel(\top)]
                      | "\\bottom" "{" Sort "}" "(" ")"                              [klabel(\bottom)]
                      | "\\forall" "{" Sort "}" "(" Pattern "," Pattern ")"          [klabel(\forall)]
@@ -62,6 +63,8 @@ module KORE-UNPARSE
       => "\\and{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
     rule unparsePattern(\or { S1 } (P1, P2))
       => "\\or{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
+    rule unparsePattern(\implies { S1 } (P1, P2))
+      => "\\implies{" +String unparseSort(S1) +String "} (" +String unparsePatterns(P1) +String "," +String unparsePatterns(P2) +String  ")"
     rule unparsePattern(\forall  { S1 } (P1, P2)) => "\\forall {" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
     rule unparsePattern(\exists  { S1 } (P1, P2)) => "\\exists {" +String unparseSort(S1) +String "} (" +String unparsePattern(P1) +String " , " +String unparsePattern(P2) +String ")"
 
@@ -95,7 +98,6 @@ module KORE-PARSE
     imports K-REFLECTION
 
     syntax PrePattern ::= Pattern
-
     syntax PrePattern ::= parse(input: PreString, parser: String)
                         | parseFile(filename: PreString, parser: String) [seqstrict(1), result(String)]
     rule parse(Program, Parser) => parseFile(writeTempFile(Program), Parser)
@@ -126,7 +128,42 @@ module KORE-UTILITIES
     rule (P1, P1s) +Patterns P2s => P1, (P1s +Patterns P2s)
     rule .Patterns +Patterns P2s =>                    P2s
 
-    // Looks for a subterm within constrained term
+    syntax Pattern ::= negatePredicate(Pattern) [function]
+    rule negatePredicate(\top{S} ())          => \bottom{S}()
+    rule negatePredicate(\bottom{S} ())       => \top{S}()
+```
+
+The Haskell backend has difficulty dealing with `\not(\equals)` in some cases, so lets avoid them
+
+```k
+    syntax KVar ::= "SortBool" [token]
+    rule negatePredicate(\equals{S2, S}(P1, \dv{SortBool{}}("true"))) =>  \equals{S2, S}(P1, \dv{SortBool{}}("false"))
+    rule negatePredicate(\equals{S2, S}(P1, \dv{SortBool{}}("false"))) => \equals{S2, S}(P1, \dv{SortBool{}}("true"))
+    rule negatePredicate(\equals{S2, S}(P1, P2)) => \not{S}(\equals{S2, S}(P1, P2)) [owise]
+
+    rule negatePredicate(\ceil{S2, S}  (P)) => \not{S}(\ceil{S2, S}(P))
+    rule negatePredicate(\and{S} (P1, P2)) => \or{S}(negatePredicate(P1), negatePredicate(P2))
+    rule negatePredicate(\or {S} (P1, P2)) => \and{S}(negatePredicate(P1), negatePredicate(P2))
+    rule negatePredicate(\forall{S} (X, P)) => \exists{S} (X, negatePredicate(P))
+    rule negatePredicate(\exists{S} (X, P)) => \forall{S} (X, negatePredicate(P))
+    rule negatePredicate(\implies {S} (P1, P2)) => \and{S}(P1, negatePredicate(P2))
+    rule negatePredicate(\not{_} (P)) => negatePredicate(P)
+
+    syntax Pattern ::= changePredicateSort(Sort, Pattern) [function]
+    rule changePredicateSort(Sort, \forall{_} (X, P) ) => \forall{Sort} (X, changePredicateSort(Sort, P))
+    rule changePredicateSort(Sort, \exists{_} (X, P) ) => \exists{Sort} (X, changePredicateSort(Sort, P))
+    rule changePredicateSort(Sort, \top{_} ())          => \top{Sort}()
+    rule changePredicateSort(Sort, \equals{S2, _}(P1,P2)) => \equals{S2, Sort}(P1, P2)
+    rule changePredicateSort(Sort, \ceil{S2, _}  (P)) => \ceil  {S2, Sort}(P)
+    rule changePredicateSort(Sort, \and{_} (P1, P2) ) => \and{Sort}(changePredicateSort(Sort, P1), changePredicateSort(Sort, P2))
+    rule changePredicateSort(Sort, \or {_} (P1, P2) ) => \or {Sort}(changePredicateSort(Sort, P1), changePredicateSort(Sort, P2))
+    rule changePredicateSort(Sort, \implies {_} (P1, P2) ) => \implies {Sort}(changePredicateSort(Sort, P1), changePredicateSort(Sort, P2))
+    rule changePredicateSort(Sort, \not{_} (P) ) => \not{Sort}(changePredicateSort(Sort, P))
+
+    // Get predicate
+    syntax Patterns ::= findSubTermsByConstructor(KVar, Pattern) [function]
+
+    // Looks for a subterm within the term part constrained term
     syntax Patterns ::= findSubTermsByConstructor(KVar, Pattern) [function]
     rule findSubTermsByConstructor(Ctor, Ctor { .Sorts } ( Arg, .Patterns ) ) => Arg, .Patterns
     rule findSubTermsByConstructor(Ctor, S { _ } ( Args ) ) => findSubTermsByConstructorPs(Ctor, Args) requires S =/=K Ctor
@@ -140,8 +177,10 @@ module KORE-UTILITIES
     rule findSubTermsByConstructor(  _ , \forall{ _ } (_, _) ) => .Patterns
     rule findSubTermsByConstructor(  _ , \exists{ _ } (_, _) ) => .Patterns
     rule findSubTermsByConstructor(  _ , \top{ _ } () ) => .Patterns
+    rule findSubTermsByConstructor(  _ , \bottom{ _ } () ) => .Patterns
     rule findSubTermsByConstructor(  _ , \equals{ _, _ } (_ , _ ) ) => .Patterns
     rule findSubTermsByConstructor(  _ , \not{ _ } (_) ) => .Patterns
+    rule findSubTermsByConstructor(  _ , \ceil{_, _}  (_)) => .Patterns
 
     syntax Patterns ::= findSubTermsByConstructorPs(KVar, Patterns) [function, functional]
     rule findSubTermsByConstructorPs(Ctor, P, Ps) => findSubTermsByConstructor(Ctor, P) +Patterns findSubTermsByConstructorPs(Ctor, Ps)
