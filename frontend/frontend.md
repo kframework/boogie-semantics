@@ -97,22 +97,6 @@ module BOOGIE-FRONTEND
     imports K-FRONTEND
 ```
 
-Normalization
-=============
-
-First, we bring the configuration to the front of the conjunction:
-
-```metak
-    rule <k> Lbl'-LT-'generatedTop'-GT-' { .Sorts } ( _ ) #as Pgm => \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}()) ... </k>
-    rule <k> T:KItem
-          ~> Lbl'-LT-'generatedTop'-GT-' { .Sorts } ( _ ) #as Pgm
-          => ( T
-            ~> \and { SortGeneratedTopCell { } } (Pgm, \top {SortGeneratedTopCell { }}())
-             )
-            ...
-         </k>
-```
-
 Search
 ======
 
@@ -127,11 +111,10 @@ We perform a depth first search over branches:
 For each constrained configuration, we triage according to the content of the `<k>` cell:
 
 ```metak
-    rule <k> \and { SortGeneratedTopCell { } }(_, _) #as ConstrainedConfiguration
+    rule <k> (\and { SortGeneratedTopCell { } }(_, _) #Or Lbl'-LT-'generatedTop'-GT-' { .Sorts } ( _ )) #as ConstrainedConfiguration
           => triage(getKCell(ConstrainedConfiguration), ConstrainedConfiguration)
              ...
          </k>
-    rule <k> \bottom{_}() => .K ... </k> // TODO: This is broken when the only result from a forall is `\bottom`
 ```
 
 ### Failure
