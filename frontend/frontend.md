@@ -65,17 +65,21 @@ We use these tokens in the definition.
 
 ```metak
     syntax Pattern ::= setKCell(config: Pattern, kcell: Pattern) [function]
-    rule setKCell(Lbl'-LT-'k'-GT-' { .Sorts } ( _, .Patterns ), KCell ) => Lbl'-LT-'k'-GT-' { .Sorts } ( KCell, .Patterns )
-    rule setKCell(S { Sorts } ( Args )                 , KCell ) => S { Sorts } ( setKCellPs(Args, KCell) ) requires S =/=K Lbl'-LT-'k'-GT-'
-    rule setKCell(\and { S } ( P1, P2 )                , KCell ) => \and { S } ( setKCell(P1, KCell), setKCell(P2, KCell))
-    rule setKCell(\equals { S1, S2 } ( P1, P2 )        , KCell ) => \equals { S1, S2 } ( setKCell(P1, KCell), setKCell(P2, KCell))
-    rule setKCell(\forall { S1 } ( P1, P2     )        , KCell ) => \forall { S1 } ( P1, setKCell(P2, KCell))
-    rule setKCell(\exists { S1 } ( P1, P2     )        , KCell ) => \exists { S1 } ( P1, setKCell(P2, KCell))
-    rule setKCell(inj{ S1, S2 } (P)                    , KCell ) => inj { S1, S2 } ( setKCell(P, KCell) )
-    rule setKCell(\not{ S1 } (P)                       , KCell ) => \not{ S1 } ( setKCell(P, KCell) )
-    rule setKCell(\top{ S1 } ()                        ,_KCell ) => \top{ S1 } ( )
-    rule setKCell(\dv{ S } (P)                         ,_KCell ) => \dv{ S } (P)
-    rule setKCell(S : Sort                             ,_KCell ) => S : Sort
+    rule setKCell(Lbl'-LT-'k'-GT-' { .Sorts }(_), KCell ) => Lbl'-LT-'k'-GT-' { .Sorts } ( KCell, .Patterns )
+    rule setKCell(S { Sorts } ( Args )          , KCell ) => S { Sorts } ( setKCellPs(Args, KCell) ) requires S =/=K Lbl'-LT-'k'-GT-'
+    rule setKCell(\and { S } ( P1, P2 )         , KCell ) => \and { S } ( setKCell(P1, KCell), setKCell(P2, KCell))
+    rule setKCell(\or  { S } ( P1, P2 )         , KCell ) => \or  { S } ( setKCell(P1, KCell), setKCell(P2, KCell))
+    rule setKCell(inj{ S1, S2 } (P)             , KCell ) => inj { S1, S2 } ( setKCell(P, KCell) )
+
+    // We do not recurse into predicates
+    rule setKCell(\equals{S1, S2} (P1, P2)      ,_KCell) => \equals{S1, S2} (P1, P2)
+    rule setKCell(\forall{S1} (P1, P2)          ,_KCell) => \forall{S1} (P1, P2)
+    rule setKCell(\exists{S1} (P1, P2)          ,_KCell) => \exists{S1} (P1, P2)
+    rule setKCell(\not{S1} (P)                  ,_KCell) => \not{S1} (P)
+    rule setKCell(\top{S1} ()                   ,_KCell) => \top{S1} ()
+    rule setKCell(\ceil{S1, S2} (P)             ,_KCell) => \ceil{S1, S2} (P)
+    rule setKCell(\dv{S}   (P)                  ,_KCell) => \dv{S} (P)
+    rule setKCell(S : Sort                      ,_KCell) => S : Sort
 
     syntax Patterns ::= setKCellPs(config: Patterns, kcell: Pattern) [function]
     rule setKCellPs((P, Ps), KCell) => setKCell(P, KCell), setKCellPs(Ps, KCell)
