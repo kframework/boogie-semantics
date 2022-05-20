@@ -60,21 +60,7 @@ We use these tokens in the definition.
     rule getKCell(Term) => findSubTermsByConstructor(Lbl'-LT-'k'-GT-', Term)
 
     syntax Patterns ::= getFreshVars(Pattern) [function]
-    rule getFreshVars(Lbl'-LT-'freshVars'-GT-' { .Sorts } ( Arg, .Patterns ) ) => Arg, .Patterns
-    rule getFreshVars(S { _ } ( Args ) ) => getFreshVarsPs(Args) requires S =/=K Lbl'-LT-'freshVars'-GT-'
-    rule getFreshVars(inj{ _, _ } (P) ) => getFreshVars(P)
-    rule getFreshVars(\not{ _ } (P) ) => getFreshVars(P)
-    rule getFreshVars(\and{ _ } (P1, P2) ) => getFreshVars(P1) +Patterns getFreshVars(P2)
-    rule getFreshVars(\equals{ _ , _} (_, _) ) => .Patterns
-    rule getFreshVars(\forall{ _ } (_, _) ) => .Patterns
-    rule getFreshVars(\exists{ _ } (_, _) ) => .Patterns
-    rule getFreshVars(\dv{ _ } (_) ) => .Patterns
-    rule getFreshVars(\top{ _ } () ) => .Patterns
-    rule getFreshVars(_ : _) => .Patterns
-
-    syntax Patterns ::= getFreshVarsPs(Patterns) [function, functional]
-    rule getFreshVarsPs(P, Ps) => getFreshVars(P) +Patterns getFreshVarsPs(Ps)
-    rule getFreshVarsPs(.Patterns) => .Patterns
+    rule getFreshVars(Term) => findSubTermsByConstructor(Lbl'-LT-'freshVars'-GT-', Term)
 ```
 
 ```metak
