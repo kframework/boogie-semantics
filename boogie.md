@@ -673,7 +673,7 @@ If no further preprocessing is needed, we accumulate the statements in `<currBlo
    rule <k> .StmtList => .K ... </k>
 ```
 
-9.0 Implementation Bod y
+9.0 Implementation Body
 -----------------------
 
 ```k
