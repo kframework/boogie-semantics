@@ -303,11 +303,11 @@ Coersions are ignored for now:
     rule <k> select((S1,S2,S3,S4), map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap4(Id, TToInt(S1),TToInt(S2),TToInt(S3),TToInt(S4))) ... </k>
 
     // Uninterpreted function
-    syntax Int ::= lookupMap0(mapId: Int)                            [function, functional, smtlib(lookupMap0), no-evaluators]
-    syntax Int ::= lookupMap1(mapId: Int, keys: Int)                 [function, functional, smtlib(lookupMap1), no-evaluators]
-    syntax Int ::= lookupMap2(mapId: Int, keys: Int, Int)            [function, functional, smtlib(lookupMap2), no-evaluators]
-    syntax Int ::= lookupMap3(mapId: Int, keys: Int, Int, Int)       [function, functional, smtlib(lookupMap3), no-evaluators]
-    syntax Int ::= lookupMap4(mapId: Int, keys: Int, Int, Int, Int)  [function, functional, smtlib(lookupMap4), no-evaluators]
+    syntax Int ::= lookupMap0(mapId: Int)                            [function, total, smtlib(lookupMap0), no-evaluators]
+    syntax Int ::= lookupMap1(mapId: Int, keys: Int)                 [function, total, smtlib(lookupMap1), no-evaluators]
+    syntax Int ::= lookupMap2(mapId: Int, keys: Int, Int)            [function, total, smtlib(lookupMap2), no-evaluators]
+    syntax Int ::= lookupMap3(mapId: Int, keys: Int, Int, Int)       [function, total, smtlib(lookupMap3), no-evaluators]
+    syntax Int ::= lookupMap4(mapId: Int, keys: Int, Int, Int, Int)  [function, total, smtlib(lookupMap4), no-evaluators]
 ```
 
 #### Update
@@ -525,7 +525,7 @@ Ensure that the label `$start` is the initial label.
 
 ```k
     syntax Id ::= "$start" [token]
-    syntax StmtList ::= #addStartLabel(StmtList) [function, functional]
+    syntax StmtList ::= #addStartLabel(StmtList) [function, total]
     rule #addStartLabel((Label : _):StmtList #as Ss) => $start: goto Label; Ss
     rule #addStartLabel((_:Stmt _):StmtList  #as Ss) => $start:             Ss
     rule #addStartLabel((.StmtList):StmtList #as Ss) => $start:             Ss
@@ -747,7 +747,7 @@ In the case of the verification semantics, we verify all procedures:
 ```
 
 ```k
-    syntax String ::= #makeAssertionMessage(Location, errorCode: String, errorMessage: String) [function, functional]
+    syntax String ::= #makeAssertionMessage(Location, errorCode: String, errorMessage: String) [function, total]
     rule #makeAssertionMessage({File, Line, Column}, Code, Message)
       => File +String "(" +String Int2String(Line) +String "," +String Int2String(Column) +String "): "
          +String "Error " +String Code +String ": " +String Message
@@ -1113,7 +1113,7 @@ quantifiers.
     rule TToInt(I:Int)     => I                         [simplification]
     rule TToInt(map(I, _)) => I                         [simplification]
 
-    syntax Bool ::= intToBool(Int)               [function, functional, smtlib(intToBool), no-evaluators]
+    syntax Bool ::= intToBool(Int)               [function, total, smtlib(intToBool), no-evaluators]
 ```
 
 ```k
