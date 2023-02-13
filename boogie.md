@@ -1089,8 +1089,8 @@ quantifiers.
 ```k
     syntax Expr ::= inhabitants(Type)
  // ------------------------------------------------------
-    rule <k> inhabitants(T)  => intToT(T, ?V:Int) ... </k>
-         <freshVars> K:K => (K ~> ?V) </freshVars>
+//    rule <k> inhabitants(T)  => intToT(T, ?V:Int) ... </k>
+//         <freshVars> K:K => (K ~> ?V) </freshVars>
 
     syntax Expr ::= intToT(Type, Int)
  // -------------------------------------------------
