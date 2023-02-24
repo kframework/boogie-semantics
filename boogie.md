@@ -22,7 +22,7 @@ module BOOGIE
     imports ID
 
     configuration <boogie>
-                    <k> #initTypes ~> $PGM:Program ~> .DeclList ~> #start </k>
+                    <k> #initTypes ~> $PGM:Program ~> .DeclList ~> #call {"init",0,0} .Nothing .Nothing #token("main", "Id")(.ExprList); </k>
                     <preprocess multiplicity="?">
                         <pp> .K </pp>
                         <currLabel> .Nothing:OptionalLabel </currLabel>
@@ -708,35 +708,6 @@ Assertions immediately after a cutpoint are considered part of the invariant:
 -----------------------
 
 ```k
-    syntax KItem ::= "#start"
-```
-
-In the case of the verification semantics, we verify all procedures:
-
-```verification
-    rule <k> #start
-          => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
-          ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
-          ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires && FreeRequires)[IdsTypeWhereListToExprList(IArgs)] ;
-          ~> goto $start;
-         </k>
-         (.CurrImplCell => <currImpl> N </currImpl>)
-         <globals> Globals </globals>
-         <olds> .Map => Globals </olds>
-         <args> PArgs </args>
-         <requires> Requires </requires>
-         <freeRequires> FreeRequires </freeRequires>
-         <impl>
-            <implId> N </implId>
-            <iargs> IArgs </iargs>
-            <ireturns> IRets </ireturns>
-            <vars> VarDeclList </vars>
-            ...
-         </impl>
-```
-
-
-```k
    rule <k> .LocalVarDeclList => .K ... </k>
 
    rule <k> var Attrs IdsTypeWhere, Rest:IdsTypeWhereList ; Vs:LocalVarDeclList
@@ -1083,7 +1054,7 @@ When returning, we first `assert` that the post condition holds:
     rule <k> #call _:Location _:OptionalFree (.Nothing => .IdList :=) _:Id(_:ExprList) ; ... </k>
 ```
 
-```verification
+```k
     context #call _Loc _OptFree _:IdList := _ProcedureName:Id(HOLE) ;
     rule <k> #call Location OptFree X:IdList := ProcedureName:Id(ArgVals);:KItem
           => #if OptFree ==K .Nothing
