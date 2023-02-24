@@ -713,7 +713,7 @@ Assertions immediately after a cutpoint are considered part of the invariant:
 
 In the case of the verification semantics, we verify all procedures:
 
-```verification
+```k
     rule <k> #start
           => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
           ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
