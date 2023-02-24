@@ -20,6 +20,7 @@ module BOOGIE
     imports LIST
     imports STRING
     imports ID
+    imports K-LOCATIONS
 
     configuration <boogie>
                     <k> #initTypes ~> $PGM:Program ~> .DeclList ~> #start </k>
@@ -414,10 +415,6 @@ Location Information
 To give better error messages, we integrate location information with some language constructs.
 
 ```k
-    syntax Stmt ::= #location(Stmt, String, Int, Int, Int, Int) [symbol, function]
-```
-
-```k
     syntax Id ::= "inferred" [token]
     syntax Stmt ::= "#cutpoint" LocationExprList ";"
     rule #location(assert { :inferred .AttrArgList } Inferred  ;, File, Line, Col, _, _)
@@ -447,7 +444,7 @@ Using `OptionalFree` at the begining of a production in the main syntax messes u
 Other statements don't need location information:
 
 ```k
-    rule #location(Stmt, _File, _StartLine, _StartCol, _EndLine, _EndCol) => Stmt [priority(52)]
+    rule #location(Stmt, _File, _StartLine, _StartCol, _EndLine, _EndCol) => Stmt:Stmt [priority(52)]
 ```
 
 
