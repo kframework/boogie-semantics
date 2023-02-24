@@ -40,9 +40,7 @@ module BOOGIE
                       <locals> .Map </locals>
                       <globals> .Map </globals>
                       <olds> .Map </olds>
-                      <cutpoints> .List </cutpoints>
                       <currImpl multiplicity="?"> -1 </currImpl>
-                      <freshVars> .K </freshVars>
                     </runtime>
                     <procs>
                       <proc multiplicity="*" type="Map">
@@ -146,8 +144,8 @@ must be unique, multiple entries aren't created for each type.
 ```
 
 ```k
-    rule <k> const _:AttributeList .Nothing X, .IdList : T ; => X := inhabitants(T), .ExprList ; ... </k>
-         <globals> (.Map => X:Id |-> value("undefined", T, true)) Rho </globals>
+    rule <k> const _:AttributeList .Nothing X, .IdList : T ; => .K ... </k>
+         <globals> (.Map => X:Id |-> value(#undefined, T, true)) Rho </globals>
        requires notBool(X in_keys(Rho))
 ```
 
@@ -257,8 +255,8 @@ Coersions are ignored for now:
 ### Variable lookup
 
 ```k
+    syntax ValueExpr ::= "#undefined"
     syntax Value ::= value(value: ValueExpr, type: Type, where: Expr)
-                   | "#undefined"
 
     syntax Value ::= lookupVariable(Id) [function]
     rule [[ lookupVariable(X:Id) => V ]]
@@ -327,11 +325,8 @@ Coersions are ignored for now:
        </k>
     requires notBool Xs ==K .IdList
 
-  rule <k> var .AttributeList X:Id : T:Type ;:Decl
-        => X := inhabitants(T), .ExprList ;
-           ...
-       </k>
-       <globals> (.Map => X:Id |-> value("undefined", T, true)) Rho </globals>
+  rule <k> var .AttributeList X:Id : T:Type ;:Decl => .K ... </k>
+       <globals> (.Map => X:Id |-> value(#undefined, T, true)) Rho </globals>
      requires notBool( X in_keys(Rho) )
 ```
 
@@ -660,7 +655,6 @@ In the case of the verification semantics, we verify all procedures:
 ```k
     rule <k> #start
           => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
-          ~> havoc IdsTypeWhereListToIdList(IArgs) ++IdList IdsTypeWhereListToIdList(IRets) ++IdList LocalVarDeclListToIdList(VarDeclList);
           ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires && FreeRequires)[IdsTypeWhereListToExprList(IArgs)] ;
           ~> goto $start;
          </k>
@@ -698,14 +692,14 @@ In the case of the verification semantics, we verify all procedures:
          => var .AttributeList       Xs : T where Where; Vs
             ...
         </k>
-        <locals> (.Map => X:Id |-> value("undefined", T, Where)) Rho </locals>
+        <locals> (.Map => X:Id |-> value(#undefined, T, Where)) Rho </locals>
      requires notBool( X in_keys(Rho) )
 
    rule <k> var .AttributeList X:Id, Xs : T where Where; Vs:LocalVarDeclList
          => var .AttributeList       Xs : T where Where; Vs
             ...
         </k>
-        <locals> X |-> (_ => value("undefined", T, Where)) ... </locals>
+        <locals> X |-> (_ => value(#undefined, T, Where)) ... </locals>
 
    rule <k> var .AttributeList .IdList : _T where _Where; Vs:LocalVarDeclList
          => Vs
@@ -780,32 +774,6 @@ In the case of the verification semantics, we verify all procedures:
       requires notBool X in_keys(Env)
 ```
 
-9.4 Havoc
----------
-
-```k
-    rule <k> havoc .IdList ; => .K ... </k>
-    rule <k> havoc X, Xs ;
-          => freshen(X)
-          ~> havoc Xs;
-          ~> assume .AttributeList where(lookupVariable(X)) ;
-             ...
-         </k>
-```
-
-Update an variable to store an *unconstrained* sybmolic value of the appropriate
-type.
-
-```k
-    syntax KItem ::= freshen(IdList)
-    rule <k> freshen(.IdList) => .K ... </k>
-    rule <k> freshen(X:Id, Xs:IdList)
-          => X, .LhsList := inhabitants(type(lookupVariable(X))), .ExprList ;
-          ~> freshen(Xs)
-             ...
-         </k>
-```
-
 9.5 Label Statements and jumps
 ------------------------------
 
@@ -818,182 +786,6 @@ Non-deterministically transition to all labels
          <implId>      Impl </implId>
     rule <k> goto _L, Ls ; => goto Ls ; ... </k>
       requires Ls =/=K .LabelList
-```
-
-Invariants
-----------
-
-A cutpoint's invariants must evaluate to true before it is reached.
-We may also assume they hold after.
-
-```verification
-    rule <k> #cutpoint(I) Location Inv, LocExprs ;:KItem
-          => #assert #if I in Cutpoints
-                     #then #makeAssertionMessage(Location, "BP5005", "This loop invariant might not be maintained by the loop.")
-                     #else #makeAssertionMessage(Location, "BP5004", "This loop invariant might not hold on entry.")
-                     #fi
-                     Inv ;
-             #cutpoint(I) LocExprs ;
-             assume .AttributeList Inv ;
-             ...
-         </k>
-         <cutpoints> Cutpoints </cutpoints>
-```
-
-When we reach a particular cutpoint the first time, we treat it as an abstraction point
-and replace modifiable variables with fresh symbolic values.
-
-```k
-    rule <k> #cutpoint(I) .LocationExprList ; => #generalize(envToIds(Rho) ++IdList Modifiable) ... </k>
-         <locals> Rho </locals>
-         <modifies> Modifiable </modifies>
-         <cutpoints> (.List => ListItem(I)) Cutpoints </cutpoints>
-      requires notBool I in Cutpoints
-```
-
-When we reach it a second time we can prune this execution branch, because the
-assert/assume structure ensures that our current program state is a subset of
-the states when we first encountered the cutpoint (modulo `free invariant`s and
-`where` clauses.)
-
-```verification
-    rule <k> #cutpoint(I) .LocationExprList ; => assume .AttributeList (false); ... </k>
-         <cutpoints> Cutpoints </cutpoints>
-      requires I in Cutpoints
-```
-
-When executing concretely, cutpoints are simply a no-op.
-
-```k
-    syntax KItem ::= "#generalize" "(" IdList ")"
-    rule <k> #generalize(.IdList) => .K ... </k>
-    rule <k> #generalize(X, Rest) => freshen(X) ~> #generalize(Rest) ... </k>
-```
-
-```k
-    syntax IdList ::= envToIds(Map) [function]
-    rule envToIds(.Map) => .IdList
-    rule envToIds(X:Id |-> _ Rho) => (X, envToIds(Rho))
-```
-
-#### `where`-cutpoint interactions
-
-`where` clauses may be added to variable declarations, both globally and locally, as well as in implementation arguments.
-e.g.:
-
-```
-var x : int : where x < y ;
-var y : int : where y > 100 ;
-```
-
-[This is Boogie 2] describes its semantics as follows:
-
-Page 19:
-
->  At times in an execution trace when the value of the variable is chosen arbitarily, the value is chosen to satisfy *WhereClause*
-
-Page 30:
-
-> Note that where clauses do not play a role  for assignemnt statements
-> *Where* clauses apply only in places where a variable gets an arbitary value
-
-Page 24:
-
-> *Where* clauses are like free preconditions and (for out-parameters and modified global variables only) free postconditions
-
-A free precondition is a requires clause for a procedure that is checked assumed
-for "free" when checking the procedure's implementations but not checked when
-calling the procedure.
-
-Not mentioned in [This is Boogie 2], it also appears to behave as a free
-invariant in while loops. i.e., the following program is verified successfully:
-
-```
-procedure P()
-{
-  var x: int where 0 <= x;
-  x := 0 ;
-  while (*) { x := x - 1; }
-  assert 0 <= x;
-}
-```
-
-Surprisingly, this also works once the while loop has been desugared. This also works:
-
-```
-procedure P();
-implementation P()
-{
-  var x: int where 0 <= x;
-  anon0:
-    x := 0;
-    goto anon3_LoopHead;
-  anon3_LoopHead: // cut point
-    assume {:inferred} x < 1;
-    goto anon3_LoopDone, anon3_LoopBody;
-  anon3_LoopBody:
-    x := x - 1;
-    goto anon3_LoopHead;
-  anon3_LoopDone:
-    assert {:source "y.bpl", 6} {:code "BP5001"} 0 <= x;
-    return;
-}
-```
-
-Even more surprisingly, only the `where` clauses of variables whose values have changed are applied:
-
-```
-procedure P();
-implementation P() {
-    var x : int where x == 6 ;
-    x := 7;
-    while (*) { }
-    assert x == 7 ; // succeeds
-}
-
-implementation P() {
-    var x : int where x == 6 ;
-    x := 7;
-    while (*) { x := x ; }
-    assert x == 7 ; // fails
-}
-```
-
-Another surprising program from Boogie's test suite is:
-
-```
-procedure R2()
-{
-  var w: int where w == x;
-  var x: int where 0 <= x;
-  var y: int where x <= y;
-
-  x := 5;
-  y := 10;
-  while (*) {
-    w := w + 1;
-    assert w == 6;
-    y := y + 2;
-    assert 7 <= y;
-  }
-  assert x == 5 && 0 <= y - w;
-  assert y == 10;  // error
-}
-```
-
-and another:
-
-```
-procedure P()
-{
-  var x: int where 0 <= x;
-  x := -1 ;
-  while (*) { x := x; }
-  assert 0 <= x; //succeed
-  x := x - 1;
-  while (*) {  }
-  assert 0 <= x; // should fail
-}
 ```
 
 9.6 Return statements
@@ -1035,7 +827,7 @@ When returning, we first `assert` that the post condition holds:
                            (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
              #else .K
              #fi
-          ~> freshen(X ++IdList Mods)
+          // ~> freshen(X ++IdList Mods)
           ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
                                          :: Ensures && FreeEnsures )
                                    [ ArgVals ++ExprList IdListToExprList(X) ] ;
@@ -1049,44 +841,6 @@ When returning, we first `assert` that the post condition holds:
          <freeEnsures> FreeEnsures </freeEnsures>
          <modifies> Mods </modifies>
       requires isKResult(ArgVals)
-```
-
-Inhabitants
------------
-
-`inhabitants(T)` represents the inhabitants of a type. Semantically, this is
-similar to matching logic's `[[ Sort ]]` (also pronounced "inhabitants").
-
-Note: The Haskell backend alpha-renames variables in some situations. The
-`<freshVars>` cell is used to keep track of the original names while evaluating
-quantifiers.
-
-```k
-    syntax Expr ::= inhabitants(Type)
- // ------------------------------------------------------
-//    rule <k> inhabitants(T)  => intToT(T, ?V:Int) ... </k>
-//         <freshVars> K:K => (K ~> ?V) </freshVars>
-
-    syntax Expr ::= intToT(Type, Int)
- // -------------------------------------------------
-    rule <k> intToT(int,  I) => I            ... </k>
-    rule <k> intToT(bool, I) => intToBool(I) ... </k>
-    rule <k> intToT(T, I)    => I            ... </k>
-         <type>
-           <typeName> T:Id </typeName>
-           <uniques> _ </uniques>
-        // No SynonymCell
-         </type>
-    rule <k> intToT(T, I) => intToT(S, I) ... </k>
-         <typeName> T </typeName>
-         <synonym> S </synonym>
-
-    syntax Int ::= TToInt(ValueExpr) [function]
- // --------------------------------------------------------------------
-    rule TToInt(B:Bool)    => #if B #then 0 #else 1 #fi [simplification]
-    rule TToInt(I:Int)     => I                         [simplification]
-
-    syntax Bool ::= intToBool(Int)               [function, total, smtlib(intToBool), no-evaluators]
 ```
 
 ```k
