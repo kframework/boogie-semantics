@@ -565,7 +565,8 @@ Note that `if (*)` desugars to a non-deterministic `goto`.
     rule <pp> if (*) { BlockTrue } else { BlockFalse }
            => goto condTrue(!I:Int), condFalse(!I:Int);
               condTrue (!I): BlockTrue  ~> goto done(!I);
-              condFalse(!I): BlockFalse ~> goto done(!I);
+              condFalse(!I): BlockFalse ~> goto done(!I); ~>
+              #popLoopLabel ~>
               done(!I) :
               .StmtList
              ...
@@ -575,7 +576,8 @@ Note that `if (*)` desugars to a non-deterministic `goto`.
     rule <pp> if (Cond) { BlockTrue } else { BlockFalse }
            => goto condTrue(!I:Int), condFalse(!I:Int);
               condTrue (!I): assume .AttributeList   Cond; BlockTrue  ~> goto done(!I);
-              condFalse(!I): assume .AttributeList ! Cond; BlockFalse ~> goto done(!I);
+              condFalse(!I): assume .AttributeList ! Cond; BlockFalse ~> goto done(!I); ~>
+              #popLoopLabel ~>
               done(!I) :
               .StmtList
              ...
