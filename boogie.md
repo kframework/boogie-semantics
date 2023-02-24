@@ -610,6 +610,7 @@ continue statements are aware of which loop to break out of.
                 Body ~> goto loopHead(!I);
               guardedDone(!I):
                 assume .AttributeList ! Cond ; goto done(!I); ~>
+              #popLoopLabel ~>
               done(!I) :
               .StmtList
              ...
@@ -628,20 +629,19 @@ Finally, when the done statement for the while loop is reached, we pop it
 from the stack.
 
 ```k
-    rule <pp> done(I) : ... </pp>
+    syntax KItem ::= "#popLoopLabel"
+    rule <pp> #popLoopLabel => .K ... </pp>
          <loopStack> I, Stack => Stack </loopStack>
 ```
 
-```k
-    rule <pp> Label : => .K ... </pp>
-         <currLabel> .Nothing => Label </currLabel>
-         <currBlock> _ => .StmtList </currBlock>
-```
+When we encounter a new label or reach the end of the body, we must finalize the previous block.
 
 ```k
     syntax KItem ::= "#finalizeBlock"
-    rule <pp> (.K => #finalizeBlock) ~>  _Label : ... </pp> <currLabel> _:Label </currLabel>
-    rule <pp> (.K => #finalizeBlock)             </pp> <currLabel> _:Label </currLabel>
+    rule <pp> (.K => #finalizeBlock) ~>  _Label : ... </pp>
+         <currLabel> _:Label </currLabel>
+    rule <pp> (.K => #finalizeBlock) </pp>
+         <currLabel> _:Label </currLabel>
     rule <pp> #finalizeBlock => .K ... </pp>
          <currLabel> CurrLabel => .Nothing </currLabel>
          <currBlock> CurrBlock </currBlock>
@@ -650,6 +650,12 @@ from the stack.
          <labels> (.Map => CurrLabel |-> CurrBlock ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0))
                   _Labels
          </labels>
+```
+
+```k
+    rule <pp> Label : => .K ... </pp>
+         <currLabel> .Nothing => Label </currLabel>
+         <currBlock> _ => .StmtList </currBlock>
 ```
 
 
