@@ -207,13 +207,6 @@ Function application is map lookup:
     context HOLE _:RelOp _RHS
     context _LHS:ValueExpr _:RelOp HOLE
 
-    rule <k> LHS:ValueExpr == RHS:ValueExpr => LHS ==K RHS ... </k>
-      requires notBool(isMapValue(LHS)      orBool isMapValue(RHS)
-                   orBool isLambdaExpr(LHS) orBool isLambdaExpr(RHS))
-    rule <k> LHS:ValueExpr != RHS:ValueExpr => LHS =/=K RHS ... </k>
-      requires notBool(isMapValue(LHS)      orBool isMapValue(RHS)
-                   orBool isLambdaExpr(LHS) orBool isLambdaExpr(RHS))
-
     rule <k> LHS <  RHS => LHS  <Int RHS ... </k>
     rule <k> LHS >  RHS => LHS  >Int RHS ... </k>
     rule <k> LHS <= RHS => LHS <=Int RHS ... </k>
@@ -275,55 +268,6 @@ Coersions are ignored for now:
          <locals> Env </locals>
          <globals> X |-> V:Value ... </globals>
       requires notBool X in_keys(Env)
-```
-
-### 4.1 Map selection and update
-
-####  Selection
-
-```k
-    syntax ValueExpr ::= MapValue
-    syntax FreshMapValue ::= map(Int, Type)
-    syntax FreshValue ::= FreshMapValue
-    syntax MapValue ::= FreshMapValue
-                      | update(key: ExprList, value: ValueExpr, mapx: MapValue)
-    syntax Expr      ::= select(ExprList, MapValue)
-
-    context (HOLE [ _ ]):Expr
-    context (_:MapValue [ HOLE ]):Expr
-
-    rule <k> (Map:MapValue [ Key ]):Expr => select(Key, Map) ...  </k> requires isKResult(Key)
-    rule <k> select(S, update(Key, Val, _Map)) => Val ...            </k> requires Key  ==K S
-    rule <k> select(S, update(Key, _, Map))    => select(S, Map) ... </k> requires Key =/=K S
-
-    rule <k> select(.ExprList,     map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap0(Id))                                              ... </k>
-    rule <k> select(S,             map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap1(Id, TToInt(S)))                                   ... </k>
-    rule <k> select((S1,S2),       map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap2(Id, TToInt(S1),TToInt(S2)))                       ... </k>
-    rule <k> select((S1,S2,S3),    map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap3(Id, TToInt(S1),TToInt(S2),TToInt(S3)))            ... </k>
-    rule <k> select((S1,S2,S3,S4), map(Id, [_ArgT]RetT)) => intToT(RetT, lookupMap4(Id, TToInt(S1),TToInt(S2),TToInt(S3),TToInt(S4))) ... </k>
-
-    // Uninterpreted function
-    syntax Int ::= lookupMap0(mapId: Int)                            [function, total, smtlib(lookupMap0), no-evaluators]
-    syntax Int ::= lookupMap1(mapId: Int, keys: Int)                 [function, total, smtlib(lookupMap1), no-evaluators]
-    syntax Int ::= lookupMap2(mapId: Int, keys: Int, Int)            [function, total, smtlib(lookupMap2), no-evaluators]
-    syntax Int ::= lookupMap3(mapId: Int, keys: Int, Int, Int)       [function, total, smtlib(lookupMap3), no-evaluators]
-    syntax Int ::= lookupMap4(mapId: Int, keys: Int, Int, Int, Int)  [function, total, smtlib(lookupMap4), no-evaluators]
-```
-
-#### Update
-
-```k
-    rule <k> X:Id [ Key ], .LhsList := Value, .ExprList ; => X := X [ Key := Value ], .ExprList ; ... </k>
-
-    context HOLE [ _ := _ ]
-    context _Map:MapValue [ HOLE := _Value ]
-    context _Map:MapValue [ Key := HOLE ] requires isKResult(Key)
-    rule <k> Map:MapValue [ Key := Value ] => update(Key, Value, Map) ... </k> requires isKResult(Key)
-```
-
-```k
-    context (HOLE, _):ExprList
-    context (_:ValueExpr, HOLE):ExprList
 ```
 
 ### Lambdas
@@ -1127,7 +1071,6 @@ quantifiers.
  // -------------------------------------------------
     rule <k> intToT(int,  I) => I            ... </k>
     rule <k> intToT(bool, I) => intToBool(I) ... </k>
-    rule <k> intToT([A]R, I) => map(I, [A]R) ... </k>
     rule <k> intToT(T, I)    => I            ... </k>
          <type>
            <typeName> T:Id </typeName>
@@ -1142,7 +1085,6 @@ quantifiers.
  // --------------------------------------------------------------------
     rule TToInt(B:Bool)    => #if B #then 0 #else 1 #fi [simplification]
     rule TToInt(I:Int)     => I                         [simplification]
-    rule TToInt(map(I, _)) => I                         [simplification]
 
     syntax Bool ::= intToBool(Int)               [function, total, smtlib(intToBool), no-evaluators]
 ```
