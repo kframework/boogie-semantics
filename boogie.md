@@ -468,10 +468,11 @@ Split procedures with a body into a procedure and an implementation:
           (.PreprocessCell => <preprocess> <pp> #addStartLabel(StmtList) </pp> ... </preprocess> )
 ```
 
-Preprocessing
--------------
 
-### Location Information
+Location Information
+--------------------
+
+To give better error messages, we integrate location information with some language constructs.
 
 ```k
     syntax Stmt ::= #location(Stmt, String, Int, Int, Int, Int) [symbol, function]
@@ -510,18 +511,23 @@ Other statements don't need location information:
     rule #location(Stmt, _File, _StartLine, _StartCol, _EndLine, _EndCol) => Stmt [priority(52)]
 ```
 
+
+Preprocessing
+-------------
+
 ### Converting complex control structures to `goto`s
 
 `#preprocess` splits an implementation body into labeled blocks,
 populates the `<labels>` cell with a map from labels to their bodies.
-It also desugars `while` loops and `if` statements into `goto` statements
-and combines invariants into a cutpoints.
+It also desugars `while` loops and `if` statements into `goto` statements.
 
 ```k
     syntax KItem ::= "#preprocess"
 ```
 
-Ensure that the label `$start` is the initial label.
+First, we ensure that the label `$start` is the initial label.
+If the implementation body already has an initial label, the synthesised `$start` label
+redirects to that one. Otherwise, we insert it as a new label.
 
 ```k
     syntax Id ::= "$start" [token]
@@ -531,7 +537,7 @@ Ensure that the label `$start` is the initial label.
     rule #addStartLabel((.StmtList):StmtList #as Ss) => $start:             Ss
 ```
 
-We preprocess each statement one at a time, and finish preprocessing once all statements have been processed.
+Next, we preprocess each statement one at a time.
 
 ```k
     rule <pp> Stmt Stmts:StmtList => Stmt ~> Stmts ... </pp>
@@ -541,21 +547,15 @@ We preprocess each statement one at a time, and finish preprocessing once all st
          <k> #preprocess => .K ... </k>
 ```
 
-Each cutpoint statement is given an numeric identifier allowing us to distinguish them.
+Most statements need no processing, and we simply accumulate the statements in `<currBlock>`:
 
 ```k
-    syntax Stmt ::= "#cutpoint" "(" Int ")" LocationExprList ";"
-    rule <pp> #cutpoint Invariants ; => #cutpoint(!_:Int) Invariants ; ... </pp>
+    rule <pp> S:Stmt => .K ... </pp>
+         <currBlock> Ss => Ss ++StmtList S </currBlock> [owise]
 ```
 
-Assertions immediately after a cutpoint are considered part of the invariant:
-
-```k
-    rule <pp> #cutpoint (_) ( Invariants => Invariants ++LocationExprList { File, Line, Col } Expr ) ;
-           ~> (#assert{File, Line, Col} Expr ; S2s => S2s)
-             ...
-         </pp>
-```
+`if` statements are desugared to `goto` statements.
+Note that `if (*)` desugars to a non-deterministic `goto`.
 
 ```k
     syntax Label ::= done(Int)
@@ -583,7 +583,9 @@ Assertions immediately after a cutpoint are considered part of the invariant:
          <loopStack> Stack => !I, Stack </loopStack>
 ```
 
-Loops are similarly desugared to `goto`s, with the invariants desugared to cutpoints:
+Similarly, `while` loops desugar to a more complex set of `goto` statements.
+At the same time, we store the loop identifier in a stack so that break and
+continue statements are aware of which loop to break out of.
 
 ```k
     syntax Label ::= loopHead(Int) | loopBody(Int) | guardedDone(Int)
@@ -615,6 +617,61 @@ Loops are similarly desugared to `goto`s, with the invariants desugared to cutpo
          <loopStack> Stack => !I, Stack </loopStack>
 ```
 
+We may then use that stack when desugaring break statements.
+
+```k
+    rule <pp> break ; => goto done(I); ... </pp>
+         <loopStack> I, _Stack </loopStack>
+```
+
+Finally, when the done statement for the while loop is reached, we pop it
+from the stack.
+
+```k
+    rule <pp> done(I) : ... </pp>
+         <loopStack> I, Stack => Stack </loopStack>
+```
+
+```k
+    rule <pp> Label : => .K ... </pp>
+         <currLabel> .Nothing => Label </currLabel>
+         <currBlock> _ => .StmtList </currBlock>
+```
+
+```k
+    syntax KItem ::= "#finalizeBlock"
+    rule <pp> (.K => #finalizeBlock) ~>  _Label : ... </pp> <currLabel> _:Label </currLabel>
+    rule <pp> (.K => #finalizeBlock)             </pp> <currLabel> _:Label </currLabel>
+    rule <pp> #finalizeBlock => .K ... </pp>
+         <currLabel> CurrLabel => .Nothing </currLabel>
+         <currBlock> CurrBlock </currBlock>
+         <currImpl> ImplId </currImpl>
+         <implId> ImplId </implId>
+         <labels> (.Map => CurrLabel |-> CurrBlock ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0))
+                  _Labels
+         </labels>
+```
+
+
+Cutpoints & Invariants
+----------------------
+
+Each cutpoint statement is given an numeric identifier allowing us to distinguish them.
+
+```k
+    syntax Stmt ::= "#cutpoint" "(" Int ")" LocationExprList ";"
+    rule <pp> #cutpoint Invariants ; => #cutpoint(!_:Int) Invariants ; ... </pp>
+```
+
+Assertions immediately after a cutpoint are considered part of the invariant:
+
+```k
+    rule <pp> #cutpoint (_) ( Invariants => Invariants ++LocationExprList { File, Line, Col } Expr ) ;
+           ~> (#assert{File, Line, Col} Expr ; S2s => S2s)
+             ...
+         </pp>
+```
+
 ```k
     syntax LoopInvariant ::= #loopLocation(LoopInvariant, String, Int, Int, Int, Int) [klabel(#loopLocation), symbol]
     syntax LocationExprList ::= LoopInvariantListToCutpointExprs(LoopInvariantList) [function]
@@ -628,40 +685,6 @@ Loops are similarly desugared to `goto`s, with the invariants desugared to cutpo
       => LoopInvariantListToFreeAssumes(Rest)
     rule LoopInvariantListToFreeAssumes(free invariant _ Expr; Rest)
       => assume .AttributeList Expr; LoopInvariantListToFreeAssumes(Rest)
-
-```
-
-
-```k
-    rule <pp> break ; => goto done(I); ... </pp>
-         <loopStack> I, _Stack </loopStack>
-    rule <pp> done(I) : ... </pp>
-         <loopStack> I, Stack => Stack </loopStack>
-```
-
-If no further preprocessing is needed, we accumulate the statements in `<currBlock>`:
-
-```k
-    rule <pp> S:Stmt => .K ... </pp>
-         <currBlock> Ss => Ss ++StmtList S </currBlock> [owise]
-```
-
-```k
-    rule <pp> Label : => .K ... </pp>
-         <currLabel> .Nothing => Label </currLabel>
-         <currBlock> _ => .StmtList </currBlock>
-
-    syntax KItem ::= "#finalizeBlock"
-    rule <pp> (.K => #finalizeBlock) ~>  _Label : ... </pp> <currLabel> _:Label </currLabel>
-    rule <pp> (.K => #finalizeBlock)             </pp> <currLabel> _:Label </currLabel>
-    rule <pp> #finalizeBlock => .K ... </pp>
-         <currLabel> CurrLabel => .Nothing </currLabel>
-         <currBlock> CurrBlock </currBlock>
-         <currImpl> ImplId </currImpl>
-         <implId> ImplId </implId>
-         <labels> (.Map => CurrLabel |-> CurrBlock ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0))
-                  _Labels
-         </labels>
 ```
 
 
