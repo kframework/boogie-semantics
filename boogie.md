@@ -645,34 +645,6 @@ Assertions immediately after a cutpoint are considered part of the invariant:
 -----------------------
 
 ```k
-    syntax KItem ::= "#start"
-```
-
-In the case of the verification semantics, we verify all procedures:
-
-```k
-    rule <k> #start
-          => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
-          ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires && FreeRequires)[IdsTypeWhereListToExprList(IArgs)] ;
-          ~> goto $start;
-         </k>
-         (.CurrImplCell => <currImpl> N </currImpl>)
-         <globals> Globals </globals>
-         <olds> .Map => Globals </olds>
-         <args> PArgs </args>
-         <requires> Requires </requires>
-         <freeRequires> FreeRequires </freeRequires>
-         <impl>
-            <implId> N </implId>
-            <iargs> IArgs </iargs>
-            <ireturns> IRets </ireturns>
-            <vars> VarDeclList </vars>
-            ...
-         </impl>
-```
-
-
-```k
    rule <k> .LocalVarDeclList => .K ... </k>
 
    rule <k> var Attrs IdsTypeWhere, Rest:IdsTypeWhereList ; Vs:LocalVarDeclList
@@ -817,7 +789,7 @@ When returning, we first `assert` that the post condition holds:
     rule <k> #call _:Location _:OptionalFree (.Nothing => .IdList :=) _:Id(_:ExprList) ; ... </k>
 ```
 
-```verification
+```k
     context #call _Loc _OptFree _:IdList := _ProcedureName:Id(HOLE) ;
     rule <k> #call Location OptFree X:IdList := ProcedureName:Id(ArgVals);:KItem
           => #if OptFree ==K .Nothing
@@ -839,6 +811,33 @@ When returning, we first `assert` that the post condition holds:
          <freeEnsures> FreeEnsures </freeEnsures>
          <modifies> Mods </modifies>
       requires isKResult(ArgVals)
+```
+
+```k
+    syntax KItem ::= "#start"
+```
+
+In the case of the verification semantics, we verify all procedures:
+
+```k
+    rule <k> #start
+          => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
+          ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires && FreeRequires)[IdsTypeWhereListToExprList(IArgs)] ;
+          ~> goto $start;
+         </k>
+         (.CurrImplCell => <currImpl> N </currImpl>)
+         <globals> Globals </globals>
+         <olds> .Map => Globals </olds>
+         <args> PArgs </args>
+         <requires> Requires </requires>
+         <freeRequires> FreeRequires </freeRequires>
+         <impl>
+            <implId> N </implId>
+            <iargs> IArgs </iargs>
+            <ireturns> IRets </ireturns>
+            <vars> VarDeclList </vars>
+            ...
+         </impl>
 ```
 
 ```k
