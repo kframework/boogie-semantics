@@ -570,7 +570,7 @@ from the stack.
 ```k
     syntax KItem ::= "#popLoopLabel"
     rule <pp> #popLoopLabel => .K ... </pp>
-         <loopStack> I, Stack => Stack </loopStack>
+         <loopStack> _I, Stack => Stack </loopStack>
 ```
 
 When we encounter a new label or reach the end of the body, we must finalize the previous block.
@@ -797,7 +797,7 @@ When returning, we first `assert` that the post condition holds:
                            (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
              #else .K
              #fi
-          // ~> freshen(X ++IdList Mods)
+        // ~> freshen(X ++IdList Mods)
           ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
                                          :: Ensures && FreeEnsures )
                                    [ ArgVals ++ExprList IdListToExprList(X) ] ;
@@ -809,7 +809,7 @@ When returning, we first `assert` that the post condition holds:
          <requires> Requires </requires>
          <ensures> Ensures </ensures>
          <freeEnsures> FreeEnsures </freeEnsures>
-         <modifies> Mods </modifies>
+       //  <modifies> Mods </modifies>
       requires isKResult(ArgVals)
 ```
 

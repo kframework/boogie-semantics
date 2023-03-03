@@ -33,17 +33,18 @@ module BOOGIE-HELPERS
 ```
 
 ```k
-    syntax LocalVarDeclList ::= makeDecls(IdsTypeWhereList) [function, total]
+    syntax LocalVarDeclList ::= makeDecls(IdsTypeWhereList) [function]
     rule makeDecls(.IdsTypeWhereList) => .LocalVarDeclList
     rule makeDecls(X : Type, Ids)
       => var .AttributeList X : Type ; makeDecls(Ids)
 ```
 
 ```k
-    syntax StmtList ::= makeAssignments(IdList, ExprList) [function, total]
+    syntax StmtList ::= makeAssignments(IdList, ExprList) [function]
     rule makeAssignments(.IdList, .ExprList) => .StmtList
     rule makeAssignments((X , Xs), (V, Vs))
       => X := V, .ExprList ; makeAssignments(Xs, Vs)
+    // Not defined when lists are of different lengths.
 ```
 
 ```k
