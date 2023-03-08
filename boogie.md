@@ -264,8 +264,16 @@ Coersions are ignored for now:
 
 ### Variable lookup
 
+In certain conditions the value of a variable may be undefined, e.g when
+uninitiallized, or after the `havoc` call.
+For the sake of concrete execution, we currently assume some default value.
+
 ```k
-    syntax ValueExpr ::= "#undefined"
+    syntax ValueExpr ::= "#undefined" [macro]
+    rule #undefined => 0
+```
+
+```k
     syntax Value ::= value(value: ValueExpr, type: Type, where: Expr)
 
     syntax Value ::= lookupVariable(Id) [function]
