@@ -206,6 +206,8 @@ Function application is map lookup:
     rule isKResult(E, Es:ExprList) => isKResult(E) andBool isKResult(Es)
     rule isKResult(.ExprList) => true
     syntax FreshValue ::= Bool | Int | String
+    context <k> HOLE , _:ExprList ... </k>
+    context <k> _:ValueExpr , HOLE:ExprList ... </k>
 
     rule <k> X:Id => value(lookupVariable(X)) ... </k>
 
