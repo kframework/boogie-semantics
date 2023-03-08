@@ -18,7 +18,6 @@ boogie-llvm : ${BOOGIE_LLVM}
 test_inputs := $(wildcard test/operational/control-flow/*.bpl)
 test_targets := $(addsuffix .test,${test_inputs})
 test: ${test_targets}
-	echo $^
 
 .build/test/%.bpl.out: test/%.bpl ${BOOGIE_LLVM}
 	mkdir -p $(dir $@)
