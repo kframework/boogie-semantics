@@ -1,5 +1,6 @@
-all : boogie-llvm
-.PHONY : all test
+all : boogie-llvm test
+.PHONY : all
+.SECONDARY : # Keep all intermediates
 
 BOOGIE_LLVM := .build/boogie-kompiled/timestamp
 boogie-llvm : ${BOOGIE_LLVM}
