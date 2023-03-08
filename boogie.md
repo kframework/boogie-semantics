@@ -429,16 +429,7 @@ Split procedures with a body into a procedure and an implementation:
 Location Information
 --------------------
 
-To give better error messages, we integrate location information with some language constructs.
-
-```k
-    syntax Id ::= "inferred" [token]
-    syntax Stmt ::= "#cutpoint" LocationExprList ";"
-    rule #location(assert { :inferred .AttrArgList } Inferred  ;, File, Line, Col, _, _)
-      => #cutpoint { File, Line, Col } Inferred ;
-```
-
-Other assertions are simply annotated with their location information:
+Assertions are annotated with their location information:
 
 ```k
     rule #location(assert _ Expr  ;, File, Line, Col, _, _)
@@ -546,7 +537,7 @@ continue statements are aware of which loop to break out of.
     rule <pp> while (*) Invariants { Body }
            => goto loopHead(!I:Int);
               loopHead(!I): ~>
-                #cutpoint(!I) LoopInvariantListToCutpointExprs(Invariants) ; ~>
+                LoopInvariantListToStmtList(Invariants) ~>
                 goto loopBody(!I), done(!I); ~>
               loopBody(!I): ~>
                 Body ~> goto loopHead(!I);
@@ -557,7 +548,7 @@ continue statements are aware of which loop to break out of.
     rule <pp> while (Cond) Invariants { Body }
            => goto loopHead(!I:Int);
               loopHead(!I): ~>
-                #cutpoint(!I) LoopInvariantListToCutpointExprs(Invariants) ; ~>
+                LoopInvariantListToStmtList(Invariants) ~>
                 goto loopBody(!I), guardedDone(!I); ~>
               loopBody(!I): ~>
                 assume .AttributeList Cond ; ~>
@@ -570,6 +561,15 @@ continue statements are aware of which loop to break out of.
              ...
          </pp>
          <loopStack> Stack => !I, Stack </loopStack>
+```
+
+```k
+    syntax StmtList ::= LoopInvariantListToStmtList(LoopInvariantList) [function]
+    rule LoopInvariantListToStmtList(.LoopInvariantList) => .StmtList
+    rule LoopInvariantListToStmtList(#location(     invariant _  Expr;,  File,  Line,  Col, _, _) Rest)
+      => #assert {File, Line, Col} Expr ; LoopInvariantListToStmtList(Rest)
+    rule LoopInvariantListToStmtList(#location(free invariant _ _Expr;, _File, _Line, _Col, _, _) Rest)
+      => LoopInvariantListToStmtList(Rest)
 ```
 
 We may then use that stack when desugaring break statements.
@@ -611,42 +611,6 @@ When we encounter a new label or reach the end of the body, we must finalize the
          <currLabel> .Nothing => Label </currLabel>
          <currBlock> _ => .StmtList </currBlock>
 ```
-
-
-Cutpoints & Invariants
-----------------------
-
-Each cutpoint statement is given an numeric identifier allowing us to distinguish them.
-
-```k
-    syntax Stmt ::= "#cutpoint" "(" Int ")" LocationExprList ";"
-    rule <pp> #cutpoint Invariants ; => #cutpoint(!_:Int) Invariants ; ... </pp>
-```
-
-Assertions immediately after a cutpoint are considered part of the invariant:
-
-```k
-    rule <pp> #cutpoint (_) ( Invariants => Invariants ++LocationExprList { File, Line, Col } Expr ) ;
-           ~> (#assert{File, Line, Col} Expr ; S2s => S2s)
-             ...
-         </pp>
-```
-
-```k
-    syntax LoopInvariant ::= #loopLocation(LoopInvariant, String, Int, Int, Int, Int) [klabel(#loopLocation), symbol]
-    syntax LocationExprList ::= LoopInvariantListToCutpointExprs(LoopInvariantList) [function]
-    rule LoopInvariantListToCutpointExprs(.LoopInvariantList) => .LocationExprList
-    rule LoopInvariantListToCutpointExprs(#loopLocation(invariant _ Expr;, File, Line, Col, _, _) Rest)
-      => {File, Line, Col} Expr, LoopInvariantListToCutpointExprs(Rest)
-    rule LoopInvariantListToCutpointExprs(free invariant _ _; Rest) => LoopInvariantListToCutpointExprs(Rest)
-
-    syntax StmtList ::= LoopInvariantListToFreeAssumes(LoopInvariantList) [function]
-    rule LoopInvariantListToFreeAssumes(#loopLocation(invariant _ _;, _, _, _, _, _) Rest)
-      => LoopInvariantListToFreeAssumes(Rest)
-    rule LoopInvariantListToFreeAssumes(free invariant _ Expr; Rest)
-      => assume .AttributeList Expr; LoopInvariantListToFreeAssumes(Rest)
-```
-
 
 9 Statements
 ------------
