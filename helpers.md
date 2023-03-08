@@ -97,6 +97,12 @@ module BOOGIE-HELPERS
 ```
 
 ```k
+    syntax LhsList ::= IdListToLhsList(IdList) [function, total]
+    rule IdListToLhsList(.IdList) => .LhsList
+    rule IdListToLhsList(X, Xs) => X, IdListToLhsList(Xs)
+```
+
+```k
     syntax IdList ::= IdsTypeListToIdList(IdsTypeList) [function, total]
     rule IdsTypeListToIdList(.IdsTypeList) => .IdList
     rule IdsTypeListToIdList(Xs : _, Rest) => Xs ++IdList  IdsTypeListToIdList(Rest)

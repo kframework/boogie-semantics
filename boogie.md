@@ -26,6 +26,7 @@ module BOOGIE
                     <k> #initTypes ~> $PGM:Program ~> .DeclList ~> #start </k>
                     <preprocess multiplicity="?">
                         <pp> .K </pp>
+                        <ppCurrImpl> -1 </ppCurrImpl>
                         <currLabel> .Nothing:OptionalLabel </currLabel>
                         <currBlock> .StmtList </currBlock>
                         <loopStack> .ExprList </loopStack>
@@ -38,10 +39,15 @@ module BOOGIE
                       </type>
                     </types>
                     <runtime>
-                      <locals> .Map </locals>
                       <globals> .Map </globals>
-                      <olds> .Map </olds>
-                      <currImpl multiplicity="?"> -1 </currImpl>
+                      <stack>
+                      <stackFrame multiplicity="*" type="List">
+                        <currImpl> -1 </currImpl>
+                        <locals> .Map </locals>
+                        <olds> .Map </olds>
+                        <continuation> .K </continuation>
+                      </stackFrame>
+                      </stack>
                     </runtime>
                     <procs>
                       <proc multiplicity="*" type="Map">
@@ -405,8 +411,8 @@ Split procedures with a body into a procedure and an implementation:
                  </impl>
                  ...
          </impls>
-          (.CurrImplCell => <currImpl> !N:Int </currImpl>)
-          (.PreprocessCell => <preprocess> <pp> #addStartLabel(StmtList) </pp> ... </preprocess> )
+         (.PreprocessCell =>
+           <preprocess> <pp> #addStartLabel(StmtList) </pp> <ppCurrImpl> !N:Int </ppCurrImpl> ... </preprocess>)
 ```
 
 
@@ -432,10 +438,10 @@ Other assertions are simply annotated with their location information:
 Using `OptionalFree` at the begining of a production in the main syntax messes up line numbering.
 
 ```k
-    rule #location(     call CallLhs ProcId(Args);, File, Line, Col, _, _) => #call {File,Line,Col} .Nothing CallLhs  ProcId(Args);
-    rule #location(free call CallLhs ProcId(Args);, File, Line, Col, _, _) => #call {File,Line,Col} free     CallLhs  ProcId(Args);
-    rule #location(     call         ProcId(Args);, File, Line, Col, _, _) => #call {File,Line,Col} .Nothing .Nothing ProcId(Args);
-    rule #location(free call         ProcId(Args);, File, Line, Col, _, _) => #call {File,Line,Col} free     .Nothing ProcId(Args);
+    rule #location(     call Ids := ProcId(Args);, File, Line, Col, _, _) => (IdListToLhsList(Ids)  := #call {File,Line,Col} .Nothing ProcId(Args);):Stmt
+    rule #location(free call Ids := ProcId(Args);, File, Line, Col, _, _) => (IdListToLhsList(Ids)  := #call {File,Line,Col} free     ProcId(Args);):Stmt
+    rule #location(     call        ProcId(Args);, File, Line, Col, _, _) => .LhsList               := #call {File,Line,Col} .Nothing ProcId(Args);
+    rule #location(free call        ProcId(Args);, File, Line, Col, _, _) => .LhsList               := #call {File,Line,Col} free     ProcId(Args);
 ```
 
 ```k
@@ -480,7 +486,6 @@ Next, we preprocess each statement one at a time.
     rule <pp> Stmt Stmts:StmtList => Stmt ~> Stmts ... </pp>
     rule <pp> .StmtList => .K ... </pp>
     rule (<preprocess> <pp> .K </pp> <currLabel> .Nothing </currLabel> ... </preprocess> => .PreprocessCell)
-         (<currImpl> _ </currImpl> => .CurrImplCell)
          <k> #preprocess => .K ... </k>
 ```
 
@@ -584,7 +589,7 @@ When we encounter a new label or reach the end of the body, we must finalize the
     rule <pp> #finalizeBlock => .K ... </pp>
          <currLabel> CurrLabel => .Nothing </currLabel>
          <currBlock> CurrBlock </currBlock>
-         <currImpl> ImplId </currImpl>
+         <ppCurrImpl> ImplId </ppCurrImpl>
          <implId> ImplId </implId>
          <labels> (.Map => CurrLabel |-> CurrBlock ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0))
                   _Labels
@@ -785,59 +790,58 @@ When returning, we first `assert` that the post condition holds:
 -------------------
 
 ```k
-    syntax Stmt ::= "#call" Location OptionalFree OptionalCallLhs Id "(" ExprList ")" ";"
-    rule <k> #call _:Location _:OptionalFree (.Nothing => .IdList :=) _:Id(_:ExprList) ; ... </k>
+    syntax AssignRhs ::= "#call" Location OptionalFree Id "(" ExprList ")"
 ```
 
 ```k
-    context #call _Loc _OptFree _:IdList := _ProcedureName:Id(HOLE) ;
-    rule <k> #call Location OptFree X:IdList := ProcedureName:Id(ArgVals);:KItem
-          => #if OptFree ==K .Nothing
-             #then #assert #makeAssertionMessage(Location, "BP5002", "A precondition for this call might not hold.")
-                           (lambda IdsTypeWhereListToIdsTypeList(Args) :: Requires)[ArgVals];
-             #else .K
-             #fi
-        // ~> freshen(X ++IdList Mods)
-          ~> assume .AttributeList ( lambda IdsTypeWhereListToIdsTypeList(Args) ++IdsTypeList IdsTypeWhereListToIdsTypeList(Rets)
-                                         :: Ensures && FreeEnsures )
-                                   [ ArgVals ++ExprList IdListToExprList(X) ] ;
-             ...
+    context #call _Loc _OptFree _ProcedureName:Id(HOLE)
+    rule <k> ( #call Location _OptFree ProcedureName:Id(ArgVals) ~> Continuation)
+          => makeDecls(IArgs)
+          ~> makeAssignments(IdsTypeWhereListToIdList(IArgs), ArgVals) // Declare input arguments
+          ~> makeDecls(IRets)                                    // Declare output arguments
+          ~> VarDeclList                                         // Declare locals
+
+          // Requires clause are defined in terms of procedure args, and not the names used in the implementation body.
+          // We use a lambda to do the renaming.
+          ~> #assert #makeAssertionMessage(Location, "BP5002", "A precondition for this call might not hold.")
+                     (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires && FreeRequires)[IdsTypeWhereListToExprList(IArgs)];
+          ~> goto $start;
          </k>
-         <procName> ProcedureName </procName>
-         <args> Args </args>
-         <returns> Rets </returns>
-         <requires> Requires </requires>
-         <ensures> Ensures </ensures>
-         <freeEnsures> FreeEnsures </freeEnsures>
-       //  <modifies> Mods </modifies>
+         <stack> .Bag => <stackFrame>
+                           <currImpl> N </currImpl>
+                           <olds> Globals </olds>
+                           <locals> .Map </locals>
+                           <continuation> Continuation </continuation>
+                         </stackFrame>
+                ...
+         </stack>
+         <globals> Globals </globals>
+         <proc>
+           <procName> ProcedureName </procName>
+           <args> PArgs </args>
+           <requires> Requires </requires>
+           <freeRequires> FreeRequires </freeRequires>
+           <impl>
+              <implId> N </implId>
+              <iargs> IArgs </iargs>
+              <ireturns> IRets </ireturns>
+              <vars> VarDeclList </vars>
+              ...
+           </impl>
+           ...
+         </proc>
       requires isKResult(ArgVals)
 ```
 
+At program start, we simply call main.
+
 ```k
     syntax KItem ::= "#start"
-```
-
-In the case of the verification semantics, we verify all procedures:
-
-```k
+    syntax Id ::= "main" [token]
     rule <k> #start
-          => makeDecls(IArgs) ~> makeDecls(IRets) ~> VarDeclList
-          ~> assume .AttributeList (lambda IdsTypeWhereListToIdsTypeList(PArgs) :: Requires && FreeRequires)[IdsTypeWhereListToExprList(IArgs)] ;
-          ~> goto $start;
+          => #call {"boogie.md",0,0} .Nothing main(.ExprList)
+             ...
          </k>
-         (.CurrImplCell => <currImpl> N </currImpl>)
-         <globals> Globals </globals>
-         <olds> .Map => Globals </olds>
-         <args> PArgs </args>
-         <requires> Requires </requires>
-         <freeRequires> FreeRequires </freeRequires>
-         <impl>
-            <implId> N </implId>
-            <iargs> IArgs </iargs>
-            <ireturns> IRets </ireturns>
-            <vars> VarDeclList </vars>
-            ...
-         </impl>
 ```
 
 ```k

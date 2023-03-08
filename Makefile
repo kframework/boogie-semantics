@@ -6,6 +6,7 @@ BOOGIE_LLVM := .build/boogie-kompiled/timestamp
 boogie-llvm : ${BOOGIE_LLVM}
 .build/boogie-kompiled/timestamp : boogie.md helpers.md syntax.md quantification.md
 	kompile $< \
+	    --no-exc-wrap \
 	    --warnings-to-errors \
 	    --gen-bison-parser \
 	    --enable-search \
