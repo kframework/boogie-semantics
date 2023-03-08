@@ -24,5 +24,5 @@ test: ${test_targets}
 	mkdir -p $(dir $@)
 	krun --definition .build/boogie-kompiled --search-final --no-pattern $< > $@
 .PHONY : test/%.bpl.test
-test/%.bpl.test : .build/test/%.bpl.out test/%.bpl.expect
+test/%.bpl.test : .build/test/%.bpl.out test/%.bpl.opexpect
 	bin/diff-kboogie $^
