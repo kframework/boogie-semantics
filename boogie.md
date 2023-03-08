@@ -776,16 +776,16 @@ Non-deterministically transition to all labels
 9.6 Return statements
 ---------------------
 
-When returning, we first `assert` that the post condition holds:
+When returning, we first `assert` that the post condition holds, and then pop the stack.
 
 ```k
     syntax Stmt ::= "#return" Location ";"
-    rule <k> #return Location ;:KItem
+    rule <k> (#return Location ; ~> _:K)
           => #assert #makeAssertionMessage(Location, "BP5003", "A postcondition might not hold on this return path.")
                      (lambda IdsTypeWhereListToIdsTypeList(PArgs) ++IdsTypeList IdsTypeWhereListToIdsTypeList(PRets)
                           :: Ensures
                      ) [ IdsTypeWhereListToExprList(IArgs) ++ExprList IdsTypeWhereListToExprList(IRets) ] ;
-             ...
+          ~> IdsTypeWhereListToExprList(IRets)
          </k>
          <currImpl> CurrentImpl </currImpl>
          <iargs> IArgs </iargs>
@@ -794,6 +794,19 @@ When returning, we first `assert` that the post condition holds:
          <ensures> Ensures </ensures>
          <args> PArgs </args>
          <returns> PRets </returns>
+```
+
+```k
+    rule <k> Ret:ExprList
+          => Ret ~> Continuation
+         </k>
+         <stack> <stackFrame>
+                   <continuation> Continuation </continuation>
+                   ...
+                 </stackFrame> => .Bag
+                ...
+         </stack>
+      requires isKResult(Ret)
 ```
 
 9.9 Call statements
