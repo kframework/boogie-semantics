@@ -20,7 +20,7 @@ test: ${test_targets}
 
 .build/test/%.bpl.out: test/%.bpl ${BOOGIE_LLVM}
 	mkdir -p $(dir $@)
-	krun --definition .build/boogie-kompiled --search-final $< > $@
+	krun --definition .build/boogie-kompiled --search-final --no-pattern $< > $@
 .PHONY : test/%.bpl.test
 test/%.bpl.test : .build/test/%.bpl.out test/%.bpl.expect
 	bin/diff-kboogie $^
