@@ -214,11 +214,12 @@ Function application is map lookup:
     context HOLE _:RelOp _RHS
     context _LHS:ValueExpr _:RelOp HOLE
 
-    rule <k> LHS == RHS => LHS ==Int RHS ... </k>
-    rule <k> LHS <  RHS => LHS  <Int RHS ... </k>
-    rule <k> LHS >  RHS => LHS  >Int RHS ... </k>
-    rule <k> LHS <= RHS => LHS <=Int RHS ... </k>
-    rule <k> LHS >= RHS => LHS >=Int RHS ... </k>
+    rule <k> LHS == RHS => LHS ==Int  RHS ... </k>
+    rule <k> LHS != RHS => LHS =/=Int RHS ... </k>
+    rule <k> LHS <  RHS => LHS  <Int  RHS ... </k>
+    rule <k> LHS >  RHS => LHS  >Int  RHS ... </k>
+    rule <k> LHS <= RHS => LHS <=Int  RHS ... </k>
+    rule <k> LHS >= RHS => LHS >=Int  RHS ... </k>
 
     context HOLE _:AddOp _E2
     context _:ValueExpr _:AddOp HOLE
