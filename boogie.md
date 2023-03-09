@@ -433,27 +433,29 @@ Location Information
 Assertions are annotated with their location information:
 
 ```k
-    rule #location(assert _ Expr  ;, File, Line, Col, _, _)
-      => #assert {File, Line, Col} Expr ; [priority(51)]
+    rule <pp> #location(assert _ Expr  ;, File, Line, Col, _, _)
+           => #assert {File, Line, Col} Expr ;
+              ...
+         </pp> [priority(51)]
 ```
 
 Using `OptionalFree` at the begining of a production in the main syntax messes up line numbering.
 
 ```k
-    rule #location(     call Ids := ProcId(Args);, File, Line, Col, _, _) => (IdListToLhsList(Ids)  := #call {File,Line,Col} .Nothing ProcId(Args);):Stmt
-    rule #location(free call Ids := ProcId(Args);, File, Line, Col, _, _) => (IdListToLhsList(Ids)  := #call {File,Line,Col} free     ProcId(Args);):Stmt
-    rule #location(     call        ProcId(Args);, File, Line, Col, _, _) => .LhsList               := #call {File,Line,Col} .Nothing ProcId(Args);
-    rule #location(free call        ProcId(Args);, File, Line, Col, _, _) => .LhsList               := #call {File,Line,Col} free     ProcId(Args);
+    rule <pp> #location(     call Ids := ProcId(Args);, File, Line, Col, _, _) => (IdListToLhsList(Ids)  := #call {File,Line,Col} .Nothing ProcId(Args);):Stmt ... </pp>
+    rule <pp> #location(free call Ids := ProcId(Args);, File, Line, Col, _, _) => (IdListToLhsList(Ids)  := #call {File,Line,Col} free     ProcId(Args);):Stmt ... </pp>
+    rule <pp> #location(     call        ProcId(Args);, File, Line, Col, _, _) => .LhsList               := #call {File,Line,Col} .Nothing ProcId(Args);       ... </pp>
+    rule <pp> #location(free call        ProcId(Args);, File, Line, Col, _, _) => .LhsList               := #call {File,Line,Col} free     ProcId(Args);       ... </pp>
 ```
 
 ```k
-    rule #location(return ;, File, Line, Col, _, _) => #return {File, Line, Col} ;
+    rule <pp> #location(return ;, File, Line, Col, _, _) => #return {File, Line, Col} ; ... </pp>
 ```
 
 Other statements don't need location information:
 
 ```k
-    rule #location(Stmt, _File, _StartLine, _StartCol, _EndLine, _EndCol) => Stmt:Stmt [priority(52)]
+    rule <pp> #location(Stmt, _File, _StartLine, _StartCol, _EndLine, _EndCol) => Stmt:Stmt ... </pp> [priority(52)]
 ```
 
 
@@ -593,16 +595,16 @@ When we encounter a new label or reach the end of the body, we must finalize the
 
 ```k
     syntax KItem ::= "#finalizeBlock"
-    rule <pp> (.K => #finalizeBlock) ~>  _Label : ... </pp>
+    rule <pp> (.K => #location(return;, "boogie.md", 0, 0, 0, 0) ~> #finalizeBlock) ~>  _Label : ... </pp>
          <currLabel> _:Label </currLabel>
-    rule <pp> (.K => #finalizeBlock) </pp>
+    rule <pp> (.K => #location(return;, "boogie.md", 0, 0, 0, 0) ~> #finalizeBlock) </pp>
          <currLabel> _:Label </currLabel>
     rule <pp> #finalizeBlock => .K ... </pp>
          <currLabel> CurrLabel => .Nothing </currLabel>
          <currBlock> CurrBlock </currBlock>
          <ppCurrImpl> ImplId </ppCurrImpl>
          <implId> ImplId </implId>
-         <labels> (.Map => CurrLabel |-> CurrBlock ++StmtList #location( return;, "boogie.md", 0, 0, 0, 0))
+         <labels> (.Map => CurrLabel |-> CurrBlock)
                   _Labels
          </labels>
 ```
