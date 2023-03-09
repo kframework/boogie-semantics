@@ -6,8 +6,9 @@ procedure main ()
 {
   var inc : int ;
   inc := 100;
-  while (*) invariant inc > 99; {
+  while (*) invariant inc < 200; // fail
+  {
       inc:= inc + 5;
   }
-  assert inc > 99;
+  assert inc > 100; // fail
 }
