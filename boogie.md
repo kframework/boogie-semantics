@@ -689,9 +689,9 @@ When we encounter a new label or reach the end of the body, we must finalize the
 ```k
     context assume _ HOLE ;
     rule <k> assume _ true ; => .K      ... </k>
-//    rule <k> assume _ false; => #Bottom ... </k>
-    rule <k> assume _ false; ~> _:K => .K </k>
-         <locals> _ => .Map </locals>
+    rule <k> assume _ false; ~> _:K => #assumeFailed </k>
+
+    syntax KItem ::= "#assumeFailed"
 ```
 
 9.3 Assignments
